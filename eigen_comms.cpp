@@ -14,15 +14,9 @@
 #endif
 
 #define IN_BUFFER_SIZE          (255)
-#define UPDATE_PERIOD           (100)
-#define UPDATE_TOPOLOGY_PERIOD  (1000)
-#define UPDATE_STATUS_PERIOD    (250)
-#define PACKET_TIMEOUT          (600)
 
 #define ADDR_PARAM              (1)
 #define TYPE_PARAM              (2)
-
-using ModuleShared = std::shared_ptr<Module>;
 
 //Private Variables
 static uint16_t (*read_data)(uint8_t *buf, uint16_t max_len, int t_wait_ms);
@@ -33,13 +27,13 @@ static uint64_t t_last_update_poll = 0;
 static uint64_t t_last_status_poll = 0;
 static uint64_t t_init = 0;
 
-static uint64_t sent_packets = 0;
-static uint64_t dropped_packets = 0;
-static uint64_t successful_packets = 0;
-static uint64_t unrequested_packets = 0;
-static uint64_t retried_packets = 0;
+//static uint64_t sent_packets = 0;
+//static uint64_t dropped_packets = 0;
+//static uint64_t successful_packets = 0;
+//static uint64_t unrequested_packets = 0;
+//static uint64_t retried_packets = 0;
 static uint64_t frame_time = 0;
-static std::string last_dropped = "";
+//static std::string last_dropped = "";
 
 //Module data structure
 //static std::map<uint8_t, Module *> module_map;
@@ -51,11 +45,7 @@ static std::deque<module_update *> update_list;
 static std::mutex update_mutex;
 static std::deque<eigen_command *> cmd_list;
 static std::mutex cmd_mutex;
-static std::deque<raw_packet *> raw_packet_list;
-static std::mutex raw_packet_mutex;
 
-//Internal deque, does not need to be thread safe
-static std::deque<EigenPacketFilter> packet_filter_list;
 static std::deque<std::string> bootloader_data;
 static std::deque<std::string> packet_queue;
 
@@ -254,7 +244,7 @@ void clear_module_list(){
     }*/
 }
 
-raw_packet *get_raw_packet(){
+/*raw_packet *get_raw_packet(){
     raw_packet *retval;
     std::lock_guard<std::mutex> lock(raw_packet_mutex);
 
@@ -266,9 +256,9 @@ raw_packet *get_raw_packet(){
     }
 
     return retval;
-}
+}*/
 
-void add_raw_packet(std::string pkt_string, packet_type type, uint8_t dir){
+/*void add_raw_packet(std::string pkt_string, packet_type type, uint8_t dir){
     if(communication_config.raw_packet_en == EIGEN_DISABLED) return;
 
     std::lock_guard<std::mutex> lock(raw_packet_mutex);
@@ -279,8 +269,9 @@ void add_raw_packet(std::string pkt_string, packet_type type, uint8_t dir){
     pkt->type = type;
     pkt->dir = dir;
     raw_packet_list.push_back(pkt);
-}
+}*/
 
+/*
 void add_packet(uint8_t address, std::string pkt_string, std::string filter, packet_type packet = EIGEN_PACKET_DEFAULT){
     //Add the filter to the filter list and the raw packet to the raw packet list if it is not empty
     packet_filter_list.push_back(EigenPacketFilter(address, filter, packet, pkt_string));
@@ -289,8 +280,8 @@ void add_packet(uint8_t address, std::string pkt_string, std::string filter, pac
 
     //Track that we sent a packet
     sent_packets++;
-}
-
+}*/
+/*
 void handle_timeout_packets(){
     //Newest packets are put into this queue from the back. Will be sorted in order of time because of this
     //Clear the timed out packets from the front of the queue
@@ -317,8 +308,8 @@ void handle_timeout_packets(){
         packet_filter_list.pop_front();
         it = packet_filter_list.begin();
     }
-}
-
+}*/
+/*
 void handle_successful_packets(){
     auto it = packet_filter_list.begin();
     //Check for successful packets and remove them from the list
@@ -335,8 +326,8 @@ void handle_successful_packets(){
             successful_packets++;
         }
     }
-}
-
+}*/
+/*
 bool match_response(uint8_t address, std::string packet){
     //Search our filter list for a matching packet
     auto it = packet_filter_list.begin();
@@ -367,7 +358,7 @@ bool match_response(uint8_t address, std::string packet){
     }
 
     return false;
-}
+}*/
 
 void clean_module_list(){
 #ifndef MODULE_TEST
@@ -494,6 +485,7 @@ void process_packet(uint8_t *buffer, uint8_t len) {
 
         switch (buffer[3]) { //Terrible code for parsing feedback packets
             case 'S': {
+                /*
                 //module->clear_downstream();
                 uint8_t count = 0;
                 uint8_t topology_updated = 0;
@@ -515,20 +507,16 @@ void process_packet(uint8_t *buffer, uint8_t len) {
                         uint8_t ind = count - 2; //index in the downstream list
 
                         topology_updated |= module->update_downstream(ind, down);
-                        /*if(down != 0xFF && mod != NULL){ //If it is a valid address and the module exists
-                            module->update_downstream(ind, down);
-                        } else {
-                            module->update_downstream(ind, down);
-                        }*/
+                        
                     }
                     ptr = (uint8_t *)strtok (NULL, ",");
                     count++;
                 }
-                /* If we got updated topology info */
                 if(topology_updated)
                     add_module_update(addr, MODULE_DOWNSTREAM);
 
                 break;
+                */
             }
             case 'N': {
                 ptr = buffer + 4;
@@ -854,6 +842,8 @@ int service_eigen_comms() {
         case CMD_ZERO: {
             set_zero(cmd->address);
             break;
+        } case CMD_FIRMWARE_UTIL: {
+            firmware_utility(cmd->address, cmd->arg1);
         } default:
             break;
         }
@@ -1506,8 +1496,6 @@ bool bootloader_parse_packet(std::string data, uint8_t *buf, uint8_t len){
     }
 }
 
-#include <QDebug>
-
 int bootloader_read_data(uint8_t* buf, int len){
     uint64_t t_start = current_time_ms();
     uint64_t t_last = t_start;
@@ -1711,499 +1699,10 @@ std::string bootloader_print_error(int retval){
 }
 #endif
 
-/* Module class code */
 
-Module::Module(uint8_t address){
-    this->address = address;
-    this->position_ = 0;
-    this->velocity_ = 0;
-    this->effort_ = 0;
-    this->encoder_status = 0;
-
-    this->last_position_cmd = NAN;
-    this->last_velocity_cmd = NAN;
-    this->last_effort_cmd = NAN;
-
-    this->firmware_version = "N/A";
-    this->firmware_build_name = "N/A";
-    this->firmware_tag = "N/A";
-    this->firmware_build_time = "N/A";
-
-    this->t_last_update = current_time_ms();
-    this->stale = false;
-
-    this->command_support = 0;
-    this->UID = 0; //The actual UID of a chip being 0 should be next to impossible
-
-    this->sync_ind = 0;
-    this->sync_reg = 0;
-    this->status_code = 0;
-    this->module_status = "N/A";
-    for(uint8_t i = 0; i < MAX_LED_CODE_LEN + 1; i++){
-        this->LED_code[i] = 0;
-    }
-    this->t_sync = current_time_ms();
-    this->last_debug_msg = "N/A";
-
-    this->t_last_param_update = current_time_ms();
-}
-
-Module::~Module(){
-
-}
-
-void Module::update_parameter(uint8_t param, uint64_t value){
-    std::lock_guard<std::mutex> lock(mutex);
-
-    if(param >= param_list.size()) return;
-    param_list[param].value = value;
-
-    if(param == TYPE_PARAM){
-        this->type = value;
-    }
-}
-
-uint64_t Module::read_parameter(uint8_t param){
-    std::lock_guard<std::mutex> lock(mutex);
-
-    if(param >= param_list.size()) return -1;
-    uint64_t retval = param_list[param].value;
-
-    return retval;
-}
-
-std::string Module::print_parameter(uint8_t param) const{
-    std::lock_guard<std::mutex> lock(mutex);
-    if(param > param_list.size()) return "ERR\n";
-
-    uint8_t s[32];
-
-    module_param mod_param = param_list[param];
-    switch(mod_param.type){
-    case _UINT8: {
-        snprintf((char *)s, 32, "%u\n", (uint8_t)mod_param.value);
-        break;
-    } case _UINT16: {
-        snprintf((char *)s, 32, "%u\n", (uint16_t)mod_param.value);
-        break;
-    } case _UINT32: {
-        snprintf((char *)s, 32, "%u\n", (uint32_t)mod_param.value);
-        break;
-    } case _UINT64: {
-        snprintf((char *)s, 32, "%llu\n", mod_param.value);
-        break;
-    } case _FLOAT: {
-        snprintf((char *)s, 32, "%08.4f\n", *(float *)(&(mod_param.value)));
-        break;
-    } case _DOUBLE: {
-        snprintf((char *)s, 32, "%08.4f\n", *(double *)(&(mod_param.value)));
-        break;
-    } default: {
-        snprintf((char *)s, 32, "ERR\n");
-        break;
-    }
-    }
-
-    return std::string((char *)s);
-}
-
-void Module::add_parameter(uint8_t id, uint8_t type, std::string name){
-    std::lock_guard<std::mutex> lock(mutex);
-
-    module_param null_param;
-    null_param.value = 0;
-    null_param.dirty = 0;
-    null_param.type = 0;
-    null_param.name = "";
-
-    if(id >= param_list.size()){
-        //If the ID is past the end, resize to include it
-        param_list.resize(id+1, null_param);
-    }
-
-    if(param_list[id].type == 0)
-        received_params++;
-
-    module_param param;
-    param.value = 0;
-    param.dirty = 0;
-    param.type = type;
-    param.name = name;
-
-    //Update the param list
-    param_list[id] = param;
-}
-
-std::string Module::parameter_name(uint8_t id) const{
-    std::lock_guard<std::mutex> lock(mutex);
-    if(id >= param_list.size()) return "ERR";
-
-    std::string retval = param_list[id].name;
-    return retval;
-}
-
-void Module::set_param_last_update(){
-    t_last_param_update = current_time_ms();
-}
-
-void Module::set_expected_parameters(uint8_t num_parameters){
-    this->expected_num_params = num_parameters;
-}
-
-uint8_t Module::parameters_left() const{
-    //TODO: Some sort of error fixing here. If this is wrong, we need to re check everything
-    if(received_params > expected_num_params) return 0;
-
-    return expected_num_params - received_params;
-}
-
-uint64_t Module::d_t_param_last_update() const{
-    return current_time_ms() - t_last_param_update;
-}
-
-void Module::add_downstream(uint8_t node_addr){
-    std::lock_guard<std::mutex> lock(mutex);
-
-    module_down_port port;
-    port.addr_current = node_addr;
-    port.addr_diff = node_addr;
-    port.consistency_count = 0;
-    downstream_list.push_back(port);
-}
-
-uint8_t Module::update_downstream(uint8_t ind, uint8_t node_addr){
-    std::lock_guard<std::mutex> lock(mutex);
-
-    module_down_port empty_port;
-    empty_port.addr_current = 0xFF;
-    empty_port.addr_diff = 0xFF;
-    empty_port.consistency_count = 0;
-    empty_port.name = "N/A";
-
-    //If the list does not have an entry yet, add one
-    if(ind >= downstream_list.size()){
-        downstream_list.resize(ind + 1, empty_port);
-    }
-
-    //If the port name is invalid, ask for the name again
-    if(downstream_list[ind].name == "N/A"){
-        firmware_utility(address, EIGEN_UTIL_MODULE_PORTS);
-    }
-
-    module_down_port downstream = downstream_list[ind];
-    uint8_t retval = 0;
-    //If the address differs from what we currently have stored, we have to do some more checks
-    if(node_addr != downstream.addr_current){
-        //If this is the first time we see this new value, then mark the consistency count as 0
-        if(node_addr != downstream.addr_diff){
-            downstream.addr_diff = node_addr;
-            downstream.consistency_count = 0;
-        } else {
-            //If this is not the first time we have seen this value, then increment the counter
-            downstream.consistency_count++;
-
-            //If we have seen the value enough times, then update the struct
-            if(downstream.consistency_count == TOPOLOGY_CONSISTENCY_COUNT){
-                downstream.addr_current = node_addr;
-                downstream.addr_diff = node_addr;
-                retval = 1;
-            } else {
-                //If we haven't seen the value enough times yet, keep checking to make sure it is correct
-                add_command(address, CMD_POLL_TOPOLOGY, 0 /* Unused Value */);
-            }
-        }
-        downstream_list[ind] = downstream;
-    }
-
-    return retval;
-}
-
-void Module::clear_downstream(){
-    std::lock_guard<std::mutex> lock(mutex);
-    downstream_list.clear();
-}
-
-void Module::set_downstream_name(uint8_t ind, std::string name){
-    std::lock_guard<std::mutex> lock(mutex);
-
-    module_down_port empty_port;
-    empty_port.addr_current = 0xFF;
-    empty_port.addr_diff = 0xFF;
-    empty_port.consistency_count = 0;
-    empty_port.name = "N/A";
-
-    //If the list does not have an entry yet, add one
-    if(ind >= downstream_list.size()){
-        downstream_list.resize(ind + 1, empty_port);
-    }
-
-    module_down_port downstream = downstream_list[ind];
-    downstream.name = name;
-    downstream_list[ind] = downstream;
-}
-
-/* print_topology:
- * Prints out a list of downstream modules in the following format:
- * T<address>,<downstream 1>,...,<downstream n>\n
-*/
-std::string Module::print_topology() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    uint8_t s[128];
-    uint8_t offset = 0;
-
-    //Print the header
-    offset += snprintf((char *)(s + offset), 128 - offset, " {\"id\":\"%02X\", \"type\":\"%02X\", \"orientation\":\"%02X\", \"children\":[", address, type, orientation);
-
-    //Print the body
-    for(auto item : downstream_list){
-        offset += snprintf((char *)(s + offset), 128 - offset, "\"%02X\",", item.addr_current);
-    }
-
-    //Demarcate the end
-    offset += snprintf((char *)(s + offset - 1), 128 - offset, "]}, ");
-
-    return std::string((char *)s);
-}
-
-void Module::update_UID(uint64_t UID_){
-    std::lock_guard<std::mutex> lock(mutex);
-
-    if(UID == 0){ //If this is the first time we have seen a UID
-        UID = UID_;
-    } else if(UID != UID_){ //If we already have a UID and this one doesn't match, there must be a conflict.
-        add_command(this->address, CMD_UID_WR_ADDR, UID_); //Add a command to resolve this conflict
-    }
-}
-
-uint64_t Module::get_UID() const{
-    return UID;
-}
-
-void Module::update_type(uint8_t type_){
-    std::lock_guard<std::mutex> lock(mutex);
-
-    type = type_;
-}
-
-void Module::update_orientation(uint8_t orientation_){
-    std::lock_guard<std::mutex> lock(mutex);
-
-    orientation = orientation_;
-}
-
-std::vector<module_down_port> Module::downstream() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    return downstream_list;
-}
-
-uint8_t Module::parameter_type(uint8_t id) const{
-    std::lock_guard<std::mutex> lock(mutex);
-    if(id >= param_list.size()) return 0;
-
-    uint8_t retval = param_list[id].type;
-    return retval;
-}
-
-std::string Module::print_mod_name() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    uint8_t s[32];
-
-    snprintf((char *)s, 32, "Module %d", address);
-    return std::string((char *)s);
-}
-
-std::string Module::print_UID() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    uint8_t s[32];
-
-    snprintf((char *)s, 32, "u%016llX", UID);
-    return std::string((char *)s);
-}
-
-std::string Module::print_type() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    uint8_t s[32];
-
-    snprintf((char *)s, 32, "Type: %d", type);
-    return std::string((char *)s);
-}
-
-uint8_t Module::get_type() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    return type;
-}
-
-uint8_t Module::get_hardware_type() const{
-    std::lock_guard<std::mutex> lock(mutex);
-
-    switch(type){
-        case NODE_TYPE_WHEEL:           return HARDWARE_EIGEN;
-        case NODE_TYPE_TWIST:           return HARDWARE_EIGEN;
-        case NODE_TYPE_BEND:            return HARDWARE_EIGEN;
-        case NODE_TYPE_GRIPPER_FOOT:    return HARDWARE_EIGEN;
-        case NODE_TYPE_GRIPPER:         return HARDWARE_EIGEN;
-        case NODE_TYPE_O_6:             return HARDWARE_O6;
-        case NODE_TYPE_BATTERY:         return HARDWARE_MISC;
-        case NODE_TYPE_EIGENBODY:       return HARDWARE_HUB_9;
-        case NODE_TYPE_TEE:             return HARDWARE_EIGEN;
-        case NODE_TYPE_FOOT:            return HARDWARE_EIGEN;
-        case NODE_TYPE_STAT_NO_BEND:    return HARDWARE_EIGEN;
-        case NODE_TYPE_STAT_45_BEND:    return HARDWARE_EIGEN;
-        case NODE_TYPE_STAT_90_BEND:    return HARDWARE_EIGEN;
-        case NODE_TYPE_HUB_9:           return HARDWARE_HUB_9;
-        default:                        return HARDWARE_MISC;
-    }
-}
-
-std::string Module::print_orientation() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    uint8_t s[32];
-
-    snprintf((char *)s, 32, "Orientation: %d", orientation);
-    return std::string((char *)s);
-}
-
-uint16_t Module::get_encoder_status() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    return this->encoder_status;
-}
-
-void Module::set_encoder_status(uint16_t status){
-    std::lock_guard<std::mutex> lock(mutex);
-    this->encoder_status = status;
-}
-
-double Module::position() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    return this->position_;
-}
-
-double Module::velocity() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    return this->velocity_;
-}
-
-double Module::effort() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    return this->effort_;
-}
-
-void Module::set_position(double position){
-    std::lock_guard<std::mutex> lock(mutex);
-    this->position_ = position;
-}
-
-void Module::set_velocity(double velocity){
-    std::lock_guard<std::mutex> lock(mutex);
-    this->velocity_ = velocity;
-}
-
-void Module::set_effort(double effort){
-    std::lock_guard<std::mutex> lock(mutex);
-    this->effort_ = effort;
-}
-
-uint8_t Module::get_address() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    return this->address;
-}
-
-std::string Module::print_encoder_status() const{
-    if(encoder_status == 00)                    return "Working Correctly";
-
-    if(encoder_status & ENC_ACCELERATION_ERROR) return "Acceleration Error";
-    if(encoder_status & ENC_MAG_PATTERN_ERROR)  return "Magnetic Pattern Error";
-    if(encoder_status & ENC_SYSTEM_ERROR)       return "System Error";
-    if(encoder_status & ENC_SUPPLY_ERROR)       return "Supply Error";
-
-    if(encoder_status & ENC_TEMP_WARNING)       return "Temperature Warning";
-    if(encoder_status & ENC_SIG_LOST_ERROR)     return "Signal Lost Error";
-    if(encoder_status & ENC_SIG_AMP_LOW_WARN)   return "Signal Amplitude Low";
-    if(encoder_status & ENC_SIG_AMP_HIGH_WARN)  return "Signal Amplitude High";
-
-    if(encoder_status & ENC_OP_LIMITS_WARNING)  return "Output Limits Warning";
-    if(encoder_status & ENC_DATA_INVALID_ERROR) return "Data Invalid Error";
-    if(encoder_status & ENC_ENC_CONFIG_ERROR)   return "Config Error";
-    if(encoder_status & ENC_SENSOR_READ_ERROR)  return "Sensor Read Error";
-
-    if(encoder_status & ENC_MAG_SENSOR_ERROR)   return "Magnetic Sensor Error";
-    if(encoder_status & ENC_SIG_AMP_WARNING)    return "Signal Amplitude Warning";
-    if(encoder_status & ENC_SIG_AMP_ERROR)      return "Signal Amplitude Error";
-    if(encoder_status & ENC_COUNTER_ERROR)      return "Counter Error";
-}
 
 std::vector<ModuleShared> *get_module_list(){
     return &module_list;
-}
-
-/* Eigen Packet Class Definitions */
-//TODO: What to do when we expect multiple responses to a packet, and do not know how many?
-EigenPacketFilter::EigenPacketFilter(uint8_t address, std::string response_filter,
-                                     packet_type packet, std::string packet_string){
-    this->address = address;
-    this->response_filter = response_filter;
-    this->t_sent = current_time_ms();
-    this->classification = packet;
-    this->packet_string_ = packet_string;
-    this->retries = 0;
-}
-
-EigenPacketFilter::~EigenPacketFilter(){
-    this->matched_responses.clear();
-    this->matched_addresses.clear();
-}
-
-bool EigenPacketFilter::expects_response(){
-    return response_filter != "";
-}
-
-uint8_t EigenPacketFilter::num_responses(){
-    //Should not get more than 255 responses to a single request. If we do, there is something wrong
-    return matched_responses.size();
-}
-
-bool EigenPacketFilter::matches_filter(uint8_t address, std::string packet){
-    if(!is_broadcast() && address != this->address) return false;
-    if(matched_addresses.count(address) == 0){
-        if(packet.find(response_filter) != std::string::npos){
-            return true;
-        }
-    }
-    return false;
-}
-
-void EigenPacketFilter::add_response(uint8_t address, std::string response){
-    //Change to end of list for better efficiency?
-    matched_responses.insert(matched_responses.begin(), response);
-    matched_addresses.insert(address);
-}
-
-bool EigenPacketFilter::packet_timeout(){
-    return (current_time_ms() - t_sent) > PACKET_TIMEOUT;
-}
-
-bool EigenPacketFilter::is_broadcast(){
-    return address == 0xFF;
-}
-
-packet_type EigenPacketFilter::get_type(){
-    return this->classification;
-}
-
-uint8_t EigenPacketFilter::num_retries(){
-    return retries;
-}
-
-void EigenPacketFilter::increment_retry_count(){
-    retries++;
-}
-
-void EigenPacketFilter::reset_timeout(){
-    t_sent = current_time_ms();
-}
-
-std::string EigenPacketFilter::packet_string(){
-    return this->packet_string_;
 }
 
 /* Clear on read */

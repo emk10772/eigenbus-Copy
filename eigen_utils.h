@@ -1,0 +1,134 @@
+#ifndef EIGEN_UTILS_H
+#define EIGEN_UTILS_H
+
+#include <stdint.h>
+#include <vector>
+#include <string>
+#include <mutex>
+
+/* Common Timeouts / Periods in milliseconds */
+#define UPDATE_PERIOD           (100)
+#define UPDATE_TOPOLOGY_PERIOD  (1000)
+#define UPDATE_STATUS_PERIOD    (250)
+#define PACKET_TIMEOUT          (600)
+
+/* POLL DEFINITIONS */
+#define EIGEN_POLL_LOCATION         (0x01)
+#define EIGEN_POLL_VELOCITY         (0x02)
+#define EIGEN_POLL_ACCELERATION     (0x04)
+#define EIGEN_POLL_TORQUE           (0x08)
+#define EIGEN_POLL_EFFORT           (0x10)
+#define EIGEN_POLL_IMU              (0x20)
+#define EIGEN_POLL_ENC_STATUS       (0x40)
+#define EIGEN_POLL_RESERVED         (0x80)
+
+/* Encoder Status bits */
+#define ENC_COUNTER_ERROR       (0x01 << 15)
+#define ENC_SIG_AMP_ERROR       (0x01 << 14)
+#define ENC_SIG_AMP_WARNING     (0x01 << 13)
+#define ENC_MAG_SENSOR_ERROR    (0x01 << 12)
+#define ENC_SENSOR_READ_ERROR   (0x01 << 11)
+#define ENC_ENC_CONFIG_ERROR    (0x01 << 10)
+#define ENC_DATA_INVALID_ERROR  (0x01 << 9)
+#define ENC_OP_LIMITS_WARNING   (0x01 << 8)
+#define ENC_SIG_AMP_HIGH_WARN   (0x01 << 7)
+#define ENC_SIG_AMP_LOW_WARN    (0x01 << 6)
+#define ENC_SIG_LOST_ERROR      (0x01 << 5)
+#define ENC_TEMP_WARNING        (0x01 << 4)
+#define ENC_SUPPLY_ERROR        (0x01 << 3)
+#define ENC_SYSTEM_ERROR        (0x01 << 2)
+#define ENC_MAG_PATTERN_ERROR   (0x01 << 1)
+#define ENC_ACCELERATION_ERROR  (0x01 << 0)
+
+#define EIGEN_ENABLED               (0x01)
+#define EIGEN_DISABLED              (0x00)
+
+#define EIGEN_PACKET_SEND           (0x01)
+#define EIGEN_PACKET_RECV           (0x02)
+
+/* Command Support Definitions */
+#define POSITION_CAPABLE    (0x01)
+#define SPEED_CAPABLE       (0x02)
+#define EFFORT_CAPABLE      (0x04)
+
+/* Param Types */
+#define _UINT8                  (1)
+#define _UINT16                 (2)
+#define _UINT32                 (3)
+#define _FLOAT                  (4)
+#define _UINT64                 (5)
+#define _DOUBLE                 (6)
+
+/* Sizes in EEPROM */
+#define S_UINT8                 (1)
+#define S_UINT16                (2)
+#define S_UINT32                (4)
+#define S_FLOAT                 (4)
+#define S_UINT64                (8)
+#define S_DOUBLE                (8)
+
+#define TOPOLOGY_CONSISTENCY_COUNT (3)
+
+/* Firmware Utility Commands */
+#define EIGEN_UTIL_STAT_CODE            (0x001)
+#define EIGEN_UTIL_COMMIT_VERSION       (0x002)
+#define EIGEN_UTIL_BUILD_TIME           (0x004)
+#define EIGEN_UTIL_BUILD_USER           (0x008)
+#define EIGEN_UTIL_GIT_DESCRIBE         (0x010)
+#define EIGEN_UTIL_MODULE_STATUS        (0x020)
+#define EIGEN_UTIL_MODULE_CAPABILITY    (0x040)
+#define EIGEN_UTIL_MODULE_UID           (0x080)
+#define EIGEN_UTIL_MODULE_PORTS         (0x100)
+#define EIGEN_UTIL_DISABLE_CHECKSUM     (0x200)
+
+/* Node Types
+    Documented Here: https://docs.google.com/document/d/10HxQWy6gR4vNm7ubD_OZE42J9Y9vgy9ribtj6P2n49I/edit?usp=sharing
+*/
+#define NODE_TYPE_WHEEL         (1)
+#define NODE_TYPE_TWIST         (2)
+#define NODE_TYPE_BEND          (3)
+#define NODE_TYPE_GRIPPER_FOOT  (4)
+#define NODE_TYPE_GRIPPER       (5)
+#define NODE_TYPE_O_6           (6)
+#define NODE_TYPE_BATTERY       (7)
+#define NODE_TYPE_EIGENBODY     (8)
+#define NODE_TYPE_TEE           (9)
+#define NODE_TYPE_FOOT          (10)
+#define NODE_TYPE_STAT_NO_BEND  (11)
+#define NODE_TYPE_STAT_45_BEND  (12)
+#define NODE_TYPE_STAT_90_BEND  (13)
+#define NODE_TYPE_HUB_9         (14)
+#define NODE_TYPE_MAX           (NODE_TYPE_HUB_9)
+
+/* Hardware Types */
+#define HARDWARE_O6             (0)
+#define HARDWARE_EIGEN          (1)
+#define HARDWARE_HUB_9          (2)
+#define HARDWARE_MISC           (3)
+
+/* Orientation */
+#define ORIENTATION_NONE        (0)
+#define ORIENTATION_MAX         (8)
+
+typedef uint8_t eigen_addr_t;
+
+//Function source:
+//    https://stackoverflow.com/questions/59572907/why-strtok-takes-a-char-and-not-a-const-char
+
+inline std::vector<std::string> stringtok (const std::string& s, const std::string& delim)
+{
+    std::vector<std::string> v {};  /* vector of strings for tokens */
+    size_t beg = 0, end = 0;        /* begin and end positons in str */
+
+    /* while non-delimiter char found */
+    while ((beg = s.find_first_not_of (delim, end)) != std::string::npos) {
+        end = s.find_first_of (delim, beg);       /* find delim after non-delim */
+        v.push_back (s.substr (beg, end - beg));  /* add substr to vector */
+        if (end == std::string::npos)             /* if last delim, break */
+            break;
+    }
+
+    return v;   /* return vector of tokens */
+}
+
+#endif
