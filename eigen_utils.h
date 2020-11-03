@@ -68,6 +68,7 @@
 #define S_DOUBLE                (8)
 
 #define TOPOLOGY_CONSISTENCY_COUNT (3)
+#define EIGENBUS_BASE           (16)
 
 /* Firmware Utility Commands */
 #define EIGEN_UTIL_STAT_CODE            (0x001)

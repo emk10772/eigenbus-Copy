@@ -1,5 +1,5 @@
-#ifndef EIGEN_PACKET_H
-#define EIGEN_PACKET_H
+#ifndef EIGEN_PACKET_FILTER_H
+#define EIGEN_PACKET_FILTER_H
 
 #include "eigen_utils.h"
 #include <set>
