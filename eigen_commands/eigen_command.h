@@ -1,128 +1,31 @@
-#ifndef MODULE_H
-#define MODULE_H
+#ifndef EIGEN_COMMAND_H
+#define EIGEN_COMMAND_H
 
+#include "../eigen_comms.h"
 #include <stdint.h>
-#include <vector>
 #include <string>
-#include <mutex>
+#include "../eigen_packet_filter.h"
 
-#define MAX_LED_CODE_LEN (5)
-
-typedef struct module_param_struct{
-    uint8_t dirty;
-    uint8_t type;
-    std::string name;
-    uint64_t value;
-} module_param;
-
-typedef struct module_down_struct{
-    uint8_t addr_current;
-    uint8_t addr_diff;
-    uint8_t consistency_count;
-    std::string name;
-} module_down_port;
-
-/* Module class
-    Used to store information about modules for use by the program
-*/
-class Module{
+class EigenCommand{
 public:
-    Module(uint8_t address);
-    ~Module();
+    EigenCommand(eigen_addr_t address);
+    ~EigenCommand();
 
-private:
-    uint8_t address;
-    double position_;
-    double velocity_;
-    double effort_;
-    uint16_t encoder_status;
-    mutable std::mutex mutex;
-    uint64_t UID;
-    uint8_t type;
-    uint8_t orientation;
+    virtual std::string packet();
+    virtual std::string expected_response();
+    virtual packet_type type();
+    void update_module(ModuleShared mod);
 
-    //Parameters
-    std::vector<module_param> param_list;
-    uint64_t t_last_param_update;
-    uint8_t expected_num_params;
-    uint8_t received_params;
-
-    std::vector<module_down_port> downstream_list;
-
-public:
-    void set_encoder_status(uint16_t status);
-    void set_position(double position);
-    void set_velocity(double velocty);
-    void set_effort(double effort);
-    void add_downstream(uint8_t node_addr);
-    uint8_t update_downstream(uint8_t ind, uint8_t node_addr);
-    void set_downstream_name(uint8_t ind, std::string name);
-    void clear_downstream();
-    std::vector<module_down_port> downstream() const;
-    std::string print_topology() const;
-
-    void update_UID(uint64_t UID_);
-    void update_type(uint8_t type_);
-    void update_orientation(uint8_t orientation_);
-
-    uint16_t get_encoder_status() const;
-    double position() const;
-    double velocity() const;
-    double effort() const;
-    uint8_t get_address() const;
-    std::string print_mod_name() const;
-    std::string print_UID() const;
-    uint64_t get_UID() const;
-    std::string print_type() const;
-    uint8_t get_type() const;
-    uint8_t get_hardware_type() const;
-    std::string print_orientation() const;
-
-    double last_position_cmd;
-    double last_velocity_cmd;
-    double last_effort_cmd;
-
-    //Firmware version
-    std::string firmware_version;
-    std::string firmware_build_name;
-    std::string firmware_build_time;
-    std::string firmware_tag;
-
-    std::string last_debug_msg;
-    uint64_t t_last_update;
-
-    //Status info
-    std::string module_status;
-    uint8_t status_code;
-    uint8_t sync_ind;
-    uint16_t sync_reg;
-    uint8_t LED_code[MAX_LED_CODE_LEN + 1];
-    uint64_t t_sync;
-    bool stale;
-
-    //Command Support vector
-    uint8_t command_support;
-
-    //Functions
-    std::string print_encoder_status() const;
-
-    bool operator<(Module other) const{
-        return address < other.address;
-    }
-    bool operator<(uint8_t other) const{
-        return address < other;
-    }
-
-    void add_parameter(uint8_t id, uint8_t type, std::string name);
-    void update_parameter(uint8_t param, uint64_t value);
-    uint64_t read_parameter(uint8_t param);
-    void set_param_last_update();
-    void set_expected_parameters(uint8_t num_parameters);
-    uint8_t parameters_left() const;
-    uint64_t d_t_param_last_update() const;
-    std::string print_parameter(uint8_t param) const;
-    std::string parameter_name(uint8_t id) const;
-    uint8_t parameter_type(uint8_t id) const;
-
+    const eigen_addr_t address_;
 };
-#endif // MODULE_H
+
+#define MAX_COMMAND_OUT (128)
+template< typename... argv >
+inline std::string strprintf(const char* format, argv... args){
+    char buffer[MAX_COMMAND_OUT];
+
+    snprintf(buffer, MAX_COMMAND_OUT, format, args);
+    return std::string(buffer);
+}
+
+#endif // EIGEN_COMMAND_H

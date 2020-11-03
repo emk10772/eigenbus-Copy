@@ -13,6 +13,9 @@
 #include "module.h"
 #include "eigen_utils.h"
 #include "eigen_packet_filter.h"
+#include "eigen_packet_parser.h"
+#include "eigen_commands/eigen_command.h"
+#include "eigen_responses/eigen_response.h"
 
 
 class Module;
@@ -50,7 +53,7 @@ typedef struct module_update_struct{
     update_enum update_type;
     std::string data;
 } module_update;
-
+/*
 typedef enum cmd_enum{
     CMD_POS,
     CMD_SPEED,
@@ -75,7 +78,7 @@ typedef struct eigen_command_struct{
     command_enum command_type;
     uint64_t arg1;
     std::string arg2;
-} eigen_command;
+} eigen_command;*/
 
 typedef struct eigen_stats_struct{
     uint64_t uptime_ms;
@@ -105,10 +108,10 @@ void set_eigen_config(eigen_config config);
 eigen_config get_eigen_config();
 
 //Command Interface
-void add_command(eigen_command *command);
-void add_command(uint8_t addr, command_enum cmd_type, uint64_t arg1);
-void add_command(uint8_t addr, command_enum cmd_type, std::string arg2);
-void add_command(uint8_t addr, command_enum cmd_type, uint64_t arg1, std::string arg2);
+void add_command(EigenCommand *command);
+//void add_command(uint8_t addr, command_enum cmd_type, uint64_t arg1);
+//void add_command(uint8_t addr, command_enum cmd_type, std::string arg2);
+//void add_command(uint8_t addr, command_enum cmd_type, uint64_t arg1, std::string arg2);
 void clear_commands();
 
 //Packet tracking interface

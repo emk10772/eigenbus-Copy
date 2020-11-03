@@ -29,11 +29,11 @@ public:
     bool match_response(uint8_t address, std::string packet);
     bool UID_scan_required();
     std::string *get_packet_out();
+    void handle_timeout_packets();
+    void handle_successful_packets();
 
 private:
     void add_raw_packet(std::string pkt_string, packet_type type, uint8_t dir);
-    void handle_timeout_packets();
-    void handle_successful_packets();
 
     //Raw packet storage, thread safe
     std::deque<raw_packet *> raw_packet_list;
