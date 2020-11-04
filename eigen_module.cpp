@@ -1,8 +1,9 @@
-#include "module.h"
+#include "eigen_module.h"
 #include "eigen_comms.h"
-/* Module class code */
 
-Module::Module(uint8_t address){
+/* EigenModule class code */
+
+EigenModule::EigenModule(uint8_t address){
     this->address = address;
     this->position_ = 0;
     this->velocity_ = 0;
@@ -37,11 +38,11 @@ Module::Module(uint8_t address){
     this->t_last_param_update = current_time_ms();
 }
 
-Module::~Module(){
+EigenModule::~EigenModule(){
 
 }
 
-void Module::update_parameter(uint8_t param, uint64_t value){
+void EigenModule::update_parameter(uint8_t param, uint64_t value){
     std::lock_guard<std::mutex> lock(mutex);
 
     if(param >= param_list.size()) return;
@@ -52,7 +53,7 @@ void Module::update_parameter(uint8_t param, uint64_t value){
     }
 }
 
-uint64_t Module::read_parameter(uint8_t param){
+uint64_t EigenModule::read_parameter(uint8_t param){
     std::lock_guard<std::mutex> lock(mutex);
 
     if(param >= param_list.size()) return -1;
@@ -61,7 +62,7 @@ uint64_t Module::read_parameter(uint8_t param){
     return retval;
 }
 
-std::string Module::print_parameter(uint8_t param) const{
+std::string EigenModule::print_parameter(uint8_t param) const{
     std::lock_guard<std::mutex> lock(mutex);
     if(param > param_list.size()) return "ERR\n";
 
@@ -96,7 +97,7 @@ std::string Module::print_parameter(uint8_t param) const{
     return std::string((char *)s);
 }
 
-void Module::add_parameter(uint8_t id, uint8_t type, std::string name){
+void EigenModule::add_parameter(uint8_t id, uint8_t type, std::string name){
     std::lock_guard<std::mutex> lock(mutex);
 
     module_param null_param;
@@ -123,7 +124,7 @@ void Module::add_parameter(uint8_t id, uint8_t type, std::string name){
     param_list[id] = param;
 }
 
-std::string Module::parameter_name(uint8_t id) const{
+std::string EigenModule::parameter_name(uint8_t id) const{
     std::lock_guard<std::mutex> lock(mutex);
     if(id >= param_list.size()) return "ERR";
 
@@ -131,26 +132,26 @@ std::string Module::parameter_name(uint8_t id) const{
     return retval;
 }
 
-void Module::set_param_last_update(){
+void EigenModule::set_param_last_update(){
     t_last_param_update = current_time_ms();
 }
 
-void Module::set_expected_parameters(uint8_t num_parameters){
+void EigenModule::set_expected_parameters(uint8_t num_parameters){
     this->expected_num_params = num_parameters;
 }
 
-uint8_t Module::parameters_left() const{
+uint8_t EigenModule::parameters_left() const{
     //TODO: Some sort of error fixing here. If this is wrong, we need to re check everything
     if(received_params > expected_num_params) return 0;
 
     return expected_num_params - received_params;
 }
 
-uint64_t Module::d_t_param_last_update() const{
+uint64_t EigenModule::d_t_param_last_update() const{
     return current_time_ms() - t_last_param_update;
 }
 
-void Module::add_downstream(uint8_t node_addr){
+void EigenModule::add_downstream(uint8_t node_addr){
     std::lock_guard<std::mutex> lock(mutex);
 
     module_down_port port;
@@ -160,7 +161,7 @@ void Module::add_downstream(uint8_t node_addr){
     downstream_list.push_back(port);
 }
 
-uint8_t Module::update_downstream(uint8_t ind, uint8_t node_addr){
+uint8_t EigenModule::update_downstream(uint8_t ind, uint8_t node_addr){
     std::lock_guard<std::mutex> lock(mutex);
 
     module_down_port empty_port;
@@ -176,7 +177,8 @@ uint8_t Module::update_downstream(uint8_t ind, uint8_t node_addr){
 
     //If the port name is invalid, ask for the name again
     if(downstream_list[ind].name == "N/A"){
-        firmware_utility(address, EIGEN_UTIL_MODULE_PORTS);
+        add_command(new EigenCommandUtility(address, EIGEN_UTIL_MODULE_PORTS));
+        //firmware_utility(address, EIGEN_UTIL_MODULE_PORTS);
     }
 
     module_down_port downstream = downstream_list[ind];
@@ -198,7 +200,7 @@ uint8_t Module::update_downstream(uint8_t ind, uint8_t node_addr){
                 retval = 1;
             } else {
                 //If we haven't seen the value enough times yet, keep checking to make sure it is correct
-                add_command(address, CMD_POLL_TOPOLOGY, 0 /* Unused Value */);
+                add_command(new EigenCommandTopology(address));
             }
         }
         downstream_list[ind] = downstream;
@@ -207,12 +209,12 @@ uint8_t Module::update_downstream(uint8_t ind, uint8_t node_addr){
     return retval;
 }
 
-void Module::clear_downstream(){
+void EigenModule::clear_downstream(){
     std::lock_guard<std::mutex> lock(mutex);
     downstream_list.clear();
 }
 
-void Module::set_downstream_name(uint8_t ind, std::string name){
+void EigenModule::set_downstream_name(uint8_t ind, std::string name){
     std::lock_guard<std::mutex> lock(mutex);
 
     module_down_port empty_port;
@@ -235,7 +237,7 @@ void Module::set_downstream_name(uint8_t ind, std::string name){
  * Prints out a list of downstream modules in the following format:
  * T<address>,<downstream 1>,...,<downstream n>\n
 */
-std::string Module::print_topology() const{
+std::string EigenModule::print_topology() const{
     std::lock_guard<std::mutex> lock(mutex);
     uint8_t s[128];
     uint8_t offset = 0;
@@ -254,38 +256,39 @@ std::string Module::print_topology() const{
     return std::string((char *)s);
 }
 
-void Module::update_UID(uint64_t UID_){
+void EigenModule::update_UID(uint64_t UID_){
     std::lock_guard<std::mutex> lock(mutex);
 
     if(UID == 0){ //If this is the first time we have seen a UID
         UID = UID_;
     } else if(UID != UID_){ //If we already have a UID and this one doesn't match, there must be a conflict.
-        add_command(this->address, CMD_UID_WR_ADDR, UID_); //Add a command to resolve this conflict
+        //add_command(this->address, CMD_UID_WR_ADDR, UID_); //Add a command to resolve this conflict
+        add_command(new EigenCommandUIDWrite(UID_, address));
     }
 }
 
-uint64_t Module::get_UID() const{
+uint64_t EigenModule::get_UID() const{
     return UID;
 }
 
-void Module::update_type(uint8_t type_){
+void EigenModule::update_type(uint8_t type_){
     std::lock_guard<std::mutex> lock(mutex);
 
     type = type_;
 }
 
-void Module::update_orientation(uint8_t orientation_){
+void EigenModule::update_orientation(uint8_t orientation_){
     std::lock_guard<std::mutex> lock(mutex);
 
     orientation = orientation_;
 }
 
-std::vector<module_down_port> Module::downstream() const{
+std::vector<module_down_port> EigenModule::downstream() const{
     std::lock_guard<std::mutex> lock(mutex);
     return downstream_list;
 }
 
-uint8_t Module::parameter_type(uint8_t id) const{
+uint8_t EigenModule::parameter_type(uint8_t id) const{
     std::lock_guard<std::mutex> lock(mutex);
     if(id >= param_list.size()) return 0;
 
@@ -293,7 +296,7 @@ uint8_t Module::parameter_type(uint8_t id) const{
     return retval;
 }
 
-std::string Module::print_mod_name() const{
+std::string EigenModule::print_mod_name() const{
     std::lock_guard<std::mutex> lock(mutex);
     uint8_t s[32];
 
@@ -301,7 +304,7 @@ std::string Module::print_mod_name() const{
     return std::string((char *)s);
 }
 
-std::string Module::print_UID() const{
+std::string EigenModule::print_UID() const{
     std::lock_guard<std::mutex> lock(mutex);
     uint8_t s[32];
 
@@ -309,7 +312,7 @@ std::string Module::print_UID() const{
     return std::string((char *)s);
 }
 
-std::string Module::print_type() const{
+std::string EigenModule::print_type() const{
     std::lock_guard<std::mutex> lock(mutex);
     uint8_t s[32];
 
@@ -317,12 +320,12 @@ std::string Module::print_type() const{
     return std::string((char *)s);
 }
 
-uint8_t Module::get_type() const{
+uint8_t EigenModule::get_type() const{
     std::lock_guard<std::mutex> lock(mutex);
     return type;
 }
 
-uint8_t Module::get_hardware_type() const{
+uint8_t EigenModule::get_hardware_type() const{
     std::lock_guard<std::mutex> lock(mutex);
 
     switch(type){
@@ -344,7 +347,7 @@ uint8_t Module::get_hardware_type() const{
     }
 }
 
-std::string Module::print_orientation() const{
+std::string EigenModule::print_orientation() const{
     std::lock_guard<std::mutex> lock(mutex);
     uint8_t s[32];
 
@@ -352,52 +355,52 @@ std::string Module::print_orientation() const{
     return std::string((char *)s);
 }
 
-uint16_t Module::get_encoder_status() const{
+uint16_t EigenModule::get_encoder_status() const{
     std::lock_guard<std::mutex> lock(mutex);
     return this->encoder_status;
 }
 
-void Module::set_encoder_status(uint16_t status){
+void EigenModule::set_encoder_status(uint16_t status){
     std::lock_guard<std::mutex> lock(mutex);
     this->encoder_status = status;
 }
 
-double Module::position() const{
+double EigenModule::position() const{
     std::lock_guard<std::mutex> lock(mutex);
     return this->position_;
 }
 
-double Module::velocity() const{
+double EigenModule::velocity() const{
     std::lock_guard<std::mutex> lock(mutex);
     return this->velocity_;
 }
 
-double Module::effort() const{
+double EigenModule::effort() const{
     std::lock_guard<std::mutex> lock(mutex);
     return this->effort_;
 }
 
-void Module::set_position(double position){
+void EigenModule::set_position(double position){
     std::lock_guard<std::mutex> lock(mutex);
     this->position_ = position;
 }
 
-void Module::set_velocity(double velocity){
+void EigenModule::set_velocity(double velocity){
     std::lock_guard<std::mutex> lock(mutex);
     this->velocity_ = velocity;
 }
 
-void Module::set_effort(double effort){
+void EigenModule::set_effort(double effort){
     std::lock_guard<std::mutex> lock(mutex);
     this->effort_ = effort;
 }
 
-uint8_t Module::get_address() const{
+uint8_t EigenModule::get_address() const{
     std::lock_guard<std::mutex> lock(mutex);
     return this->address;
 }
 
-std::string Module::print_encoder_status() const{
+std::string EigenModule::print_encoder_status() const{
     if(encoder_status == 00)                    return "Working Correctly";
 
     if(encoder_status & ENC_ACCELERATION_ERROR) return "Acceleration Error";

@@ -10,17 +10,15 @@
 #include <exception>
 #include <memory>
 
-#include "module.h"
 #include "eigen_utils.h"
+#include "eigen_module.h"
 #include "eigen_packet_filter.h"
 #include "eigen_packet_parser.h"
-#include "eigen_commands/eigen_command.h"
+#include "eigen_commands/eigen_commands.h"
 #include "eigen_responses/eigen_response.h"
 
-
-class Module;
-using ModuleConst = std::shared_ptr<Module const>;
-using ModuleShared = std::shared_ptr<Module>;
+using ModuleConst = std::shared_ptr<EigenModule const>;
+using ModuleShared = std::shared_ptr<EigenModule>;
 
 typedef struct eigen_config_struct{
     uint8_t poll_encoder_status;
@@ -44,7 +42,9 @@ typedef enum update_enum{
     MODULE_BTLDR_END = 9,
     MODULE_POS_UPDATE = 10,
     MODULE_VEL_UPDATE = 11,
-    MODULE_EFF_UPDATE = 12
+    MODULE_EFF_UPDATE = 12,
+    MODULE_PARAM_WRITE = 13,
+    MODULE_PARAM_ERR = 14
 } module_update_enum;
 
 typedef struct module_update_struct{
@@ -53,32 +53,6 @@ typedef struct module_update_struct{
     update_enum update_type;
     std::string data;
 } module_update;
-/*
-typedef enum cmd_enum{
-    CMD_POS,
-    CMD_SPEED,
-    CMD_EFFORT,
-    CMD_READ_PARAM,
-    CMD_WRITE_PARAM,
-    CMD_READ_PARAM_LIST,
-    CMD_SET_MOTOR_ENABLE,
-    CMD_USER,
-    CMD_RUN, //Run position, speed, effort commands
-    CMD_POLL_TOPOLOGY,
-    CMD_UID_WR_ADDR,
-#ifdef EIGEN_BTLDR_SUPPORT
-    CMD_BTLDR,
-#endif
-    CMD_ZERO,
-    CMD_FIRMWARE_UTIL
-} command_enum;
-
-typedef struct eigen_command_struct{
-    uint8_t address;
-    command_enum command_type;
-    uint64_t arg1;
-    std::string arg2;
-} eigen_command;*/
 
 typedef struct eigen_stats_struct{
     uint64_t uptime_ms;

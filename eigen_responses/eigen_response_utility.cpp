@@ -15,7 +15,8 @@ bool EigenResponseUtility::update_module(ModuleShared mod){
         case EIGEN_UTIL_STAT_CODE: {
             uint8_t status_code = stoul(packet_.substr(ind+1), nullptr, EIGENBUS_BASE);
             if(status_code != mod->status_code){
-                add_command(mod->get_address(), CMD_FIRMWARE_UTIL, EIGEN_UTIL_MODULE_STATUS);
+                //add_command(mod->get_address(), CMD_FIRMWARE_UTIL, EIGEN_UTIL_MODULE_STATUS);
+                add_command(new EigenCommandUtility(mod->get_address(), EIGEN_UTIL_MODULE_STATUS));
             }
             break;
         }

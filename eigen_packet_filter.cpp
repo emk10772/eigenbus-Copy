@@ -137,7 +137,8 @@ bool EigenPacketTracker::match_response(uint8_t address, std::string packet){
             firmware_utility(0xFF, EIGEN_UTIL_MODULE_UID);
 #else
         //firmware_utility(0xFF, EIGEN_UTIL_MODULE_UID);
-        add_command(0xFF, CMD_FIRMWARE_UTIL, EIGEN_UTIL_MODULE_UID);
+        add_command(new EigenCommandUtility(0xFF, EIGEN_UTIL_MODULE_UID));
+        //add_command(0xFF, CMD_FIRMWARE_UTIL, EIGEN_UTIL_MODULE_UID);
 #endif
     }
 

@@ -1,37 +1,38 @@
-#ifndef EIGEN_COMMAND_SIMPLE_H
-#define EIGEN_COMMAND_SIMPLE_H
+#ifndef EIGEN_COMMAND_PARAM_H
+#define EIGEN_COMMAND_PARAM_H
 
 #include "eigen_command.h"
 #include <stdint.h>
 #include <string>
 
-/* EigenCommandSimple:
- *  A base class for simple commands, i.e. commands that have no other parameters.
- */
-class EigenCommandSimple : public EigenCommand{
+class EigenCommandParamRead : public EigenCommand{
 public:
-    EigenCommandSimple(eigen_addr_t address, std::string command, std::string response);
+    EigenCommandParamRead(eigen_addr_t address, uint8_t id);
 
     std::string packet();
     std::string expected_response();
-    packet_type type();
 
-protected:
-    const std::string command_;
-    const std::string response_;
+private:
+    uint8_t id_;
 };
 
-class EigenCommandRun : public EigenCommandSimple{
+class EigenCommandParamWrite : public EigenCommand{
 public:
-    EigenCommandRun(eigen_addr_t address);
+    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, uint8_t value);
+    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, uint16_t value);
+    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, uint32_t value);
+    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, uint64_t value);
+    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, float value);
+    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, double value);
+    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, eigen_param_t value, uint8_t param_type);
+
+    std::string packet();
+    std::string expected_response();
+
+private:
+    eigen_param_t value_;
+    uint8_t param_type_;
+    uint8_t id_;
 };
 
-//The eigenbus technically supports more parameters for this command,
-//but those are not used in practice
-class EigenCommandZero : public EigenCommandSimple{
-public:
-    EigenCommandZero(eigen_addr_t address);
-};
-
-
-#endif // EIGEN_COMMAND_SIMPLE_H
+#endif // EIGEN_COMMAND_PARAM_H

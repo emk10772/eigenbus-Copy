@@ -1,5 +1,5 @@
-#ifndef MODULE_H
-#define MODULE_H
+#ifndef EIGEN_MODULE_H
+#define EIGEN_MODULE_H
 
 #include <stdint.h>
 #include <vector>
@@ -22,13 +22,13 @@ typedef struct module_down_struct{
     std::string name;
 } module_down_port;
 
-/* Module class
+/* EigenModule class
     Used to store information about modules for use by the program
 */
-class Module{
+class EigenModule{
 public:
-    Module(uint8_t address);
-    ~Module();
+    EigenModule(uint8_t address);
+    ~EigenModule();
 
 private:
     uint8_t address;
@@ -106,7 +106,7 @@ public:
     //Functions
     std::string print_encoder_status() const;
 
-    bool operator<(Module other) const{
+    bool operator<(EigenModule other) const{
         return address < other.address;
     }
     bool operator<(uint8_t other) const{
@@ -125,4 +125,4 @@ public:
     uint8_t parameter_type(uint8_t id) const;
 
 };
-#endif // MODULE_H
+#endif // EIGEN_MODULE_H

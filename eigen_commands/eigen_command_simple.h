@@ -10,7 +10,7 @@
  */
 class EigenCommandSimple : public EigenCommand{
 public:
-    EigenCommandSimple(eigen_addr_t address, std::string command, std::string response);
+    EigenCommandSimple(eigen_addr_t address, std::string command, std::string response, packet_type type, command_t command_type);
 
     std::string packet();
     std::string expected_response();

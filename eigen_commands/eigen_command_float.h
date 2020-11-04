@@ -7,7 +7,7 @@
 
 class EigenCommandFloat : public EigenCommand{
 public:
-    EigenCommandFloat(eigen_addr_t address, std::string command, std::string response, double value);
+    EigenCommandFloat(eigen_addr_t address, std::string command, std::string response, double value, command_t command_type);
 
     std::string packet();
     std::string expected_response();

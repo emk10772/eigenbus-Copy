@@ -3,8 +3,8 @@
 
 #include "eigen_utils.h"
 #include "eigen_responses/eigen_response.h"
-#include "cybootloaderutils\cybtldr_api2.h"
-#include "cybootloaderutils\cybtldr_api.h"
+#include "cybootloaderutils/cybtldr_api2.h"
+#include "cybootloaderutils/cybtldr_api.h"
 
 class EigenBootloader{
 public:
@@ -12,6 +12,7 @@ public:
     ~EigenBootloader();
 
     void process_packet(EigenResponse *packet);
+    void process_command(EigenCommand *command);
     bool active();
 
     int bootloader_open();

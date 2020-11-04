@@ -58,6 +58,16 @@
 #define _FLOAT                  (4)
 #define _UINT64                 (5)
 #define _DOUBLE                 (6)
+#define PARAM_TYPE_MAX          (_DOUBLE)
+
+typedef union{
+    uint8_t     uint8_;
+    uint16_t    uint16_;
+    uint32_t    uint32_;
+    uint64_t    uint64_;
+    float       float_;
+    double      double_;
+} eigen_param_t;
 
 /* Sizes in EEPROM */
 #define S_UINT8                 (1)
@@ -110,6 +120,9 @@
 /* Orientation */
 #define ORIENTATION_NONE        (0)
 #define ORIENTATION_MAX         (8)
+
+#define ADDR_PARAM              (1)
+#define TYPE_PARAM              (2)
 
 typedef uint8_t eigen_addr_t;
 
