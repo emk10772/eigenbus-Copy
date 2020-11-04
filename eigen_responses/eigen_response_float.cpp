@@ -1,8 +1,8 @@
 #include "eigen_response_float.h"
 
 
-EigenResponseFloat::EigenResponseFloat(std::string packet)
-    : EigenResponse(packet) {
+EigenResponseFloat::EigenResponseFloat(std::string packet, response_t message_type)
+    : EigenResponse(packet, message_type) {
     value = 0.0;
     value_valid = false;
 
@@ -14,6 +14,9 @@ EigenResponseFloat::EigenResponseFloat(std::string packet)
 
 
 /* Position Responses */
+EigenResponsePosition::EigenResponsePosition(std::string packet)
+    : EigenResponseFloat(packet, EigenResponse::EIGEN_POSITION){
+}
 
 bool EigenResponsePosition::update_module(ModuleShared mod){
     if(value_valid)
@@ -22,7 +25,7 @@ bool EigenResponsePosition::update_module(ModuleShared mod){
     return value_valid;
 }
 
-module_update_enum EigenResponsePosition::type(){
+module_update_enum EigenResponsePosition::update_type(){
     return MODULE_POS_UPDATE;
 }
 
@@ -30,6 +33,9 @@ module_update_enum EigenResponsePosition::type(){
 
 
 /* Velocity Responses */
+EigenResponseVelocity::EigenResponseVelocity(std::string packet)
+    : EigenResponseFloat(packet, EigenResponse::EIGEN_VELOCITY){
+}
 
 bool EigenResponseVelocity::update_module(ModuleShared mod){
     if(value_valid)
@@ -38,7 +44,7 @@ bool EigenResponseVelocity::update_module(ModuleShared mod){
     return value_valid;
 }
 
-module_update_enum EigenResponseVelocity::type(){
+module_update_enum EigenResponseVelocity::update_type(){
     return MODULE_VEL_UPDATE;
 }
 
@@ -46,6 +52,9 @@ module_update_enum EigenResponseVelocity::type(){
 
 
 /* Effort Responses */
+EigenResponseEffort::EigenResponseEffort(std::string packet)
+    : EigenResponseFloat(packet, EigenResponse::EIGEN_EFFORT){
+}
 
 bool EigenResponseEffort::update_module(ModuleShared mod){
     if(value_valid)
@@ -54,6 +63,6 @@ bool EigenResponseEffort::update_module(ModuleShared mod){
     return value_valid;
 }
 
-module_update_enum EigenResponseEffort::type(){
+module_update_enum EigenResponseEffort::update_type(){
     return MODULE_VEL_UPDATE;
 }

@@ -4,7 +4,7 @@
 
 
 EigenResponseUtility::EigenResponseUtility(std::string packet)
-    : EigenResponse(packet) {
+    : EigenResponse(packet, EigenResponse::EIGEN_UTILITY) {
 }
 
 bool EigenResponseUtility::update_module(ModuleShared mod){
@@ -81,6 +81,6 @@ bool EigenResponseUtility::update_module(ModuleShared mod){
     return false;
 }
 
-module_update_enum EigenResponseUtility::type(){
+module_update_enum EigenResponseUtility::update_type(){
     return MODULE_ERROR;
 }

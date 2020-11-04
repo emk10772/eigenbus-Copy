@@ -8,7 +8,7 @@ public:
     EigenResponseTopology(std::string packet);
 
     bool update_module(ModuleShared mod) override;
-    module_update_enum type() override;
+    module_update_enum update_type() override;
 
 private:
     uint8_t type_;

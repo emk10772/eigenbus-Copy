@@ -2,69 +2,6 @@
 #include "eigen_comms.h"
 
 
-#ifdef EIGEN_BTLDR_SUPPORT
-void start_bootload(uint8_t address, uint8_t mode, std::string file){
-    firmware_utility(address, EIGEN_UTIL_MODULE_STATUS);
-
-    uint8_t s[32];
-    int count = std::snprintf((char *)s, 100, "%02x~b", address);
-    write_packet(s, count);
-    bootloader_ack = false;
-    bootloader_target_addr = address;
-    bootloader_active = true;
-    bootloader_mode = mode;
-    bootloader_file = file;
-
-    //Expecting no response
-    std::string cmd = std::string((char *) s);
-    add_packet(address, cmd, "");
-}
-
-void acknwoledge_bootload(uint8_t address){
-    uint8_t s[32];
-    int count = std::snprintf((char *)s, 100, "%02x~a", address);
-    write_packet(s, count);
-
-    //Expecting no response
-    std::string cmd = std::string((char *) s);
-    add_packet(address, cmd, "");
-}
-
-void request_resend_bootload(uint8_t address, std::string msg){
-    uint8_t s[32];
-    int count = std::snprintf((char *)s, 100, "%02x~s,%s", address, msg.c_str());
-    write_packet(s, count);
-
-    //Expecting no response
-    std::string cmd = std::string((char *) s);
-    add_packet(address, cmd, "");
-}
-#endif
-
-/* Bootloader Interface */
-#ifdef EIGEN_BTLDR_SUPPORT
-#define MAX_PACKET_CHARS    60
-#define OUT_BUF_SIZE        128
-
-int bootloader_open(void){
-    bootloader_finished = false;
-    bootloader_seq_num = 0;
-
-    if(bootloader_ack) {
-        return CYRET_SUCCESS;
-    }
-
-    return CYRET_ABORT;
-}
-
-int bootloader_close(void){
-    bootloader_active = false;
-    bootloader_target_addr = 0xFF;
-    bootloader_ack = false;
-
-    return CYRET_SUCCESS;
-}
-
 static unsigned short crc_table [256] = {
 
 0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5,
@@ -135,7 +72,67 @@ unsigned short CRCCCITT(unsigned char *data, size_t length, unsigned short seed,
 #define PACKET_HEADER_LEN   (PACKET_SIZE_LEN + 1 + PACKET_CRC_LEN + 1 + PACKET_SEQ_LEN + 1) //"%02X,%04X,%02X."
 #define PROCESS_BUFFER_SIZE (256)
 
-bool bootloader_parse_packet(std::string data, uint8_t *buf, uint8_t len){
+void start_bootload(uint8_t address, uint8_t mode, std::string file){
+    firmware_utility(address, EIGEN_UTIL_MODULE_STATUS);
+
+    uint8_t s[32];
+    int count = std::snprintf((char *)s, 100, "%02x~b", address);
+    write_packet(s, count);
+    bootloader_ack = false;
+    bootloader_target_addr = address;
+    bootloader_active = true;
+    bootloader_mode = mode;
+    bootloader_file = file;
+
+    //Expecting no response
+    std::string cmd = std::string((char *) s);
+    add_packet(address, cmd, "");
+}
+
+void acknwoledge_bootload(uint8_t address){
+    uint8_t s[32];
+    int count = std::snprintf((char *)s, 100, "%02x~a", address);
+    write_packet(s, count);
+
+    //Expecting no response
+    std::string cmd = std::string((char *) s);
+    add_packet(address, cmd, "");
+}
+
+void request_resend_bootload(uint8_t address, std::string msg){
+    uint8_t s[32];
+    int count = std::snprintf((char *)s, 100, "%02x~s,%s", address, msg.c_str());
+    write_packet(s, count);
+
+    //Expecting no response
+    std::string cmd = std::string((char *) s);
+    add_packet(address, cmd, "");
+}
+
+/* Bootloader Interface */
+#define MAX_PACKET_CHARS    60
+#define OUT_BUF_SIZE        128
+
+int EigenBootloader::bootloader_open(void){
+    bootloader_finished = false;
+    bootloader_seq_num = 0;
+
+    if(bootloader_ack) {
+        return CYRET_SUCCESS;
+    }
+
+    return CYRET_ABORT;
+}
+
+int EigenBootloader::bootloader_close(void){
+    bootloader_active = false;
+    bootloader_target_addr = 0xFF;
+    bootloader_ack = false;
+
+    return CYRET_SUCCESS;
+}
+
+bool EigenBootloader::bootloader_parse_packet(std::string data, uint8_t *buf, uint8_t len){
     uint8_t packet_len = data.size() - PACKET_HEADER_LEN;
     if(data.size() < PACKET_HEADER_LEN || packet_len % 2){
         request_resend_bootload(bootloader_target_addr, "LEN");
@@ -205,7 +202,7 @@ bool bootloader_parse_packet(std::string data, uint8_t *buf, uint8_t len){
     }
 }
 
-int bootloader_read_data(uint8_t* buf, int len){
+int EigenBootloader::bootloader_read_data(uint8_t* buf, int len){
     uint64_t t_start = current_time_ms();
     uint64_t t_last = t_start;
     uint8_t n_chars = 0;
@@ -271,7 +268,7 @@ int bootloader_read_data(uint8_t* buf, int len){
     }*/
 }
 
-int bootloader_write_data(uint8_t* buf, int len){
+int EigenBootloader::bootloader_write_data(uint8_t* buf, int len){
     char out_buf[OUT_BUF_SIZE];
 
     uint16_t crc = CRCCCITT(buf, len, 0xFFFF, 0);
@@ -305,11 +302,11 @@ int bootloader_write_data(uint8_t* buf, int len){
     return CYRET_SUCCESS;
 }
 
-void bootloader_update(uint8_t col, uint16_t row){
+void EigenBootloader::bootloader_update(uint8_t col, uint16_t row){
     add_module_update(bootloader_target_addr, MODULE_BTLDR_PROGRESS, row);
 }
 
-void bootloader_init(){
+void EigenBootloader::bootloader_init(){
     comm_struct.MaxTransferSize = 52;
     comm_struct.OpenConnection = &bootloader_open;
     comm_struct.CloseConnection = &bootloader_close;
@@ -317,11 +314,11 @@ void bootloader_init(){
     comm_struct.WriteData = &bootloader_write_data;
 }
 
-bool is_bootloader_active(){
+bool EigenBootloader::is_bootloader_active(){
     return bootloader_active;
 }
 
-bool is_bootloader_finished(){
+bool EigenBootloader::is_bootloader_finished(){
     if(bootloader_finished){
         bootloader_finished = false;
         return true;
@@ -329,7 +326,7 @@ bool is_bootloader_finished(){
     return false;
 }
 
-std::string bootloader_print_error(int retval){
+std::string EigenBootloader::bootloader_print_error(int retval){
     std::string printed;
     if(retval & CYRET_ERR_COMM_MASK){
         printed = "Communications Error: ";
@@ -406,4 +403,3 @@ std::string bootloader_print_error(int retval){
 
     return printed;
 }
-#endif

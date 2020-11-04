@@ -2,7 +2,7 @@
 
 
 EigenResponseTopology::EigenResponseTopology(std::string packet)
-    : EigenResponse(packet) {
+    : EigenResponse(packet, EigenResponse::EIGEN_TOPOLOGY) {
 
     //Split the packet into tokens
     uint8_t count = 0;
@@ -47,6 +47,6 @@ bool EigenResponseTopology::update_module(ModuleShared mod){
     return topology_updated;
 }
 
-module_update_enum EigenResponseTopology::type(){
+module_update_enum EigenResponseTopology::update_type(){
     return MODULE_DOWNSTREAM;
 }
