@@ -27,6 +27,9 @@ bool EigenResponseParamRead::update_module(ModuleShared mod){
                 std::snprintf((char *)s, 32, "|(00,%02X", i);
                 add_packet(addr, "", std::string((char *)s), EIGEN_PACKET_DEBUG);
             }*/
+            for(int i = 1; i < param_aux; i++){
+                responses_.push_back(strprintf("|(00,%02X", i));
+            }
 
             mod->set_expected_parameters(param_aux);
         }

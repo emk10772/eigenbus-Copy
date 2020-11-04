@@ -16,3 +16,11 @@ EigenResponse::response_t EigenResponse::message_type(){
 std::string EigenResponse::packet(){
     return packet_;
 }
+
+std::vector<std::string> EigenResponse::additional_responses(){
+    return responses_;
+}
+
+bool EigenResponse::has_additonal_responses(){
+    return responses_.size() > 0;
+}

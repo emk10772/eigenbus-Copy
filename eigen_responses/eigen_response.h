@@ -27,12 +27,15 @@ public:
     virtual bool update_module(ModuleShared mod);
     virtual module_update_enum update_type();
 
+    std::vector<std::string> additional_responses();
+    bool has_additonal_responses();
     response_t message_type();
     std::string packet();
 
 protected:
     const std::string packet_;
     const response_t message_type_;
+    std::vector<std::string> responses_;
 };
 
 #endif // EIGEN_RESPONSE_H

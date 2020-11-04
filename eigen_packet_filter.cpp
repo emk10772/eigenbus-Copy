@@ -111,7 +111,7 @@ void EigenPacketTracker::handle_successful_packets(){
     }
 }
 
-bool EigenPacketTracker::match_response(uint8_t address, std::string packet){
+packet_type EigenPacketTracker::match_response(uint8_t address, std::string packet){
     //Search our filter list for a matching packet
     auto it = packet_filter_list.begin();
     while(it != packet_filter_list.end() && !it->matches_filter(address, packet)){
@@ -122,7 +122,7 @@ bool EigenPacketTracker::match_response(uint8_t address, std::string packet){
     if(it != packet_filter_list.end() && it->matches_filter(address, packet)){
         it->add_response(address, packet);
         add_raw_packet(packet, it->get_type(), EIGEN_PACKET_RECV);
-        return true;
+        return it->get_type();
     } else {
         add_raw_packet(packet, EIGEN_PACKET_DEFAULT, EIGEN_PACKET_RECV);
         unrequested_packets++;
@@ -142,7 +142,7 @@ bool EigenPacketTracker::match_response(uint8_t address, std::string packet){
 #endif
     }
 
-    return false;
+    return EIGEN_PACKET_NONE;
 }
 
 /* Eigen Packet Class Definitions */

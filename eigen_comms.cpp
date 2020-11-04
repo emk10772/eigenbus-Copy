@@ -63,29 +63,6 @@ void add_module_update(uint8_t addr, update_enum type);
 void add_module_update(uint8_t addr, update_enum type, uint8_t arg);
 uint8_t generate_node_address();
 
-
-//Bus functions
-double set_position(uint8_t address, std::string val);
-void run_command(uint8_t address);
-double set_speed(uint8_t address, std::string val);
-double set_effort(uint8_t address, std::string val);
-void poll_status(uint8_t address, uint8_t value);
-void poll_topology(uint8_t address);
-void read_EEPROM(uint8_t module, uint16_t address, uint8_t size);
-void write_EEPROM(uint8_t module, uint16_t address, uint8_t value);
-void firmware_utility(uint8_t address, uint16_t action);
-void motor_enable(uint8_t module, uint8_t value);
-void user_command(uint8_t module, std::string command);
-void read_parameter(uint8_t module, uint8_t id);
-void write_parameter(uint8_t module, uint8_t id, std::string param_value);
-void uid_write_node_addr(uint8_t address, uint64_t uid, uint8_t node_addr);
-void set_zero(uint8_t address);
-#ifdef EIGEN_BTLDR_SUPPORT
-void start_bootload(uint8_t address, uint8_t mode, std::string file);
-void acknwoledge_bootload(uint8_t address);
-void request_resend_bootload(uint8_t address, std::string msg);
-#endif
-
 //Module list interface functions
 ModuleShared add_module(uint8_t address);
 ModuleShared get_module_shared(uint8_t address);
@@ -287,12 +264,18 @@ void process_packet(uint8_t *buffer, uint8_t len) {
         ModuleShared module = add_module(addr);
         
         //Check if the response matches one that we are looking for
-        packetTracker->match_response(addr, std::string((char *) buffer + 1);
+        packet_type type = packetTracker->match_response(addr, std::string((char *) buffer + 1);
         
         //Parse the response
         EigenResponse *response = packetParser->parse_packet(std::string((char *) buffer + 3));
         if(response->update_module(module)){
             add_module_update(addr, response->type());
+        }
+        
+        if(response->has_additonal_responses()){
+            //Add more packets to the tracker
+            for(auto pkt : response->additional_responses())
+                packetTracker->add_packet(module->get_address(), pkt, "", type);
         }
         /*
         switch (buffer[3]) { //Terrible code for parsing feedback packets

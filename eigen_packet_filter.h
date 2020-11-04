@@ -10,7 +10,8 @@ typedef enum packet_type_enum{
     EIGEN_PACKET_POLL,          //Used for general poll commands
     EIGEN_PACKET_TOPO,          //Used for topology commands
     EIGEN_PACKET_DEBUG,         //Debug messages
-    EIGEN_PACKET_CLI            //Used for user command line input
+    EIGEN_PACKET_CLI,           //Used for user command line input
+    EIGEN_PACKET_NONE
 } packet_type;
 
 typedef struct raw_packet_struct{
@@ -26,7 +27,7 @@ public:
 
     raw_packet *get_raw_packet();
     void add_packet(eigen_addr_t addr, std::string filter, std::string packet, packet_type type);
-    bool match_response(uint8_t address, std::string packet);
+    packet_type match_response(uint8_t address, std::string packet);
     bool UID_scan_required();
     std::string *get_packet_out();
     void handle_timeout_packets();
