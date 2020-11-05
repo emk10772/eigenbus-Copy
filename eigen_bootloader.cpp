@@ -335,7 +335,7 @@ int EigenBootloader::bootloader_write_data(uint8_t* buf, int len){
             packet_ind++;
         }
 
-        uint8_t crc_2 = crc_8_ccitt((uint8_t *)out_buf, ind);
+        uint8_t crc_2 = crc_8_ccitt(out_buf, ind);
 
         bootloader_last = std::string(out_buf);
         //Print the footer

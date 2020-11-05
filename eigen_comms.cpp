@@ -404,7 +404,8 @@ int service_eigen_comms() {
     for(uint8_t ind = 0; ind < num_modules(); ind++){
         ModuleShared mod = get_module_shared(ind);
         if(mod->parameters_left() > 0 && mod->d_t_param_last_update() > PACKET_TIMEOUT){
-            add_command(mod->get_address(), CMD_READ_PARAM_LIST, 0);
+            //add_command(mod->get_address(), CMD_READ_PARAM_LIST, 0);
+            eigen_read_parameter(mod->get_address(), 0);
         }
     }
 
