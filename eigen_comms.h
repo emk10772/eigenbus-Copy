@@ -46,8 +46,8 @@ bool get_poll_enabled();
 void set_poll_enabled(bool state);
 module_update *get_module_update();
 uint64_t current_time_ms();
-bool is_bootloader_active();
-bool is_bootloader_finished();
+//bool is_bootloader_active();
+//bool is_bootloader_finished();
 
 //Config Interface
 void set_eigen_config(eigen_config config);
