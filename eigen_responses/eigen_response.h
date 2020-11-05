@@ -31,6 +31,7 @@ public:
     bool has_additonal_responses();
     response_t message_type();
     std::string packet();
+    eigen_addr_t address();
 
 protected:
     const eigen_addr_t address_;

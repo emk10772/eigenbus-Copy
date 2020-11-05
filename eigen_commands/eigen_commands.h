@@ -10,5 +10,6 @@
 #include "eigen_command_simple.h"
 #include "eigen_command_uid_write.h"
 #include "eigen_command_user.h"
+#include "eigen_command_utility.h"
 
 #endif // EIGEN_COMMANDS_H
