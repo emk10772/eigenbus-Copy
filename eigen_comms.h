@@ -15,6 +15,7 @@
 #include "eigen_packet_filter.h"
 #include "eigen_packet_parser.h"
 #include "eigen_commands/eigen_commands.h"
+#include "eigen_command_wrappers.h"
 #include "eigen_responses/eigen_response.h"
 
 typedef struct eigen_config_struct{

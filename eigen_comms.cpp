@@ -75,7 +75,7 @@ void write_packet(const char *buf, uint8_t len){
     char crc = crc_8_ccitt(buf, len);
 
     int count = std::snprintf(s, 256, "%s:%02X\n", buf, crc);
-    (*write_data)(s, count);
+    (*write_data)((uint8_t *)s, count);
 }
 
 uint64_t current_time_ms() {
@@ -241,7 +241,7 @@ void process_packet(uint8_t *buffer, uint8_t len) {
         //Check the checksum. Should start at len - 3 if this is a valid packet
         if(buffer[len-3] == ':'){
             uint8_t chk_read = strtol((char *)buffer + len - 2, NULL, 16);
-            uint8_t chk_calc = crc_8_ccitt(buffer, len-3);
+            uint8_t chk_calc = crc_8_ccitt((char *)buffer, len-3);
             if(chk_read != chk_calc){
                 pkt_valid = 0;
             } else {
@@ -373,26 +373,26 @@ int service_eigen_comms() {
 
     /* POLLING */
     if(current_time_ms() - t_last_update_poll > UPDATE_TOPOLOGY_PERIOD){
-        poll_topology(0xFF);
+        eigen_poll_topology(0xFF);
         t_last_update_poll = current_time_ms();
     }
 
     if(current_time_ms() - t_last_status_poll > UPDATE_STATUS_PERIOD){
         //Poll module statuses
-        firmware_utility(0xFF, EIGEN_UTIL_STAT_CODE);
+        eigen_firmware_utility(0xFF, EIGEN_UTIL_STAT_CODE);
         t_last_status_poll = current_time_ms();
     }
 
     //If we are due to poll, communicate with the module
     if (current_time_ms() - t_last_poll > UPDATE_PERIOD) {
         if(communication_config.poll_encoder_status == EIGEN_ENABLED)
-            poll_status(0xFF, EIGEN_POLL_ENC_STATUS);
+            eigen_poll_status(0xFF, EIGEN_POLL_ENC_STATUS);
         if(communication_config.poll_module_position == EIGEN_ENABLED)
-            poll_status(0xFF, EIGEN_POLL_LOCATION);
+            eigen_poll_status(0xFF, EIGEN_POLL_LOCATION);
         if(communication_config.poll_module_velocity == EIGEN_ENABLED)
-            poll_status(0xFF, EIGEN_POLL_VELOCITY);
+            eigen_poll_status(0xFF, EIGEN_POLL_VELOCITY);
         if(communication_config.poll_module_effort == EIGEN_ENABLED)
-            poll_status(0xFF, EIGEN_POLL_EFFORT);
+            eigen_poll_status(0xFF, EIGEN_POLL_EFFORT);
 
         t_last_poll = current_time_ms();
     }
@@ -486,7 +486,7 @@ ModuleShared add_module(uint8_t address){
         }
     }
     if(mod_result == NULL || mod_result->get_address() != address){
-        mod_result = std::make_shared<Module>(address);
+        mod_result = std::make_shared<EigenModule>(address);
         module_list.push_back(mod_result);
         //std::sort(module_list.begin(), module_list.end(), mod_cmp);
 
@@ -495,14 +495,14 @@ ModuleShared add_module(uint8_t address){
         add_module_update(address, MODULE_ADDED);
 
         //Ask for important info about the module
-        firmware_utility(address, EIGEN_UTIL_COMMIT_VERSION);
-        firmware_utility(address, EIGEN_UTIL_BUILD_TIME);
-        firmware_utility(address, EIGEN_UTIL_BUILD_USER);
-        firmware_utility(address, EIGEN_UTIL_GIT_DESCRIBE);
-        firmware_utility(address, EIGEN_UTIL_MODULE_CAPABILITY);
-        firmware_utility(address, EIGEN_UTIL_MODULE_PORTS);
-        firmware_utility(address, EIGEN_UTIL_MODULE_UID);
-        firmware_utility(address, EIGEN_UTIL_MODULE_STATUS);
+        eigen_firmware_utility(address, EIGEN_UTIL_COMMIT_VERSION);
+        eigen_firmware_utility(address, EIGEN_UTIL_BUILD_TIME);
+        eigen_firmware_utility(address, EIGEN_UTIL_BUILD_USER);
+        eigen_firmware_utility(address, EIGEN_UTIL_GIT_DESCRIBE);
+        eigen_firmware_utility(address, EIGEN_UTIL_MODULE_CAPABILITY);
+        eigen_firmware_utility(address, EIGEN_UTIL_MODULE_PORTS);
+        eigen_firmware_utility(address, EIGEN_UTIL_MODULE_UID);
+        eigen_firmware_utility(address, EIGEN_UTIL_MODULE_STATUS);
     } else {
         add_module_update(address, MODULE_TOUCHED);
     }
