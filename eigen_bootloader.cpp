@@ -66,6 +66,14 @@ unsigned short CRCCCITT(unsigned char *data, size_t length, unsigned short seed,
 
 }
 
+EigenBootloader::EigenBootloader(){
+
+}
+
+EigenBootloader::~EigenBootloader(){
+
+}
+
 #define PACKET_SIZE_LEN     (2) //"%02X"
 #define PACKET_CRC_LEN      (4) //"%04X"
 #define PACKET_SEQ_LEN      (2) //"%02X"
