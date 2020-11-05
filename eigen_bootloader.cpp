@@ -110,20 +110,20 @@ void EigenBootloader::add_command(EigenCommand *command){
 }
 
 void EigenBootloader::run_operation(eigen_addr_t target_addr, uint8_t mode, std::string file){
-    add_command(new EigenCommandBootloader(target_addr, EigenCommandBootloader::BOOTLOADER_ACK));
+    instance->add_command(new EigenCommandBootloader(target_addr, EigenCommandBootloader::BOOTLOADER_ACK));
 
     int retval = 0;
     if(mode == 1){
-        retval = CyBtldr_Program(file.c_str(), NULL, (uint8_t) 3, &comm_struct, &bootloader_update);
+        retval = CyBtldr_Program(file.c_str(), NULL, (uint8_t) 3, &instance->comm_struct, &bootloader_update);
     } else if(mode == 2){
-        retval = CyBtldr_Verify(file.c_str(), NULL, &comm_struct, &bootloader_update);
+        retval = CyBtldr_Verify(file.c_str(), NULL, &instance->comm_struct, &bootloader_update);
     } else if(mode == 3) {
-        retval = CyBtldr_Erase(file.c_str(), NULL, &comm_struct, &bootloader_update);
+        retval = CyBtldr_Erase(file.c_str(), NULL, &instance->comm_struct, &bootloader_update);
     }
 
     //If successful, retval = 0. Mark as finished.
     if(!retval){
-        bootloader_finished = true;
+        instance->bootloader_finished = true;
     }
 
     //add_module_update(addr, MODULE_BTLDR_END, bootloader_print_error(retval));
