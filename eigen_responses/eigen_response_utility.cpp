@@ -1,4 +1,5 @@
 #include "eigen_response_utility.h"
+#include "../eigen_comms.h"
 
 #include <string>
 
