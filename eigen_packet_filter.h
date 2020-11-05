@@ -20,6 +20,35 @@ typedef struct raw_packet_struct{
     uint8_t dir;
 } raw_packet;
 
+class EigenPacketFilter{
+public:
+    EigenPacketFilter(eigen_addr_t address, std::string response_filter, packet_type packet, std::string packet_string);
+    ~EigenPacketFilter();
+
+private:
+    eigen_addr_t address;
+    packet_type classification;
+    std::string response_filter;
+    std::vector<std::string> matched_responses;
+    std::set<uint8_t> matched_addresses;
+    uint64_t t_sent;
+    uint8_t retries;
+    std::string packet_string_;
+
+public:
+    bool expects_response();
+    bool packet_timeout();
+    uint8_t num_responses();
+    bool matches_filter(uint8_t address, std::string packet);
+    bool is_broadcast();
+    void add_response(uint8_t address, std::string response);
+    packet_type get_type();
+    uint8_t num_retries();
+    void increment_retry_count();
+    void reset_timeout();
+    std::string packet_string();
+};
+
 class EigenPacketTracker{
 public:
     EigenPacketTracker();
@@ -52,35 +81,6 @@ private:
     std::string last_packet_dropped;
 
     bool requires_UID_scan;
-};
-
-class EigenPacketFilter{
-public:
-    EigenPacketFilter(eigen_addr_t address, std::string response_filter, packet_type packet, std::string packet_string);
-    ~EigenPacketFilter();
-
-private:
-    eigen_addr_t address;
-    packet_type classification;
-    std::string response_filter;
-    std::vector<std::string> matched_responses;
-    std::set<uint8_t> matched_addresses;
-    uint64_t t_sent;
-    uint8_t retries;
-    std::string packet_string_;
-
-public:
-    bool expects_response();
-    bool packet_timeout();
-    uint8_t num_responses();
-    bool matches_filter(uint8_t address, std::string packet);
-    bool is_broadcast();
-    void add_response(uint8_t address, std::string response);
-    packet_type get_type();
-    uint8_t num_retries();
-    void increment_retry_count();
-    void reset_timeout();
-    std::string packet_string();
 };
 
 #endif
