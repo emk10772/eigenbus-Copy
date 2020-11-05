@@ -7,6 +7,7 @@
 #include <mutex>
 
 #include "../eigen_utils.h"
+#include "../eigen_module.h"
 
 class EigenResponse{
 public:
