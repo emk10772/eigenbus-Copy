@@ -26,31 +26,6 @@ typedef struct eigen_config_struct{
     uint8_t max_retries;
 } eigen_config;
 
-typedef enum update_enum{
-    MODULE_TOUCHED = 0,
-    MODULE_ERROR = 1,
-    MODULE_ADDED = 2,
-    MODULE_STALE = 3,
-    MODULE_PARAM_READ = 4,
-    MODULE_PARAM_ADD = 5,
-    MODULE_DOWNSTREAM = 6,
-    MODULE_REMOVED = 7,
-    MODULE_BTLDR_PROGRESS = 8,
-    MODULE_BTLDR_END = 9,
-    MODULE_POS_UPDATE = 10,
-    MODULE_VEL_UPDATE = 11,
-    MODULE_EFF_UPDATE = 12,
-    MODULE_PARAM_WRITE = 13,
-    MODULE_PARAM_ERR = 14
-} module_update_enum;
-
-typedef struct module_update_struct{
-    uint8_t index;
-    uint8_t arg;
-    update_enum update_type;
-    std::string data;
-} module_update;
-
 typedef struct eigen_stats_struct{
     uint64_t uptime_ms;
     uint64_t sent_packets;
