@@ -28,8 +28,8 @@ public:
     EigenCommand(eigen_addr_t address, packet_type type, command_t command);
     ~EigenCommand();
 
-    virtual std::string packet();
-    virtual std::string expected_response();
+    virtual std::string packet() = 0;
+    virtual std::string expected_response() = 0;
 
     packet_type type();
     command_t command_type();

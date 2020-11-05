@@ -25,8 +25,8 @@ public:
     EigenResponse(eigen_addr_t address, std::string packet, response_t message_type);
     ~EigenResponse();
 
-    virtual bool update_module(ModuleShared mod);
-    virtual module_update_enum update_type();
+    virtual bool update_module(ModuleShared mod) = 0;
+    virtual module_update_enum update_type() = 0;
 
     std::vector<std::string> additional_responses();
     bool has_additonal_responses();
