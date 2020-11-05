@@ -39,7 +39,7 @@ private:
     std::deque<EigenCommand *> cmd_list;
     std::mutex cmd_mutex;
 
-    static void run_operation(eigen_addr_t target_addr, uint8_t mode, std::string file);
+    void run_operation(eigen_addr_t target_addr, uint8_t mode, std::string file);
     std::thread bootload_thread;
     bool bootloader_parse_packet(std::string data, uint8_t *buf, uint8_t len);
 
