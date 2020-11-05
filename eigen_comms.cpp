@@ -264,11 +264,11 @@ void process_packet(uint8_t *buffer, uint8_t len) {
         
         //Parse the response
         EigenResponse *response = packetParser->parse_packet(addr, std::string((char *) buffer + 3));
-        if(response->update_module(module)){
+        if(response != nullptr && response->update_module(module)){
             add_module_update(addr, response->update_type());
         }
 
-        if(response->has_additonal_responses()){
+        if(response != nullptr && response->has_additonal_responses()){
             //Add more packets to the tracker
             for(auto pkt : response->additional_responses())
                 packetTracker->add_packet(module->get_address(), pkt, "", type);
