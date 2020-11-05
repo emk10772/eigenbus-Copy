@@ -1,4 +1,5 @@
 #include "eigen_comms.h"
+#include "eigen_command_wrappers.h"
 #include <stdlib.h>
 #include <ctype.h>
 #include <chrono>
@@ -7,11 +8,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <cmath>
-
-#ifdef EIGEN_BTLDR_SUPPORT
-#include "cybootloaderutils\cybtldr_api2.h"
-#include "cybootloaderutils\cybtldr_api.h"
-#endif
 
 #define IN_BUFFER_SIZE          (255)
 
