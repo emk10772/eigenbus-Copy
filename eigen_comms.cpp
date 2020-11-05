@@ -37,7 +37,7 @@ static uint64_t frame_time = 0;
 
 //Module data structure
 //static std::map<uint8_t, Module *> module_map;
-static std::vector<std::shared_ptr<Module>> module_list;
+static std::vector<std::shared_ptr<EigenModule>> module_list;
 std::mutex module_list_mutex;
 
 //Interface deques and mutexes for thread safety
@@ -87,14 +87,14 @@ uint64_t current_time_ms() {
 
 eigen_stats get_eigen_stats(){
     eigen_stats stats;
-    stats.uptime_ms = current_time_ms() - t_init;
+    /*stats.uptime_ms = current_time_ms() - t_init;
     stats.sent_packets = sent_packets;
     stats.successful_packets = successful_packets;
     stats.dropped_packets = dropped_packets;
     stats.unrequested_packets = unrequested_packets;
     stats.retried_packets = retried_packets;
     stats.frame_time_ms = frame_time;
-    stats.last_dropped_packet = last_dropped;
+    stats.last_dropped_packet = last_dropped;*/
     return stats;
 }
 
@@ -747,11 +747,11 @@ EigenCommand *get_command(){
     return retval;
 }
 
-bool mod_cmp(Module *m1, Module *m2){
+bool mod_cmp(EigenModule *m1, EigenModule *m2){
     return (m1->get_address()) < (m2->get_address());
 }
 
-bool mod_cmp_low_bnd(Module *m1, uint8_t addr){
+bool mod_cmp_low_bnd(EigenModule *m1, uint8_t addr){
     return (m1->get_address()) < addr;
 }
 
@@ -866,7 +866,7 @@ ModuleConst get_module(uint8_t address){
     if(mod_result == NULL || mod_result->get_address() != address){
         return NULL;
     } else {
-        return std::const_pointer_cast<const Module>(mod_result);
+        return std::const_pointer_cast<const EigenModule>(mod_result);
     }
 
 }
@@ -877,7 +877,7 @@ ModuleConst get_module_by_index(uint8_t index){
     if(index >= module_list.size()) return NULL;
 
     ModuleShared mod = module_list[index];
-    return std::const_pointer_cast<const Module>(mod);
+    return std::const_pointer_cast<const EigenModule>(mod);
 }
 
 uint8_t num_modules(){
