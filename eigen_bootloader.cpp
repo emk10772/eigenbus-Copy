@@ -139,7 +139,7 @@ void EigenBootloader::process_packet(EigenResponse *packet){
                 if(!bootloader_ack) {
                     bootloader_ack = true;
 
-                    bootload_thread = std::thread(&EigenBootloader::run_operation, bootloader_target_addr, bootloader_mode, bootloader_file);
+                    bootload_thread = std::thread(&EigenBootloader::run_operation, this, bootloader_target_addr, bootloader_mode, bootloader_file);
                 } else {
                     add_command(new EigenCommandBootloader(bootloader_target_addr, EigenCommandBootloader::BOOTLOADER_ACK));
                 }
