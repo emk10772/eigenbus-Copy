@@ -5,7 +5,7 @@
 * the software package with which this file was provided.
 ********************************************************************************/
 
-#include "cybootloaderutils\cybtldr_command.h"
+#include "cybtldr_command.h"
 
 
 /* Variable used to store the currently selected packet checksum type */

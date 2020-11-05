@@ -7,10 +7,10 @@
 
 #include <string.h>
 #include <stdint.h>
-#include "cybootloaderutils\cybtldr_parse.h"
-#include "cybootloaderutils\cybtldr_command.h"
-#include "cybootloaderutils\cybtldr_api.h"
-#include "cybootloaderutils\cybtldr_api2.h"
+#include "cybtldr_parse.h"
+#include "cybtldr_command.h"
+#include "cybtldr_api.h"
+#include "cybtldr_api2.h"
 
 uint8_t g_abort;
 

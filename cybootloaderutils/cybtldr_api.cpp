@@ -6,8 +6,8 @@
 ********************************************************************************/
 
 #include <stdlib.h>
-#include "cybootloaderutils\cybtldr_command.h"
-#include "cybootloaderutils\cybtldr_api.h"
+#include "cybtldr_command.h"
+#include "cybtldr_api.h"
 
 /* The highest number of memory arrays for any device. This includes flash and EEPROM arrays */
 #define MAX_DEV_ARRAYS    0x80

@@ -7,7 +7,7 @@
 
 #include <string.h>
 #include <ctype.h>
-#include "cybootloaderutils\cybtldr_parse.h"
+#include "cybtldr_parse.h"
 
 /* Pointer to the *.cyacd file containing the data that is to be read */
 static FILE* dataFile;
