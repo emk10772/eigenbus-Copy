@@ -37,7 +37,7 @@ private:
 
     static void run_operation(eigen_addr_t target_addr, uint8_t mode, std::string file);
     static std::thread bootload_thread;
-    static bool EigenBootloader::bootloader_parse_packet(std::string data, uint8_t *buf, uint8_t len);
+    static bool bootloader_parse_packet(std::string data, uint8_t *buf, uint8_t len);
 
     static std::deque<std::string> bootloader_data;
     static CyBtldr_CommunicationsData comm_struct;

@@ -1,7 +1,8 @@
 #ifndef EIGEN_COMMAND_H
 #define EIGEN_COMMAND_H
 
-#include "../eigen_comms.h"
+#include "../eigen_utils.h"
+#include "../eigen_module.h"
 #include <stdint.h>
 #include <string>
 #include "../eigen_packet_filter.h"
@@ -41,14 +42,5 @@ protected:
     const packet_type type_;
     const command_t command_;
 };
-
-#define MAX_COMMAND_OUT (128)
-template< typename... argv >
-inline std::string strprintf(const char* format, argv... args){
-    char buffer[MAX_COMMAND_OUT];
-
-    snprintf(buffer, MAX_COMMAND_OUT, format, args);
-    return std::string(buffer);
-}
 
 #endif // EIGEN_COMMAND_H

@@ -183,4 +183,12 @@ inline char crc_8_ccitt(const char *data, uint16_t len){
     return crc; //Final of 0x00
 }
 
+#define MAX_COMMAND_OUT (128)
+template< typename... argv >
+inline std::string strprintf(const char* format, argv... args){
+    char buffer[MAX_COMMAND_OUT];
+
+    snprintf(buffer, MAX_COMMAND_OUT, format, args...);
+    return std::string(buffer);
+}
 #endif
