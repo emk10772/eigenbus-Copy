@@ -121,6 +121,7 @@ typedef union{
 #define ORIENTATION_NONE        (0)
 #define ORIENTATION_MAX         (8)
 
+#define LIST_PARAM              (0)
 #define ADDR_PARAM              (1)
 #define TYPE_PARAM              (2)
 
