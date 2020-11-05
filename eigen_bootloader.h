@@ -3,7 +3,9 @@
 
 #include "eigen_utils.h"
 #include "eigen_responses/eigen_response.h"
+#include "eigen_commands/eigen_commands.h"
 #include "cybootloaderutils/cybtldr_api2.h"
+#include <deque>
 //#include "cybootloaderutils/cybtldr_api.h"
 
 #include <thread>
