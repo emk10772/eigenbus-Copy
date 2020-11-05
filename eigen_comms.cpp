@@ -705,27 +705,9 @@ int service_eigen_comms() {
     return packet_count;
 }
 
-void add_command(eigen_command *command){
+void add_command(EigenCommand *command){
     std::lock_guard<std::mutex> lock(cmd_mutex);
     cmd_list.push_back(command);
-}
-
-void add_command(uint8_t addr, command_enum cmd_type, uint64_t arg1){
-    add_command(addr, cmd_type, arg1, "");
-}
-
-void add_command(uint8_t addr, command_enum cmd_type, std::string arg2){
-    add_command(addr, cmd_type, 0, arg2);
-}
-
-void add_command(uint8_t addr, command_enum cmd_type, uint64_t arg1, std::string arg2){
-    eigen_command *command = new eigen_command;
-    command->command_type = cmd_type;
-    command->address = addr;
-    command->arg1 = arg1;
-    command->arg2 = arg2;
-
-    add_command(command);
 }
 
 void clear_commands(){

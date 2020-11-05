@@ -125,4 +125,8 @@ public:
     uint8_t parameter_type(uint8_t id) const;
 
 };
+
+using ModuleConst = std::shared_ptr<EigenModule const>;
+using ModuleShared = std::shared_ptr<EigenModule>;
+
 #endif // EIGEN_MODULE_H

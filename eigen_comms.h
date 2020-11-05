@@ -17,9 +17,6 @@
 #include "eigen_commands/eigen_commands.h"
 #include "eigen_responses/eigen_response.h"
 
-using ModuleConst = std::shared_ptr<EigenModule const>;
-using ModuleShared = std::shared_ptr<EigenModule>;
-
 typedef struct eigen_config_struct{
     uint8_t poll_encoder_status;
     uint8_t poll_module_position;
@@ -83,9 +80,6 @@ eigen_config get_eigen_config();
 
 //Command Interface
 void add_command(EigenCommand *command);
-//void add_command(uint8_t addr, command_enum cmd_type, uint64_t arg1);
-//void add_command(uint8_t addr, command_enum cmd_type, std::string arg2);
-//void add_command(uint8_t addr, command_enum cmd_type, uint64_t arg1, std::string arg2);
 void clear_commands();
 
 //Packet tracking interface
