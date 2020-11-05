@@ -147,11 +147,11 @@ inline std::vector<std::string> stringtok (const std::string& s, const std::stri
 
 extern const uint8_t CRC_8_TABLE[256];
 
-inline uint8_t crc_8_ccitt(uint8_t *data, uint16_t len){
-    uint8_t crc = 0xFF; //Seed of 0xFF
+inline char crc_8_ccitt(const char *data, uint16_t len){
+    char crc = 0xFF; //Seed of 0xFF
 
     for(uint16_t ind = 0; ind < len; ind++){
-        uint8_t temp = crc ^ data[ind];
+        char temp = crc ^ data[ind];
         crc = CRC_8_TABLE[temp];
     }
 

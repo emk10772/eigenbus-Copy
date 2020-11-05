@@ -67,14 +67,14 @@ uint8_t generate_node_address();
 ModuleShared add_module(uint8_t address);
 ModuleShared get_module_shared(uint8_t address);
 
-void write_packet(uint8_t *buf, uint8_t len){
-    static uint8_t s[256];
+void write_packet(const char *buf, uint8_t len){
+    static char s[256];
 
     if(len == 0) return;
 
-    uint8_t crc = crc_8_ccitt(buf, len);
+    char crc = crc_8_ccitt(buf, len);
 
-    int count = std::snprintf((char *)s, 256, "%s:%02X\n", buf, crc);
+    int count = std::snprintf(s, 256, "%s:%02X\n", buf, crc);
     (*write_data)(s, count);
 }
 
@@ -365,7 +365,7 @@ int service_eigen_comms() {
     EigenCommand *cmd = get_command();
     while(cmd != NULL){
         write_packet(cmd->packet().c_str(), cmd->packet().size());
-        packetTracker->add_packet(cmd->address_, cmd->expected_response(), cmd->packet(), cmd->type());
+        packetTracker->add_packet(cmd->address(), cmd->expected_response(), cmd->packet(), cmd->type());
         //TODO: add expected response
         delete cmd;
         cmd = get_command();
