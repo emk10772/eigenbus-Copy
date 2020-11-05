@@ -5,8 +5,6 @@ EigenResponseTopology::EigenResponseTopology(eigen_addr_t address, std::string p
     : EigenResponse(address, packet, EigenResponse::EIGEN_TOPOLOGY) {
 
     //Split the packet into tokens
-    uint8_t count = 0;
-    bool topology_updated = 0;
     auto tokens = stringtok(packet_, ",");
 
     //Parse the tokens into individual values

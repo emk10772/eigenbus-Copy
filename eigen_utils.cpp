@@ -1,5 +1,6 @@
 #include "eigen_utils.h"
-
+#include <stdarg.h>
+#include <stdio.h>
 
 /* Table for CRC-8-CCITT from https://www.3dbrew.org/wiki/CRC-8-CCITT */
 static const uint8_t CRC_8_TABLE[256] = {
@@ -36,3 +37,14 @@ static const uint8_t CRC_8_TABLE[256] = {
     0xDE, 0xD9, 0xD0, 0xD7, 0xC2, 0xC5, 0xCC, 0xCB,
     0xE6, 0xE1, 0xE8, 0xEF, 0xFA, 0xFD, 0xF4, 0xF3
 };
+
+std::string strprintf(const char* format, ...){
+    char buffer[STR_PRINT_MAX];
+    va_list args;
+    va_start(args, format);
+
+    vsnprintf(buffer, STR_PRINT_MAX, format, args);
+
+    va_end(args);
+    return std::string(buffer);
+}

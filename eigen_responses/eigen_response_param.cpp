@@ -25,15 +25,16 @@ bool EigenResponseParamRead::update_module(ModuleShared mod){
             }
 
             mod->set_expected_parameters(param_aux);
+            return false;
+        } else {
+            std::string param_name = tokens[2];
+            //service_eigencomms should null terminate the string for us
+
+            mod->add_parameter(param_addr, param_aux, param_name);
+
+            update_ = MODULE_PARAM_ADD;
+            return true;
         }
-
-        std::string param_name = tokens[2];
-        //service_eigencomms should null terminate the string for us
-
-        mod->add_parameter(param_addr, param_aux, param_name);
-
-        update_ = MODULE_PARAM_ADD;
-        return true;
     } else {
         //TODO: Error checking
         uint8_t type = mod->parameter_type(id_);

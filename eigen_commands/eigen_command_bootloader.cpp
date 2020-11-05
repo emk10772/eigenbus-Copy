@@ -24,12 +24,13 @@ std::string EigenCommandBootloader::packet(){
         case BOOTLOADER_ACK:
             return strprintf("%02x~a", address_);
         case BOOTLOADER_RESEND:
-            return strprintf("%02x~s,%s", address_, msg_);
+            return strprintf("%02x~s,%s", address_, msg_.c_str());
         case BOOTLOADER_START:
             return strprintf("%02x~b", address_);
         default:
             break;
     }
+    return "";
 }
 std::string EigenCommandBootloader::expected_response(){
     //Expecting no response

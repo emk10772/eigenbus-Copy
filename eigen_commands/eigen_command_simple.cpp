@@ -6,13 +6,11 @@ EigenCommandSimple::EigenCommandSimple(eigen_addr_t address, std::string command
 }
 
 std::string EigenCommandSimple::packet(){
-    return strprintf("%02x%s", address_, command_);
+    return strprintf("%02x%s", address_, command_.c_str());
 }
 
 std::string EigenCommandSimple::expected_response(){
-    if(response_ != "")
-        return strprintf("%02x%s", address_, response_);
-    return "";
+    return response_;
 }
 
 

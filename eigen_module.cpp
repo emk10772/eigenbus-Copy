@@ -161,7 +161,7 @@ void EigenModule::add_downstream(uint8_t node_addr){
     downstream_list.push_back(port);
 }
 
-uint8_t EigenModule::update_downstream(uint8_t ind, uint8_t node_addr){
+bool EigenModule::update_downstream(uint8_t ind, uint8_t node_addr){
     std::lock_guard<std::mutex> lock(mutex);
 
     module_down_port empty_port;
@@ -182,7 +182,7 @@ uint8_t EigenModule::update_downstream(uint8_t ind, uint8_t node_addr){
     }
 
     module_down_port downstream = downstream_list[ind];
-    uint8_t retval = 0;
+    bool retval = false;
     //If the address differs from what we currently have stored, we have to do some more checks
     if(node_addr != downstream.addr_current){
         //If this is the first time we see this new value, then mark the consistency count as 0
@@ -197,7 +197,7 @@ uint8_t EigenModule::update_downstream(uint8_t ind, uint8_t node_addr){
             if(downstream.consistency_count == TOPOLOGY_CONSISTENCY_COUNT){
                 downstream.addr_current = node_addr;
                 downstream.addr_diff = node_addr;
-                retval = 1;
+                retval = true;
             } else {
                 //If we haven't seen the value enough times yet, keep checking to make sure it is correct
                 add_command(new EigenCommandTopology(address));

@@ -64,11 +64,11 @@ ModuleShared add_module(uint8_t address);
 ModuleShared get_module_shared(uint8_t address);
 
 void write_packet(const char *buf, uint8_t len){
-    static char s[256];
+    static char s[256] = {0};
 
     if(len == 0) return;
 
-    char crc = crc_8_ccitt(buf, len);
+    uint8_t crc = crc_8_ccitt(buf, len);
 
     int count = std::snprintf(s, 256, "%s:%02X\n", buf, crc);
     (*write_data)((uint8_t *)s, count);
@@ -298,6 +298,10 @@ eigen_config get_eigen_config(){
     return communication_config;
 }
 
+raw_packet *get_raw_packet(){
+    return packetTracker->get_raw_packet();
+}
+
 int parse_packets(int t_wait_ms, uint8_t *n_chars){
     static uint8_t packet_buffer[IN_BUFFER_SIZE];
     static uint8_t in_buffer[IN_BUFFER_SIZE];
@@ -360,7 +364,7 @@ int service_eigen_comms() {
     //Execute any queued commands
     EigenCommand *cmd = get_command();
     while(cmd != NULL){
-        write_packet(cmd->packet().c_str(), cmd->packet().size());
+        write_packet(cmd->packet().c_str(), cmd->packet().length());
         packetTracker->add_packet(cmd->address(), cmd->expected_response(), cmd->packet(), cmd->type());
         //TODO: add expected response
         delete cmd;
@@ -402,10 +406,10 @@ int service_eigen_comms() {
 
     //Check that the module's parameters are updated properly
     for(uint8_t ind = 0; ind < num_modules(); ind++){
-        ModuleShared mod = get_module_shared(ind);
+        ModuleConst mod = get_module_by_index(ind);
         if(mod->parameters_left() > 0 && mod->d_t_param_last_update() > PACKET_TIMEOUT){
             //add_command(mod->get_address(), CMD_READ_PARAM_LIST, 0);
-            eigen_read_parameter(mod->get_address(), 0);
+            eigen_read_parameter(mod->get_address(), LIST_PARAM);
         }
     }
 

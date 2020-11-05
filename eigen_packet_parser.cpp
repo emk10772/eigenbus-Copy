@@ -38,7 +38,7 @@ EigenResponse *EigenPacketParser::parse_packet(eigen_addr_t address, std::string
     std::string key;
     uint8_t key_size = 0;
     key_size = (isxdigit(packet[1]) ? 1 : 2);
-    key = packet.substr(0, key_size + 1);
+    key = packet.substr(0, key_size);
     
     if(response_map.count(key)){
         return (response_map[key])(address, packet.substr(key_size));

@@ -6,7 +6,7 @@ EigenCommandFloat::EigenCommandFloat(eigen_addr_t address, std::string command, 
 }
 
 std::string EigenCommandFloat::packet(){
-    return strprintf("%02x%s%08.4f", address_, command_, value_);
+    return strprintf("%02x%s%08.4f", address_, command_.c_str(), value_);
 }
 
 std::string EigenCommandFloat::expected_response(){

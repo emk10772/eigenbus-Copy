@@ -55,7 +55,7 @@ public:
     void set_velocity(double velocty);
     void set_effort(double effort);
     void add_downstream(uint8_t node_addr);
-    uint8_t update_downstream(uint8_t ind, uint8_t node_addr);
+    bool update_downstream(uint8_t ind, uint8_t node_addr);
     void set_downstream_name(uint8_t ind, std::string name);
     void clear_downstream();
     std::vector<module_down_port> downstream() const;

@@ -9,5 +9,5 @@ std::string EigenCommandUtility::packet(){
 }
 
 std::string EigenCommandUtility::expected_response(){
-    return strprintf("%02x", address_, mode_);
+    return strprintf("U%02x", mode_);
 }
