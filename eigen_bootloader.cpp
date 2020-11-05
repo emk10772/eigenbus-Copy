@@ -3,6 +3,16 @@
 #include "eigen_responses/eigen_response_bootloader.h"
 
 
+EigenBootloader *EigenBootloader::instance = nullptr;
+
+EigenBootloader *EigenBootloader::getInstance(){
+    if(EigenBootloader::instance == nullptr){
+        EigenBootloader::instance = new EigenBootloader();
+    }
+
+    return EigenBootloader::instance;
+}
+
 static unsigned short crc_table [256] = {
 0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5,
 0x60c6, 0x70e7, 0x8108, 0x9129, 0xa14a, 0xb16b,
@@ -174,10 +184,10 @@ void EigenBootloader::process_command(EigenCommand *command){
 #define OUT_BUF_SIZE        128
 
 int EigenBootloader::bootloader_open(void){
-    bootloader_finished = false;
-    bootloader_seq_num = 0;
+    instance->bootloader_finished = false;
+    instance->bootloader_seq_num = 0;
 
-    if(bootloader_ack) {
+    if(instance->bootloader_ack) {
         return CYRET_SUCCESS;
     }
 
@@ -185,9 +195,9 @@ int EigenBootloader::bootloader_open(void){
 }
 
 int EigenBootloader::bootloader_close(void){
-    bootloader_active = false;
-    bootloader_target_addr = 0xFF;
-    bootloader_ack = false;
+    instance->bootloader_active = false;
+    instance->bootloader_target_addr = 0xFF;
+    instance->bootloader_ack = false;
 
     return CYRET_SUCCESS;
 }
@@ -275,14 +285,14 @@ int EigenBootloader::bootloader_read_data(uint8_t* buf, int len){
     bool success = false;
 
     while(!success && current_time_ms() - t_start < 500000){
-        if(bootloader_data.size() > 0){
-            std::string data = bootloader_data.front();
-            bootloader_data.pop_front();
+        if(instance->bootloader_data.size() > 0){
+            std::string data = instance->bootloader_data.front();
+            instance->bootloader_data.pop_front();
 
-            success = bootloader_parse_packet(data, buf, len);
+            success = instance->bootloader_parse_packet(data, buf, len);
             t_last = current_time_ms();
         } else if (current_time_ms() - t_last > 250) {
-            add_command(new EigenCommandBootloader(bootloader_target_addr, "TIME"));
+            instance->add_command(new EigenCommandBootloader(instance->bootloader_target_addr, "TIME"));
             t_last = current_time_ms();
         }
     }
@@ -334,7 +344,7 @@ int EigenBootloader::bootloader_write_data(uint8_t* buf, int len){
     while(packet_ind < len){
         //Print the header
         uint8_t ct = 0;
-        uint8_t ind = snprintf(out_buf, OUT_BUF_SIZE, "%02X~d%02X,%04X,%02X,", bootloader_target_addr, len, crc, bootloader_seq_num);
+        uint8_t ind = snprintf(out_buf, OUT_BUF_SIZE, "%02X~d%02X,%04X,%02X,", instance->bootloader_target_addr, len, crc, instance->bootloader_seq_num);
 
         //Print the data characters
         while(ind < OUT_BUF_SIZE && ct < MAX_PACKET_CHARS && packet_ind < len){
@@ -345,17 +355,17 @@ int EigenBootloader::bootloader_write_data(uint8_t* buf, int len){
 
         uint8_t crc_2 = crc_8_ccitt(out_buf, ind);
 
-        bootloader_last = std::string(out_buf);
+        instance->bootloader_last = std::string(out_buf);
         //Print the footer
         ind += snprintf(out_buf + ind, OUT_BUF_SIZE - ind, ":%02X\n", crc_2);
 
         //(*write_data)((uint8_t *)out_buf, ind);
-        add_command(new EigenCommandUser(bootloader_target_addr, out_buf));
+        instance->add_command(new EigenCommandUser(instance->bootloader_target_addr, out_buf));
         //CyDelay(1);
     }
 
     //Increase the sequence counter for each packet sent
-    bootloader_seq_num++;
+    instance->bootloader_seq_num++;
     //add_packet(bootloader_target_addr, out_buf, "~r");
     return CYRET_SUCCESS;
 }
@@ -365,11 +375,11 @@ void EigenBootloader::bootloader_update(uint8_t col, uint16_t row){
 }
 
 void EigenBootloader::bootloader_init(){
-    comm_struct.MaxTransferSize = 52;
-    comm_struct.OpenConnection = &bootloader_open;
-    comm_struct.CloseConnection = &bootloader_close;
-    comm_struct.ReadData = &bootloader_read_data;
-    comm_struct.WriteData = &bootloader_write_data;
+    instance->comm_struct.MaxTransferSize = 52;
+    instance->comm_struct.OpenConnection = &bootloader_open;
+    instance->comm_struct.CloseConnection = &bootloader_close;
+    instance->comm_struct.ReadData = &bootloader_read_data;
+    instance->comm_struct.WriteData = &bootloader_write_data;
 }
 
 bool EigenBootloader::active(){

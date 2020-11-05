@@ -12,11 +12,8 @@
 
 class EigenBootloader{
 public:
-    EigenBootloader();
-    ~EigenBootloader();
-
-    static void process_packet(EigenResponse *packet);
-    static void process_command(EigenCommand *command);
+    void process_packet(EigenResponse *packet);
+    void process_command(EigenCommand *command);
     
     static int bootloader_open();
     static int bootloader_close();
@@ -24,31 +21,38 @@ public:
     static int bootloader_write_data(uint8_t* buf, int len);
     static void bootloader_update(uint8_t col, uint16_t row);
     static void bootloader_init();
-    static std::string bootloader_print_error(int retval);
-    static bool active();
-    static bool finished();
+    std::string bootloader_print_error(int retval);
+    bool active();
+    bool finished();
 
-    static EigenCommand *get_command();
-    static void add_command(EigenCommand *);
+    EigenCommand *get_command();
+    void add_command(EigenCommand *);
+
+    static EigenBootloader *getInstance();
 
 private:
-    static std::deque<EigenCommand *> cmd_list;
-    static std::mutex cmd_mutex;
+    //Singleton design pattern
+    static EigenBootloader *instance;
+    explicit EigenBootloader();
+    ~EigenBootloader();
 
-    static void run_operation(eigen_addr_t target_addr, uint8_t mode, std::string file);
-    static std::thread bootload_thread;
-    static bool bootloader_parse_packet(std::string data, uint8_t *buf, uint8_t len);
+    std::deque<EigenCommand *> cmd_list;
+    std::mutex cmd_mutex;
 
-    static std::deque<std::string> bootloader_data;
-    static CyBtldr_CommunicationsData comm_struct;
-    static bool bootloader_active;
-    static bool bootloader_ack;
-    static uint8_t bootloader_target_addr;
-    static uint8_t bootloader_mode;
-    static std::string bootloader_file;
-    static bool bootloader_finished;
-    static std::string bootloader_last;
-    static uint8_t bootloader_seq_num;
+    void run_operation(eigen_addr_t target_addr, uint8_t mode, std::string file);
+    std::thread bootload_thread;
+    bool bootloader_parse_packet(std::string data, uint8_t *buf, uint8_t len);
+
+    std::deque<std::string> bootloader_data;
+    CyBtldr_CommunicationsData comm_struct;
+    bool bootloader_active;
+    bool bootloader_ack;
+    uint8_t bootloader_target_addr;
+    uint8_t bootloader_mode;
+    std::string bootloader_file;
+    bool bootloader_finished;
+    std::string bootloader_last;
+    uint8_t bootloader_seq_num;
 };
 
 #endif
