@@ -152,6 +152,21 @@ typedef struct module_update_struct{
     std::string data;
 } module_update;
 
+typedef enum packet_type_enum{
+    EIGEN_PACKET_DEFAULT,       //Used for everything else
+    EIGEN_PACKET_POLL,          //Used for general poll commands
+    EIGEN_PACKET_TOPO,          //Used for topology commands
+    EIGEN_PACKET_DEBUG,         //Debug messages
+    EIGEN_PACKET_CLI,           //Used for user command line input
+    EIGEN_PACKET_NONE
+} packet_type;
+
+typedef struct raw_packet_struct{
+    std::string packet;
+    packet_type type;
+    uint8_t dir;
+} raw_packet;
+
 //Function source:
 //    https://stackoverflow.com/questions/59572907/why-strtok-takes-a-char-and-not-a-const-char
 

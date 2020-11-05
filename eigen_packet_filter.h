@@ -5,21 +5,6 @@
 #include <set>
 #include <deque>
 
-typedef enum packet_type_enum{
-    EIGEN_PACKET_DEFAULT,       //Used for everything else
-    EIGEN_PACKET_POLL,          //Used for general poll commands
-    EIGEN_PACKET_TOPO,          //Used for topology commands
-    EIGEN_PACKET_DEBUG,         //Debug messages
-    EIGEN_PACKET_CLI,           //Used for user command line input
-    EIGEN_PACKET_NONE
-} packet_type;
-
-typedef struct raw_packet_struct{
-    std::string packet;
-    packet_type type;
-    uint8_t dir;
-} raw_packet;
-
 class EigenPacketFilter{
 public:
     EigenPacketFilter(eigen_addr_t address, std::string response_filter, packet_type packet, std::string packet_string);

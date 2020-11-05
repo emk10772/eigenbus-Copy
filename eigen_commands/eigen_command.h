@@ -5,7 +5,6 @@
 #include "../eigen_module.h"
 #include <stdint.h>
 #include <string>
-#include "../eigen_packet_filter.h"
 
 class EigenCommand{
 public:
