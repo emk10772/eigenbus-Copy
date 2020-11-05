@@ -1,8 +1,8 @@
 #include "eigen_response_topology.h"
 
 
-EigenResponseTopology::EigenResponseTopology(std::string packet)
-    : EigenResponse(packet, EigenResponse::EIGEN_TOPOLOGY) {
+EigenResponseTopology::EigenResponseTopology(eigen_addr_t address, std::string packet)
+    : EigenResponse(address, packet, EigenResponse::EIGEN_TOPOLOGY) {
 
     //Split the packet into tokens
     uint8_t count = 0;

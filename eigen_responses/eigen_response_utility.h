@@ -5,7 +5,7 @@
 
 class EigenResponseUtility : public EigenResponse{
 public:
-    EigenResponseUtility(std::string packet);
+    EigenResponseUtility(eigen_addr_t address, std::string packet);
 
     bool update_module(ModuleShared mod) override;
     module_update_enum update_type() override;

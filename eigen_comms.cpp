@@ -267,11 +267,11 @@ void process_packet(uint8_t *buffer, uint8_t len) {
         packet_type type = packetTracker->match_response(addr, std::string((char *) buffer + 1);
         
         //Parse the response
-        EigenResponse *response = packetParser->parse_packet(std::string((char *) buffer + 3));
+        EigenResponse *response = packetParser->parse_packet(addr, std::string((char *) buffer + 3));
         if(response->update_module(module)){
             add_module_update(addr, response->type());
         }
-        
+
         if(response->has_additonal_responses()){
             //Add more packets to the tracker
             for(auto pkt : response->additional_responses())

@@ -5,19 +5,20 @@
 
 class EigenResponseParamRead : public EigenResponse{
 public:
-    EigenResponseParamRead(std::string packet);
+    EigenResponseParamRead(eigen_addr_t address, std::string packet);
 
     bool update_module(ModuleShared mod) override;
     module_update_enum update_type() override;
 
 private:
     uint8_t id_;
+    module_update_enum update_;
 
 };
 
 class EigenResponseParamWrite : public EigenResponse{
 public:
-    EigenResponseParamWrite(std::string packet);
+    EigenResponseParamWrite(eigen_addr_t address, std::string packet);
 
     bool update_module(ModuleShared mod) override;
     module_update_enum update_type() override;

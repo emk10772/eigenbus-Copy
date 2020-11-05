@@ -10,11 +10,11 @@ public:
     EigenPacketParser();
     ~EigenPacketParser();
 
-    EigenResponse *parse_packet(std::string packet);
+    EigenResponse *parse_packet(eigen_addr_t address, std::string packet);
 
 private:
-    void register_packet_type(std::string command, EigenResponse *(*parser)(std::string packet));
-    std::map<std::string, EigenResponse *(*)(std::string)> response_map;
+    void register_packet_type(std::string command, EigenResponse *(*parser)(eigen_addr_t address, std::string packet));
+    std::map<std::string, EigenResponse *(*)(eigen_addr_t address, std::string)> response_map;
 };
 
 #endif

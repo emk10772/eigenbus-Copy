@@ -3,8 +3,8 @@
 #include <string>
 
 
-EigenResponseUtility::EigenResponseUtility(std::string packet)
-    : EigenResponse(packet, EigenResponse::EIGEN_UTILITY) {
+EigenResponseUtility::EigenResponseUtility(eigen_addr_t address, std::string packet)
+    : EigenResponse(address, packet, EigenResponse::EIGEN_UTILITY) {
 }
 
 bool EigenResponseUtility::update_module(ModuleShared mod){

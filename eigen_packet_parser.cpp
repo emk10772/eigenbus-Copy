@@ -6,8 +6,8 @@
 #include "eigen_responses/eigen_response_param.h"
 
 template <class Response>
-EigenResponse *new_response(std::string packet){
-    return new Response(packet);
+EigenResponse *new_response(eigen_addr_t address, std::string packet){
+    return new Response(address, packet);
 }
 
 EigenPacketParser::EigenPacketParser(){
@@ -24,13 +24,13 @@ EigenPacketParser::~EigenPacketParser(){
 }
 
 void EigenPacketParser::register_packet_type(std::string command,  
-    EigenResponse *(*parser)(std::string packet)){
+    EigenResponse *(*parser)(eigen_addr_t address, std::string packet)){
 
     response_map[command] = parser;
 }
 
 //parse_packet: takes a command packet trimmed of the address
-EigenResponse *EigenPacketParser::parse_packet(std::string packet){
+EigenResponse *EigenPacketParser::parse_packet(eigen_addr_t address, std::string packet){
     //If the first character is a hex digit, this packet is not a valid response
     if(isxdigit(packet[0])) return nullptr;
 
@@ -41,7 +41,7 @@ EigenResponse *EigenPacketParser::parse_packet(std::string packet){
     key = packet.substr(0, key_size + 1);
     
     if(response_map.count(key)){
-        return (response_map[key])(packet.substr(key_size));
+        return (response_map[key])(address, packet.substr(key_size));
     }
     
     return nullptr;

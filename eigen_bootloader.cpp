@@ -71,44 +71,45 @@ unsigned short CRCCCITT(unsigned char *data, size_t length, unsigned short seed,
 #define PACKET_SEQ_LEN      (2) //"%02X"
 #define PACKET_HEADER_LEN   (PACKET_SIZE_LEN + 1 + PACKET_CRC_LEN + 1 + PACKET_SEQ_LEN + 1) //"%02X,%04X,%02X."
 #define PROCESS_BUFFER_SIZE (256)
-/*
-void start_bootload(uint8_t address, uint8_t mode, std::string file){
-    firmware_utility(address, EIGEN_UTIL_MODULE_STATUS);
 
-    uint8_t s[32];
-    int count = std::snprintf((char *)s, 100, "%02x~b", address);
-    write_packet(s, count);
-    bootloader_ack = false;
-    bootloader_target_addr = address;
-    bootloader_active = true;
-    bootloader_mode = mode;
-    bootloader_file = file;
+EigenCommand *EigenBootloader::get_command(){
+    EigenCommand *retval;
+    std::lock_guard<std::mutex> lock(cmd_mutex);
 
-    //Expecting no response
-    std::string cmd = std::string((char *) s);
-    add_packet(address, cmd, "");
+    if(cmd_list.size() > 0){
+        retval = cmd_list.front();
+        cmd_list.pop_front();
+    } else {
+        return NULL;
+    }
+
+    return retval;
 }
 
-void acknwoledge_bootload(uint8_t address){
-    uint8_t s[32];
-    int count = std::snprintf((char *)s, 100, "%02x~a", address);
-    write_packet(s, count);
-
-    //Expecting no response
-    std::string cmd = std::string((char *) s);
-    add_packet(address, cmd, "");
+void EigenBootloader::add_command(EigenCommand *command){
+    std::lock_guard<std::mutex> lock(cmd_mutex);
+    cmd_list.push_back(command);
 }
 
-void request_resend_bootload(uint8_t address, std::string msg){
-    uint8_t s[32];
-    int count = std::snprintf((char *)s, 100, "%02x~s,%s", address, msg.c_str());
-    write_packet(s, count);
+void EigenBootloader::run_operation(eigen_addr_t target_addr, uint8_t mode, std::string file){
+    add_command(new EigenCommandBootloader(target_addr, EigenCommandBootloader::BOOTLOADER_ACK));
 
-    //Expecting no response
-    std::string cmd = std::string((char *) s);
-    add_packet(address, cmd, "");
-}*/
+    int retval = 0;
+    if(mode == 1){
+        retval = CyBtldr_Program(file.c_str(), NULL, (uint8_t) 3, &comm_struct, &bootloader_update);
+    } else if(mode == 2){
+        retval = CyBtldr_Verify(file.c_str(), NULL, &comm_struct, &bootloader_update);
+    } else if(mode == 3) {
+        retval = CyBtldr_Erase(file.c_str(), NULL, &comm_struct, &bootloader_update);
+    }
 
+    //If successful, retval = 0. Mark as finished.
+    if(!retval){
+        bootloader_finished = true;
+    }
+
+    //add_module_update(addr, MODULE_BTLDR_END, bootloader_print_error(retval));
+}
 
 void EigenBootloader::process_packet(EigenResponse *packet){
     if(packet->message_type() != EigenResponse::EIGEN_BOOTLOADER) return;
@@ -116,29 +117,13 @@ void EigenBootloader::process_packet(EigenResponse *packet){
     EigenResponseBootloader *btldr_packet = static_cast<EigenResponseBootloader *>(packet);
     switch(btldr_packet->btldr_action()){
         case EigenResponseBootloader::BOOTLOADER_ACK:
-            if(bootloader_active == true && bootloader_target_addr == module->get_address()){
+            if(bootloader_active == true && bootloader_target_addr == packet->address()){
                 if(!bootloader_ack) {
                     bootloader_ack = true;
-                    acknwoledge_bootload(bootloader_target_addr);
 
-                    int retval = 0;
-                    if(bootloader_mode == 1){
-                        retval = CyBtldr_Program(bootloader_file.c_str(), NULL, (uint8_t) 3, &comm_struct, &bootloader_update);
-                    } else if(bootloader_mode == 2){
-                        retval = CyBtldr_Verify(bootloader_file.c_str(), NULL, &comm_struct, &bootloader_update);
-                    } else if(bootloader_mode == 3) {
-                        retval = CyBtldr_Erase(bootloader_file.c_str(), NULL, &comm_struct, &bootloader_update);
-                    }
-
-                    //If successful, retval = 0. Mark as finished.
-                    if(!retval){
-                        bootloader_finished = true;
-                        //uid_write_node_addr(module->get_address(), module->get_UID(), module->get_address());
-                    }
-
-                    add_module_update(addr, MODULE_BTLDR_END, bootloader_print_error(retval));
+                    bootload_thread = std::thread(&EigenBootloader::run_operation, bootloader_target_addr, bootloader_mode, bootloader_file);
                 } else {
-                    acknwoledge_bootload(bootloader_target_addr);
+                    add_command(new EigenCommandBootloader(bootloader_target_addr, EigenCommandBootloader::BOOTLOADER_ACK));
                 }
             }
             break;
@@ -146,7 +131,8 @@ void EigenBootloader::process_packet(EigenResponse *packet){
             bootloader_data.push_back(btldr_packet->data());
             break;
         case EigenResponseBootloader::BOOTLOADER_RESEND:
-            (*write_data)((uint8_t *)bootloader_last.c_str(), bootloader_last.length());
+            add_command(new EigenCommandUser(bootloader_target_addr, bootloader_last));
+            //(*write_data)((uint8_t *)bootloader_last.c_str(), bootloader_last.length());
             break;
         default:
             break;
@@ -161,10 +147,10 @@ void EigenBootloader::process_command(EigenCommand *command){
     switch(btldr_command->command_type()){
         case EigenCommandBootloader::BOOTLOADER_START:
             bootloader_ack = false;
-            bootloader_target_addr = command->address();
+            bootloader_target_addr = btldr_command->address();
             bootloader_active = true;
-            bootloader_mode = mode;
-            bootloader_file = file;
+            bootloader_mode = btldr_command->mode();
+            bootloader_file = btldr_command->msg();
             break;
         case EigenCommandBootloader::BOOTLOADER_ACK:
             break;
@@ -201,7 +187,7 @@ int EigenBootloader::bootloader_close(void){
 bool EigenBootloader::bootloader_parse_packet(std::string data, uint8_t *buf, uint8_t len){
     uint8_t packet_len = data.size() - PACKET_HEADER_LEN;
     if(data.size() < PACKET_HEADER_LEN || packet_len % 2){
-        request_resend_bootload(bootloader_target_addr, "LEN");
+        add_command(new EigenCommandBootloader(bootloader_target_addr, "LEN"));
         return false;
     }
 
@@ -244,19 +230,24 @@ bool EigenBootloader::bootloader_parse_packet(std::string data, uint8_t *buf, ui
     uint16_t crc_calc = CRCCCITT((uint8_t *)aux_buffer, ind, 0xFFFF, 0);
 
     if(!valid){
-        request_resend_bootload(bootloader_target_addr, "INVLD");
+        add_command(new EigenCommandBootloader(bootloader_target_addr, "INVLD"));
+        //request_resend_bootload(bootloader_target_addr, "INVLD");
         return false;
     } else if((2*ind) != packet_len){
-        request_resend_bootload(bootloader_target_addr, "LEN");
+        add_command(new EigenCommandBootloader(bootloader_target_addr, "LEN"));
+        //request_resend_bootload(bootloader_target_addr, "LEN");
         return false;
     } else if(ind != num_chars) {
-        request_resend_bootload(bootloader_target_addr, "CHAR");
+        add_command(new EigenCommandBootloader(bootloader_target_addr, "CHAR"));
+        //request_resend_bootload(bootloader_target_addr, "CHAR");
         return false;
     } else if (crc_calc != crc_packet) {
-        request_resend_bootload(bootloader_target_addr, "CRC");
+        add_command(new EigenCommandBootloader(bootloader_target_addr, "CRC"));
+        //request_resend_bootload(bootloader_target_addr, "CRC");
         return false;
     } else if (sequence_num != bootloader_seq_num){
-        (*write_data)((uint8_t *)bootloader_last.c_str(), bootloader_last.length());
+        add_command(new EigenCommandUser(bootloader_target_addr, bootloader_last));
+        //(*write_data)((uint8_t *)bootloader_last.c_str(), bootloader_last.length());
         //request_resend_bootload(bootloader_target_addr, "SEQ");
         return false;
     } else {
@@ -273,16 +264,31 @@ int EigenBootloader::bootloader_read_data(uint8_t* buf, int len){
     uint64_t t_last = t_start;
     uint8_t n_chars = 0;
     uint8_t first_request_n = 0;
+    bool success = false;
 
-    while(/*bootloader_data.size() == 0 &&*/ current_time_ms() - t_start < 500000){
+    while(!success && current_time_ms() - t_start < 500000){
+        if(bootloader_data.size() > 0){
+            std::string data = bootloader_data.front();
+            bootloader_data.pop_front();
+
+            success = bootloader_parse_packet(data, buf, len);
+            t_last = current_time_ms();
+        } else if (current_time_ms() - t_last > 250) {
+            add_command(new EigenCommandBootloader(bootloader_target_addr, "TIME"));
+            t_last = current_time_ms();
+        }
+    }
+    
+    if(success) 
+        return CYRET_SUCCESS;
+    else
+        return CYRET_ERR_UNK;
+    
+    /*
+    while(current_time_ms() - t_start < 500000){
         parse_packets(250, &n_chars);
-        //(*write_data)((uint8_t *)"05U20\n", 6);
-        //qDebug() << n_chars << packet_queue.size() << bootloader_data.size() << '\n';
         if((packet_queue.size() == 0 && current_time_ms() - t_last > 250)
                 || (n_chars > 0 && current_time_ms() - t_last > 250)){
-            //char out_buf[OUT_BUF_SIZE];
-            //uint8_t ind = snprintf(out_buf, OUT_BUF_SIZE, "%02X~s\n", bootloader_target_addr);
-            //(*write_data)((uint8_t *)out_buf, ind);
             if(!first_request_n){
                 first_request_n = 1;
                 (*write_data)((uint8_t *)"\n", 1);
@@ -308,7 +314,7 @@ int EigenBootloader::bootloader_read_data(uint8_t* buf, int len){
         }
     }
 
-    return CYRET_ERR_UNK;
+    return CYRET_ERR_UNK;*/
 }
 
 int EigenBootloader::bootloader_write_data(uint8_t* buf, int len){
@@ -331,22 +337,23 @@ int EigenBootloader::bootloader_write_data(uint8_t* buf, int len){
 
         uint8_t crc_2 = crc_8_ccitt((uint8_t *)out_buf, ind);
 
+        bootloader_last = std::string(out_buf);
         //Print the footer
         ind += snprintf(out_buf + ind, OUT_BUF_SIZE - ind, ":%02X\n", crc_2);
 
-        bootloader_last = std::string(out_buf);
-        (*write_data)((uint8_t *)out_buf, ind);
+        //(*write_data)((uint8_t *)out_buf, ind);
+        add_command(new EigenCommandUser(bootloader_target_addr, out_buf));
         //CyDelay(1);
     }
 
     //Increase the sequence counter for each packet sent
     bootloader_seq_num++;
-    add_packet(bootloader_target_addr, out_buf, "~r");
+    //add_packet(bootloader_target_addr, out_buf, "~r");
     return CYRET_SUCCESS;
 }
 
 void EigenBootloader::bootloader_update(uint8_t col, uint16_t row){
-    add_module_update(bootloader_target_addr, MODULE_BTLDR_PROGRESS, row);
+    //add_module_update(bootloader_target_addr, MODULE_BTLDR_PROGRESS, row);
 }
 
 void EigenBootloader::bootloader_init(){
@@ -357,11 +364,11 @@ void EigenBootloader::bootloader_init(){
     comm_struct.WriteData = &bootloader_write_data;
 }
 
-bool EigenBootloader::is_bootloader_active(){
+bool EigenBootloader::active(){
     return bootloader_active;
 }
 
-bool EigenBootloader::is_bootloader_finished(){
+bool EigenBootloader::finished(){
     if(bootloader_finished){
         bootloader_finished = false;
         return true;

@@ -3,8 +3,8 @@
 #include <string>
 
 
-EigenResponseBootloader::EigenResponseBootloader(std::string packet)
-    : EigenResponse(packet, EigenResponse::EIGEN_BOOTLOADER) {
+EigenResponseBootloader::EigenResponseBootloader(eigen_addr_t address, std::string packet)
+    : EigenResponse(address, packet, EigenResponse::EIGEN_BOOTLOADER) {
 
     data_ = "";
 

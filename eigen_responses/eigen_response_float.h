@@ -5,7 +5,7 @@
 
 class EigenResponseFloat : public EigenResponse{
 public:
-    EigenResponseFloat(std::string packet, response_t message_type);
+    EigenResponseFloat(eigen_addr_t address, std::string packet, response_t message_type);
 
 protected:
     double value;
@@ -14,7 +14,7 @@ protected:
 
 class EigenResponsePosition : public EigenResponseFloat{
 public:
-    EigenResponsePosition(std::string packet);
+    EigenResponsePosition(eigen_addr_t address, std::string packet);
 
     module_update_enum update_type() override;
     bool update_module(ModuleShared mod) override;
@@ -22,7 +22,7 @@ public:
 
 class EigenResponseVelocity : public EigenResponseFloat{
 public:
-    EigenResponseVelocity(std::string packet);
+    EigenResponseVelocity(eigen_addr_t address, std::string packet);
 
     module_update_enum update_type() override;
     bool update_module(ModuleShared mod) override;
@@ -30,7 +30,7 @@ public:
 
 class EigenResponseEffort : public EigenResponseFloat{
 public:
-    EigenResponseEffort(std::string packet);
+    EigenResponseEffort(eigen_addr_t address, std::string packet);
 
     module_update_enum update_type() override;
     bool update_module(ModuleShared mod) override;

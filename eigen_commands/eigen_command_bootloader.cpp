@@ -1,14 +1,22 @@
 #include "eigen_command_bootloader.h"
 
 
-EigenCommandBootloader::EigenCommandBootloader(eigen_addr_t address, btldr_op_t action)
+EigenCommandBootloader::EigenCommandBootloader(eigen_addr_t address, btldr_op_t action, uint8_t mode, std::string msg)
     : EigenCommand(address, EIGEN_PACKET_DEBUG, EIGEN_CMD_BOOTLOADER), action_(action) {
-    this->msg_ = "";
+    this->msg_ = msg;
+    this->mode_ = mode;
 }
 
 EigenCommandBootloader::EigenCommandBootloader(eigen_addr_t address, std::string msg)
     : EigenCommand(address, EIGEN_PACKET_DEBUG, EIGEN_CMD_BOOTLOADER), msg_(msg) {
     this->action_ = BOOTLOADER_RESEND;
+    this->mode_ = 0;
+}
+
+EigenCommandBootloader::EigenCommandBootloader(eigen_addr_t address, uint8_t mode, std::string msg)
+    : EigenCommand(address, EIGEN_PACKET_DEBUG, EIGEN_CMD_BOOTLOADER), msg_(msg) {
+    this->action_ = BOOTLOADER_START;
+    this->mode_ = mode;
 }
 
 std::string EigenCommandBootloader::packet(){
@@ -26,4 +34,12 @@ std::string EigenCommandBootloader::packet(){
 std::string EigenCommandBootloader::expected_response(){
     //Expecting no response
     return "";
+}
+
+std::string EigenCommandBootloader::msg(){
+    return msg_;
+}
+
+uint8_t EigenCommandBootloader::mode(){
+    return mode_;
 }

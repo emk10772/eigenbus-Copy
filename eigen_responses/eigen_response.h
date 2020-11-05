@@ -21,7 +21,7 @@ public:
         EIGEN_BOOTLOADER
     } response_t;
 
-    EigenResponse(std::string packet, response_t message_type);
+    EigenResponse(eigen_addr_t address, std::string packet, response_t message_type);
     ~EigenResponse();
 
     virtual bool update_module(ModuleShared mod);
@@ -33,6 +33,7 @@ public:
     std::string packet();
 
 protected:
+    const eigen_addr_t address_;
     const std::string packet_;
     const response_t message_type_;
     std::vector<std::string> responses_;

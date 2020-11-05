@@ -26,6 +26,7 @@
 #define CALL_CON __cdecl
 #else
 #define EXTERN extern
+#define CALL_CON
 #endif
 
 /******************************************************************************
