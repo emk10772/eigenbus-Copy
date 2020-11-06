@@ -26,7 +26,7 @@ public:
     bool finished();
 
     EigenCommand *get_command();
-    void add_command(EigenCommand *);
+    EigenUpdate *get_update();
 
     static EigenBootloader *getInstance();
 
@@ -38,6 +38,11 @@ private:
 
     std::deque<EigenCommand *> cmd_list;
     std::mutex cmd_mutex;
+    void add_command(EigenCommand *);
+
+    std::deque<EigenUpdate *> update_list;
+    std::mutex update_mutex;
+    void add_update(EigenUpdate *);
 
     void run_operation(eigen_addr_t target_addr, uint8_t mode, std::string file);
     std::thread bootload_thread;

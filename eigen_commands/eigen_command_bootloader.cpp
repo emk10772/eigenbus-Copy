@@ -44,3 +44,7 @@ std::string EigenCommandBootloader::msg(){
 uint8_t EigenCommandBootloader::mode(){
     return mode_;
 }
+
+EigenCommandBootloader::btldr_op_t EigenCommandBootloader::action(){
+    return action_;
+}

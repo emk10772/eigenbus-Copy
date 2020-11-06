@@ -4,6 +4,7 @@
 #include "eigen_responses/eigen_response_float.h"
 #include "eigen_responses/eigen_response_topology.h"
 #include "eigen_responses/eigen_response_param.h"
+#include "eigen_responses/eigen_response_bootloader.h"
 
 template <class Response>
 EigenResponse *new_response(eigen_addr_t address, std::string packet){
@@ -18,6 +19,7 @@ EigenPacketParser::EigenPacketParser(){
     register_packet_type("I", &new_response<EigenResponseEffort>);
     register_packet_type("|(", &new_response<EigenResponseParamRead>);
     register_packet_type("|)", &new_response<EigenResponseParamWrite>);
+    register_packet_type("~", &new_response<EigenResponseBootloader>);
 }
 
 EigenPacketParser::~EigenPacketParser(){
@@ -38,10 +40,14 @@ EigenResponse *EigenPacketParser::parse_packet(eigen_addr_t address, std::string
     std::string key;
     uint8_t key_size = 0;
     key_size = (isxdigit(packet[1]) ? 1 : 2);
-    key = packet.substr(0, key_size);
     
-    if(response_map.count(key)){
-        return (response_map[key])(address, packet.substr(key_size));
+    while(key_size > 0){
+        key = packet.substr(0, key_size);
+
+        if(response_map.count(key))
+            return (response_map[key])(address, packet.substr(key_size));
+
+        key_size--;
     }
     
     return nullptr;

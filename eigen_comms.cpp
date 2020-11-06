@@ -1,5 +1,6 @@
 #include "eigen_comms.h"
 #include "eigen_command_wrappers.h"
+#include "eigen_bootloader.h"
 #include <stdlib.h>
 #include <ctype.h>
 #include <chrono>
@@ -37,6 +38,7 @@ static std::mutex cmd_mutex;
 
 static EigenPacketTracker *packetTracker;
 static EigenPacketParser *packetParser;
+static EigenBootloader *bootloader;
 
 static std::deque<std::string> packet_queue;
 
@@ -100,25 +102,18 @@ void start_eigen_comms(uint16_t (*read)(uint8_t *buf, uint16_t max_len, int t_wa
     communication_config.max_retries = 2;
 
     t_init = current_time_ms();
-    //null_mod = new Module(0xFF);
     srand(t_init);
 
-#ifdef EIGEN_BTLDR_SUPPORT
-    bootloader_init();
-#endif
-
+    bootloader = EigenBootloader::getInstance();
     packetTracker = new EigenPacketTracker();
     packetParser = new EigenPacketParser();
 
 }
 
 void clean_eigen_comms() {
-    //TODO: Free each module, clean up the map
-
     clear_module_list();
     delete packetParser;
     delete packetTracker;
-    //delete null_mod;
 }
 
 void clear_module_list(){
@@ -164,6 +159,14 @@ EigenUpdate *get_module_update(){
     }
 
     return retval;
+}
+
+bool is_bootloader_active(){
+    return bootloader->active();
+}
+
+bool is_bootloader_finished(){
+    return bootloader->finished();
 }
 
 uint8_t generate_node_address(){
@@ -237,6 +240,8 @@ void process_packet(uint8_t *buffer, uint8_t len) {
             if(response->has_additonal_responses())
                 for(auto pkt : response->additional_responses())
                     packetTracker->add_packet(module->get_address(), pkt, "", type);
+
+            bootloader->process_packet(response);
         }
         
         delete response;
@@ -315,6 +320,24 @@ int parse_packets(int t_wait_ms, uint8_t *n_chars){
     return packet_count;
 }
 
+void service_bootloader(){
+    EigenCommand *cmd;
+    cmd = bootloader->get_command();
+
+    while(cmd != NULL){
+        write_packet(cmd->packet().c_str(), cmd->packet().length());
+
+        delete cmd;
+        cmd = bootloader->get_command();
+    }
+
+    EigenUpdate *update = bootloader->get_update();
+    while(update != NULL){
+        add_module_update(update);
+        update = bootloader->get_update();
+    }
+}
+
 int service_eigen_comms() {
     static uint64_t t_last = current_time_ms();
 
@@ -327,15 +350,22 @@ int service_eigen_comms() {
 
     packetTracker->handle_timeout_packets();
 
-    //Execute any queued commands
-    EigenCommand *cmd = get_command();
-    while(cmd != NULL){
-        write_packet(cmd->packet().c_str(), cmd->packet().length());
-        packetTracker->add_packet(cmd->address(), cmd->expected_response(), cmd->packet(), cmd->type());
-        //TODO: add expected response
-        delete cmd;
-        cmd = get_command();
+    if(!bootloader->active()){
+        //Execute any queued commands
+        EigenCommand *cmd = get_command();
+
+        while(cmd != NULL){
+            write_packet(cmd->packet().c_str(), cmd->packet().length());
+
+            packetTracker->add_packet(cmd->address(), cmd->expected_response(), cmd->packet(), cmd->type());
+            bootloader->process_command(cmd);
+
+            delete cmd;
+            cmd = get_command();
+        }
     }
+
+    service_bootloader();
 
     /* POLLING */
     if(current_time_ms() - t_last_update_poll > UPDATE_TOPOLOGY_PERIOD){

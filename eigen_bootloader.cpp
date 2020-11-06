@@ -77,7 +77,15 @@ unsigned short CRCCCITT(unsigned char *data, size_t length, unsigned short seed,
 }
 
 EigenBootloader::EigenBootloader(){
+    comm_struct.MaxTransferSize = 52;
+    comm_struct.OpenConnection = &bootloader_open;
+    comm_struct.CloseConnection = &bootloader_close;
+    comm_struct.ReadData = &bootloader_read_data;
+    comm_struct.WriteData = &bootloader_write_data;
 
+    bootloader_active = false;
+    bootloader_ack = false;
+    bootloader_mode = 0;
 }
 
 EigenBootloader::~EigenBootloader(){
@@ -109,6 +117,25 @@ void EigenBootloader::add_command(EigenCommand *command){
     cmd_list.push_back(command);
 }
 
+EigenUpdate *EigenBootloader::get_update(){
+    EigenUpdate *retval;
+    std::lock_guard<std::mutex> lock(cmd_mutex);
+
+    if(update_list.size() > 0){
+        retval = update_list.front();
+        update_list.pop_front();
+    } else {
+        return NULL;
+    }
+
+    return retval;
+}
+
+void EigenBootloader::add_update(EigenUpdate *command){
+    std::lock_guard<std::mutex> lock(cmd_mutex);
+    update_list.push_back(command);
+}
+
 void EigenBootloader::run_operation(eigen_addr_t target_addr, uint8_t mode, std::string file){
     instance->add_command(new EigenCommandBootloader(target_addr, EigenCommandBootloader::BOOTLOADER_ACK));
 
@@ -126,7 +153,7 @@ void EigenBootloader::run_operation(eigen_addr_t target_addr, uint8_t mode, std:
         instance->bootloader_finished = true;
     }
 
-    //add_module_update(addr, MODULE_BTLDR_END, bootloader_print_error(retval));
+    add_update(new EigenUpdate(target_addr, EigenUpdate::MODULE_BTLDR_END, retval, bootloader_print_error(retval)));
 }
 
 void EigenBootloader::process_packet(EigenResponse *packet){
@@ -150,7 +177,6 @@ void EigenBootloader::process_packet(EigenResponse *packet){
             break;
         case EigenResponseBootloader::BOOTLOADER_RESEND:
             add_command(new EigenCommandUser(bootloader_target_addr, bootloader_last));
-            //(*write_data)((uint8_t *)bootloader_last.c_str(), bootloader_last.length());
             break;
         default:
             break;
@@ -162,7 +188,7 @@ void EigenBootloader::process_command(EigenCommand *command){
     if(command->command_type() != EigenCommand::EIGEN_CMD_BOOTLOADER) return;
 
     EigenCommandBootloader *btldr_command = static_cast<EigenCommandBootloader *>(command);
-    switch(btldr_command->command_type()){
+    switch(btldr_command->action()){
         case EigenCommandBootloader::BOOTLOADER_START:
             bootloader_ack = false;
             bootloader_target_addr = btldr_command->address();
@@ -357,7 +383,7 @@ int EigenBootloader::bootloader_write_data(uint8_t* buf, int len){
 
         instance->bootloader_last = std::string(out_buf);
         //Print the footer
-        ind += snprintf(out_buf + ind, OUT_BUF_SIZE - ind, ":%02X\n", crc_2);
+        //ind += snprintf(out_buf + ind, OUT_BUF_SIZE - ind, ":%02X\n", crc_2);
 
         //(*write_data)((uint8_t *)out_buf, ind);
         instance->add_command(new EigenCommandUser(instance->bootloader_target_addr, out_buf));
@@ -371,15 +397,8 @@ int EigenBootloader::bootloader_write_data(uint8_t* buf, int len){
 }
 
 void EigenBootloader::bootloader_update(uint8_t col, uint16_t row){
-    //add_module_update(bootloader_target_addr, MODULE_BTLDR_PROGRESS, row);
-}
-
-void EigenBootloader::bootloader_init(){
-    instance->comm_struct.MaxTransferSize = 52;
-    instance->comm_struct.OpenConnection = &bootloader_open;
-    instance->comm_struct.CloseConnection = &bootloader_close;
-    instance->comm_struct.ReadData = &bootloader_read_data;
-    instance->comm_struct.WriteData = &bootloader_write_data;
+    instance->add_update(new EigenUpdate(instance->bootloader_target_addr,
+                                         EigenUpdate::MODULE_BTLDR_PROGRESS, row));
 }
 
 bool EigenBootloader::active(){

@@ -20,6 +20,7 @@ public:
 
     std::string msg();
     uint8_t mode();
+    btldr_op_t action();
 
 private:
     btldr_op_t action_;
