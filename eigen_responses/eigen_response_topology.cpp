@@ -27,14 +27,14 @@ bool EigenResponseTopology::parse_valid(){
     return true;
 }
 
-bool EigenResponseTopology::update_module(ModuleShared mod){
+EigenUpdate *EigenResponseTopology::update_module(ModuleShared mod){
     bool topology_updated = false;
 
     if(parse_valid()){
         mod->update_orientation(orientation_);
         mod->update_type(type_);
     } else {
-        return false;
+        return nullptr;
     }
 
     /* If we got updated topology info */
@@ -42,9 +42,8 @@ bool EigenResponseTopology::update_module(ModuleShared mod){
         topology_updated |= mod->update_downstream(ind, down_[ind]);
     }
     
-    return topology_updated;
-}
-
-module_update_enum EigenResponseTopology::update_type(){
-    return MODULE_DOWNSTREAM;
+    if(topology_updated)
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_DOWNSTREAM);
+    else
+        return nullptr;
 }

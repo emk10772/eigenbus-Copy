@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "eigen_utils.h"
+#include "eigen_update.h"
 #include "eigen_module.h"
 #include "eigen_packet_filter.h"
 #include "eigen_packet_parser.h"
@@ -44,7 +45,7 @@ void clean_eigen_comms();
 int service_eigen_comms();
 bool get_poll_enabled();
 void set_poll_enabled(bool state);
-module_update *get_module_update();
+EigenUpdate *get_module_update();
 uint64_t current_time_ms();
 //bool is_bootloader_active();
 //bool is_bootloader_finished();

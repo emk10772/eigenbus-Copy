@@ -8,7 +8,7 @@ EigenResponseUtility::EigenResponseUtility(eigen_addr_t address, std::string pac
     : EigenResponse(address, packet, EigenResponse::EIGEN_UTILITY) {
 }
 
-bool EigenResponseUtility::update_module(ModuleShared mod){
+EigenUpdate *EigenResponseUtility::update_module(ModuleShared mod){
     size_t ind = 0;
     id_ = stoul(packet_, &ind, EIGENBUS_BASE);
 
@@ -75,14 +75,10 @@ bool EigenResponseUtility::update_module(ModuleShared mod){
             break;
         }
         default: {
-            return false;
+            return nullptr;
         }
             
     }
 
-    return false;
-}
-
-module_update_enum EigenResponseUtility::update_type(){
-    return MODULE_ERROR;
+    return nullptr;
 }

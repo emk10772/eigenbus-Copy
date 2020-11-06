@@ -18,15 +18,11 @@ EigenResponsePosition::EigenResponsePosition(eigen_addr_t address, std::string p
     : EigenResponseFloat(address, packet, EigenResponse::EIGEN_POSITION){
 }
 
-bool EigenResponsePosition::update_module(ModuleShared mod){
+EigenUpdate *EigenResponsePosition::update_module(ModuleShared mod){
     if(value_valid)
         mod->set_position(value);
-    
-    return value_valid;
-}
 
-module_update_enum EigenResponsePosition::update_type(){
-    return MODULE_POS_UPDATE;
+    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_POS_UPDATE);
 }
 
 
@@ -37,16 +33,13 @@ EigenResponseVelocity::EigenResponseVelocity(eigen_addr_t address, std::string p
     : EigenResponseFloat(address, packet, EigenResponse::EIGEN_VELOCITY){
 }
 
-bool EigenResponseVelocity::update_module(ModuleShared mod){
+EigenUpdate *EigenResponseVelocity::update_module(ModuleShared mod){
     if(value_valid)
         mod->set_velocity(value);
     
-    return value_valid;
+    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_VEL_UPDATE);
 }
 
-module_update_enum EigenResponseVelocity::update_type(){
-    return MODULE_VEL_UPDATE;
-}
 
 
 
@@ -56,13 +49,9 @@ EigenResponseEffort::EigenResponseEffort(eigen_addr_t address, std::string packe
     : EigenResponseFloat(address, packet, EigenResponse::EIGEN_EFFORT){
 }
 
-bool EigenResponseEffort::update_module(ModuleShared mod){
+EigenUpdate *EigenResponseEffort::update_module(ModuleShared mod){
     if(value_valid)
         mod->set_effort(value);
-    
-    return value_valid;
-}
 
-module_update_enum EigenResponseEffort::update_type(){
-    return MODULE_VEL_UPDATE;
+    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_EFF_UPDATE);
 }

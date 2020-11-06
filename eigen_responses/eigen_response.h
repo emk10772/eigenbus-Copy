@@ -8,6 +8,7 @@
 
 #include "../eigen_utils.h"
 #include "../eigen_module.h"
+#include "../eigen_update.h"
 
 class EigenResponse{
 public:
@@ -23,10 +24,9 @@ public:
     } response_t;
 
     EigenResponse(eigen_addr_t address, std::string packet, response_t message_type);
-    ~EigenResponse();
+    virtual ~EigenResponse();
 
-    virtual bool update_module(ModuleShared mod) = 0;
-    virtual module_update_enum update_type() = 0;
+    virtual EigenUpdate *update_module(ModuleShared mod) = 0;
 
     std::vector<std::string> additional_responses();
     bool has_additonal_responses();

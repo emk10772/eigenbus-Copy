@@ -23,21 +23,14 @@ static uint64_t t_last_update_poll = 0;
 static uint64_t t_last_status_poll = 0;
 static uint64_t t_init = 0;
 
-//static uint64_t sent_packets = 0;
-//static uint64_t dropped_packets = 0;
-//static uint64_t successful_packets = 0;
-//static uint64_t unrequested_packets = 0;
-//static uint64_t retried_packets = 0;
 static uint64_t frame_time = 0;
-//static std::string last_dropped = "";
 
 //Module data structure
-//static std::map<uint8_t, Module *> module_map;
 static std::vector<std::shared_ptr<EigenModule>> module_list;
 std::mutex module_list_mutex;
 
 //Interface deques and mutexes for thread safety
-static std::deque<module_update *> update_list;
+static std::deque<EigenUpdate *> update_list;
 static std::mutex update_mutex;
 static std::deque<EigenCommand *> cmd_list;
 static std::mutex cmd_mutex;
@@ -55,13 +48,13 @@ static eigen_config communication_config;
 /* Private forward declarations */
 void clear_module_list();
 EigenCommand *get_command();
-void add_module_update(uint8_t addr, update_enum type);
-void add_module_update(uint8_t addr, update_enum type, uint8_t arg);
+void add_module_update(EigenUpdate *update);
 uint8_t generate_node_address();
 
 //Module list interface functions
 ModuleShared add_module(uint8_t address);
 ModuleShared get_module_shared(uint8_t address);
+ModuleShared get_module_shared_by_index(uint8_t index);
 
 void write_packet(const char *buf, uint8_t len){
     static char s[256] = {0};
@@ -83,14 +76,14 @@ uint64_t current_time_ms() {
 
 eigen_stats get_eigen_stats(){
     eigen_stats stats;
-    /*stats.uptime_ms = current_time_ms() - t_init;
-    stats.sent_packets = sent_packets;
-    stats.successful_packets = successful_packets;
-    stats.dropped_packets = dropped_packets;
-    stats.unrequested_packets = unrequested_packets;
-    stats.retried_packets = retried_packets;
+    stats.uptime_ms = current_time_ms() - t_init;
+    stats.sent_packets = packetTracker->packets_sent;
+    stats.successful_packets = packetTracker->successful_packets;
+    stats.dropped_packets = packetTracker->packets_dropped;
+    stats.unrequested_packets = packetTracker->unrequested_packets;
+    stats.retried_packets = packetTracker->retried_packets;
     stats.frame_time_ms = frame_time;
-    stats.last_dropped_packet = last_dropped;*/
+    stats.last_dropped_packet = packetTracker->last_packet_dropped;
     return stats;
 }
 
@@ -143,10 +136,9 @@ void clean_module_list(){
     while(mod_it != module_list.end()){
         //If we haven't heard from the module in a while, remove it
         if(current_time_ms() - (*mod_it)->t_last_update > 2*UPDATE_TOPOLOGY_PERIOD){
-            add_module_update((*mod_it)->get_address(), MODULE_REMOVED);
-            //(*mod_it)->stale = true;
+            add_module_update(new EigenUpdate((*mod_it)->get_address(), EigenUpdate::MODULE_REMOVED));
+
             mod_it = module_list.erase(mod_it);
-            //++mod_it;
         } else {
             ++mod_it;
         }
@@ -154,48 +146,21 @@ void clean_module_list(){
 #endif
 }
 
-void add_module_update(uint8_t addr, update_enum type){
+void add_module_update(EigenUpdate *update){
     std::lock_guard<std::mutex> lock(update_mutex);
 
-    module_update *update = new module_update;
-    update->index = addr;
-    update->update_type = type;
-    update->arg = 0;
-    update->data = "";
     update_list.push_back(update);
 }
 
-void add_module_update(uint8_t addr, update_enum type, uint8_t arg){
-    std::lock_guard<std::mutex> lock(update_mutex);
-
-    module_update *update = new module_update;
-    update->index = addr;
-    update->update_type = type;
-    update->arg = arg;
-    update->data = "";
-    update_list.push_back(update);
-}
-
-void add_module_update(uint8_t addr, update_enum type, std::string data){
-    std::lock_guard<std::mutex> lock(update_mutex);
-
-    module_update *update = new module_update;
-    update->index = addr;
-    update->update_type = type;
-    update->arg = 0;
-    update->data = std::string(data);
-    update_list.push_back(update);
-}
-
-module_update *get_module_update(){
-    module_update *retval;
+EigenUpdate *get_module_update(){
+    EigenUpdate *retval;
     std::lock_guard<std::mutex> lock(update_mutex);
 
     if(update_list.size() > 0){
         retval = update_list.front();
         update_list.pop_front();
     } else {
-        return NULL;
+        return nullptr;
     }
 
     return retval;
@@ -264,16 +229,17 @@ void process_packet(uint8_t *buffer, uint8_t len) {
         
         //Parse the response
         EigenResponse *response = packetParser->parse_packet(addr, std::string((char *) buffer + 3));
-        if(response != nullptr && response->update_module(module)){
-            add_module_update(addr, response->update_type());
-        }
+        if(response != nullptr){
+            EigenUpdate *update = response->update_module(module);
+            if(update != nullptr)
+                add_module_update(update);
 
-        if(response != nullptr && response->has_additonal_responses()){
-            //Add more packets to the tracker
-            for(auto pkt : response->additional_responses())
-                packetTracker->add_packet(module->get_address(), pkt, "", type);
+            if(response->has_additonal_responses())
+                for(auto pkt : response->additional_responses())
+                    packetTracker->add_packet(module->get_address(), pkt, "", type);
         }
         
+        delete response;
     } else {
 
 #ifdef EIGEN_BTLDR_SUPPORT
@@ -406,10 +372,10 @@ int service_eigen_comms() {
 
     //Check that the module's parameters are updated properly
     for(uint8_t ind = 0; ind < num_modules(); ind++){
-        ModuleConst mod = get_module_by_index(ind);
+        ModuleShared mod = get_module_shared_by_index(ind);
         if(mod->parameters_left() > 0 && mod->d_t_param_last_update() > PACKET_TIMEOUT){
-            //add_command(mod->get_address(), CMD_READ_PARAM_LIST, 0);
             eigen_read_parameter(mod->get_address(), LIST_PARAM);
+            mod->set_param_last_update();
         }
     }
 
@@ -472,6 +438,14 @@ ModuleShared get_module_shared(uint8_t address){
     return mod_result;
 }
 
+ModuleShared get_module_shared_by_index(uint8_t index){
+    std::lock_guard<std::mutex> lock(module_list_mutex);
+
+    if(index >= module_list.size()) return NULL;
+
+    return module_list[index];
+}
+
 ModuleShared add_module(uint8_t address){
     std::lock_guard<std::mutex> lock(module_list_mutex);
 
@@ -493,7 +467,7 @@ ModuleShared add_module(uint8_t address){
 
         //Log that we updated the list
         list_update = true;
-        add_module_update(address, MODULE_ADDED);
+        add_module_update(new EigenUpdate(address, EigenUpdate::MODULE_ADDED));
 
         //Ask for important info about the module
         eigen_firmware_utility(address, EIGEN_UTIL_COMMIT_VERSION);
@@ -505,7 +479,7 @@ ModuleShared add_module(uint8_t address){
         eigen_firmware_utility(address, EIGEN_UTIL_MODULE_UID);
         eigen_firmware_utility(address, EIGEN_UTIL_MODULE_STATUS);
     } else {
-        add_module_update(address, MODULE_TOUCHED);
+        add_module_update(new EigenUpdate(address, EigenUpdate::MODULE_TOUCHED));
     }
     mod_result->t_last_update = current_time_ms();
     mod_result->stale = false;

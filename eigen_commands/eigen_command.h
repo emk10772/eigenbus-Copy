@@ -26,7 +26,7 @@ public:
     } command_t;
 
     EigenCommand(eigen_addr_t address, packet_type type, command_t command);
-    ~EigenCommand();
+    virtual ~EigenCommand();
 
     virtual std::string packet() = 0;
     virtual std::string expected_response() = 0;

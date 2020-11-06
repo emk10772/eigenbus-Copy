@@ -6,17 +6,17 @@ EigenResponseParamRead::EigenResponseParamRead(eigen_addr_t address, std::string
     
 }
 
-bool EigenResponseParamRead::update_module(ModuleShared mod){
+EigenUpdate *EigenResponseParamRead::update_module(ModuleShared mod){
        size_t ind = 0;
     id_ = stoul(packet_, &ind, EIGENBUS_BASE);
 
-    if(ind != 2 || packet_[ind] != ',') return false;
+    if(ind != 2 || packet_[ind] != ',') return nullptr;
 
     if(id_ == 0){
         //Push the pointer along, process values
         auto tokens = stringtok(packet_.substr(ind+1), ",");
-        uint8_t param_addr = stoul(tokens[0], nullptr);
-        uint8_t param_aux = stoul(tokens[1], nullptr);
+        uint8_t param_addr = stoul(tokens[0], nullptr, EIGENBUS_BASE);
+        uint8_t param_aux = stoul(tokens[1], nullptr, EIGENBUS_BASE);
 
         //If we are receiving the number of parameters, fill in that we expect n parameters
         if(param_addr == 0){
@@ -25,15 +25,14 @@ bool EigenResponseParamRead::update_module(ModuleShared mod){
             }
 
             mod->set_expected_parameters(param_aux);
-            return false;
+            return nullptr;
         } else {
             std::string param_name = tokens[2];
             //service_eigencomms should null terminate the string for us
 
             mod->add_parameter(param_addr, param_aux, param_name);
 
-            update_ = MODULE_PARAM_ADD;
-            return true;
+            return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ADD, param_addr);
         }
     } else {
         //TODO: Error checking
@@ -49,13 +48,8 @@ bool EigenResponseParamRead::update_module(ModuleShared mod){
         mod->update_parameter(id_, value);
 
         //add_module_update(address, MODULE_PARAM_READ, id_);
-        update_ = MODULE_PARAM_READ;
-        return true;
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_READ, id_);
     }
-}
-
-module_update_enum EigenResponseParamRead::update_type(){
-    return update_;
 }
 
 
@@ -65,19 +59,17 @@ EigenResponseParamWrite::EigenResponseParamWrite(eigen_addr_t address, std::stri
     
 }
 
-bool EigenResponseParamWrite::update_module(ModuleShared mod){
-    return true;
-}
-
-module_update_enum EigenResponseParamWrite::update_type(){
+EigenUpdate *EigenResponseParamWrite::update_module(ModuleShared mod){
     size_t ind = 0;
     id_ = stoul(packet_, &ind, EIGENBUS_BASE);
 
-    if(ind != 2 || packet_[ind] != ',') return MODULE_PARAM_ERR;
-    
+    if(ind != 2 || packet_[ind] != ',')
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ERR, id_);;
+
     if(packet_[ind + 1] == 's'){
-        return MODULE_PARAM_WRITE;
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_WRITE, id_);
     } else {
-        return MODULE_PARAM_ERR;
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ERR, id_);
     }
 }
+

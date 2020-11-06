@@ -16,24 +16,21 @@ class EigenResponsePosition : public EigenResponseFloat{
 public:
     EigenResponsePosition(eigen_addr_t address, std::string packet);
 
-    module_update_enum update_type() override;
-    bool update_module(ModuleShared mod) override;
+    EigenUpdate *update_module(ModuleShared mod) override;
 };
 
 class EigenResponseVelocity : public EigenResponseFloat{
 public:
     EigenResponseVelocity(eigen_addr_t address, std::string packet);
 
-    module_update_enum update_type() override;
-    bool update_module(ModuleShared mod) override;
+    EigenUpdate *update_module(ModuleShared mod) override;
 };
 
 class EigenResponseEffort : public EigenResponseFloat{
 public:
     EigenResponseEffort(eigen_addr_t address, std::string packet);
 
-    module_update_enum update_type() override;
-    bool update_module(ModuleShared mod) override;
+    EigenUpdate *update_module(ModuleShared mod) override;
 };
 
 #endif // EIGEN_RESPONSE_FLOAT_H

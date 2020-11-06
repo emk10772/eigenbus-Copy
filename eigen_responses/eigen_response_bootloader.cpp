@@ -33,8 +33,8 @@ std::string EigenResponseBootloader::data(){
     return data_;
 }
 
-bool EigenResponseBootloader::update_module(ModuleShared mod){
-    return false;
+EigenUpdate *EigenResponseBootloader::update_module(ModuleShared mod){
+    return nullptr;
     //id_ = stoul(packet_, &ind, EIGENBUS_BASE);
     /*
     ptr = buffer + 4;
@@ -74,10 +74,5 @@ bool EigenResponseBootloader::update_module(ModuleShared mod){
         (*write_data)((uint8_t *)bootloader_last.c_str(), bootloader_last.length());
         //add_module_update(addr, MODULE_BTLDR, std::string((char *) ptr));
     }*/
-
-    return false;
 }
 
-module_update_enum EigenResponseBootloader::update_type(){
-    return MODULE_ERROR;
-}

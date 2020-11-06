@@ -47,6 +47,13 @@ public:
     void handle_timeout_packets();
     void handle_successful_packets();
 
+    uint64_t packets_sent;
+    uint64_t packets_dropped;
+    uint64_t successful_packets;
+    uint64_t unrequested_packets;
+    uint64_t retried_packets;
+    std::string last_packet_dropped;
+
 private:
     void add_raw_packet(std::string pkt_string, packet_type type, uint8_t dir);
 
@@ -57,13 +64,6 @@ private:
     //Internal deque, not thread safe
     std::deque<EigenPacketFilter> packet_filter_list;
     std::deque<std::string> packets_out;
-
-    uint64_t packets_sent;
-    uint64_t packets_dropped;
-    uint64_t successful_packets;
-    uint64_t unrequested_packets;
-    uint64_t retried_packets;
-    std::string last_packet_dropped;
 
     bool requires_UID_scan;
 };
