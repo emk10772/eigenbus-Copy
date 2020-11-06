@@ -403,9 +403,9 @@ int service_eigen_comms() {
     //Check that the module's parameters are updated properly
     for(uint8_t ind = 0; ind < num_modules(); ind++){
         ModuleShared mod = get_module_shared_by_index(ind);
-        if(mod->parameters_left() > 0 && mod->d_t_param_last_update() > PACKET_TIMEOUT){
+        if(mod->parameters.parameters_left() > 0 && mod->parameters.d_t_last_update() > PACKET_TIMEOUT){
             eigen_read_parameter(mod->get_address(), LIST_PARAM);
-            mod->set_param_last_update();
+            mod->parameters.set_last_update();
         }
     }
 

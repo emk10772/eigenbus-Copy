@@ -18,20 +18,13 @@ private:
 
 class EigenCommandParamWrite : public EigenCommand{
 public:
-    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, uint8_t value);
-    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, uint16_t value);
-    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, uint32_t value);
-    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, uint64_t value);
-    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, float value);
-    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, double value);
-    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, eigen_param_t value, uint8_t param_type);
+    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, EigenParameter param);
 
     std::string packet();
     std::string expected_response();
 
 private:
-    eigen_param_t value_;
-    uint8_t param_type_;
+    EigenParameter param_;
     uint8_t id_;
 };
 

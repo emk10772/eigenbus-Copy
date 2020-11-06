@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <mutex>
+#include "eigen_parameters.h"
 
 #define MAX_LED_CODE_LEN (5)
 
@@ -42,10 +43,10 @@ private:
     uint8_t orientation;
 
     //Parameters
-    std::vector<module_param> param_list;
+    /*std::vector<module_param> param_list;
     uint64_t t_last_param_update;
     uint8_t expected_num_params;
-    uint8_t received_params;
+    uint8_t received_params;*/
 
     std::vector<module_down_port> downstream_list;
 
@@ -113,7 +114,8 @@ public:
         return address < other;
     }
 
-    void add_parameter(uint8_t id, uint8_t type, std::string name);
+    EigenParameterSet<EigenParameter> parameters;
+    /*void add_parameter(uint8_t id, uint8_t type, std::string name);
     void update_parameter(uint8_t param, uint64_t value);
     uint64_t read_parameter(uint8_t param);
     void set_param_last_update();
@@ -122,7 +124,7 @@ public:
     uint64_t d_t_param_last_update() const;
     std::string print_parameter(uint8_t param) const;
     std::string parameter_name(uint8_t id) const;
-    uint8_t parameter_type(uint8_t id) const;
+    uint8_t parameter_type(uint8_t id) const;*/
 
 };
 

@@ -40,8 +40,8 @@ void eigen_read_parameter(eigen_addr_t address, uint8_t param_id){
     add_command(new EigenCommandParamRead(address, param_id));
 }
 
-void eigen_write_parameter(eigen_addr_t address, uint8_t param_id, eigen_param_t value, uint8_t type){
-    add_command(new EigenCommandParamWrite(address, param_id, value, type));
+void eigen_write_parameter(eigen_addr_t address, uint8_t param_id, EigenParameter param){
+    add_command(new EigenCommandParamWrite(address, param_id, param));
 }
 
 void eigen_firmware_utility(eigen_addr_t address, uint16_t action){

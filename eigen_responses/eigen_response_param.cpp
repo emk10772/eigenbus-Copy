@@ -24,13 +24,13 @@ EigenUpdate *EigenResponseParamRead::update_module(ModuleShared mod){
                 responses_.push_back(strprintf("|(00,%02X", i));
             }
 
-            mod->set_expected_parameters(param_aux);
+            mod->parameters.set_expected_parameters(param_aux);
             return nullptr;
         } else {
             std::string param_name = tokens[2];
             //service_eigencomms should null terminate the string for us
 
-            mod->add_parameter(param_addr, param_aux, param_name);
+            mod->parameters.add_param(param_addr, EigenParameter::from_type(param_aux), param_name);
 
             return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ADD, param_addr);
         }
