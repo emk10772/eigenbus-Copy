@@ -1,6 +1,7 @@
 #include "eigen_comms.h"
 #include "eigen_command_wrappers.h"
 #include "eigen_bootloader.h"
+#include "eigen_packet_poll.h"
 #include <stdlib.h>
 #include <ctype.h>
 #include <algorithm>
@@ -31,14 +32,13 @@ static std::vector<std::shared_ptr<EigenModule>> module_list;
 std::mutex module_list_mutex;
 
 //Interface deques and mutexes for thread safety
-static std::deque<EigenUpdate *> update_list;
-static std::mutex update_mutex;
-static std::deque<EigenCommand *> cmd_list;
-static std::mutex cmd_mutex;
+static EigenQueue<EigenUpdate> update_list_;
+static EigenQueue<EigenCommand> cmd_list_;
 
 static EigenPacketTracker *packetTracker;
 static EigenPacketParser *packetParser;
 static EigenBootloader *bootloader;
+static EigenPacketPoll *packetPoll;
 
 static std::deque<std::string> packet_queue;
 
@@ -101,6 +101,11 @@ void start_eigen_comms(uint16_t (*read)(uint8_t *buf, uint16_t max_len, int t_wa
     packetTracker = new EigenPacketTracker();
     packetParser = new EigenPacketParser();
 
+    // Setup polling rules
+    packetPoll = new EigenPacketPoll();
+    packetPoll->add_command(new EigenCommandTopology(0xFF), UPDATE_TOPOLOGY_PERIOD, true);
+    packetPoll->add_command(new EigenCommandUtility(0xFF, EIGEN_UTIL_STAT_CODE), UPDATE_STATUS_PERIOD, true);
+
 }
 
 void clean_eigen_comms() {
@@ -135,23 +140,11 @@ void clean_module_list(){
 }
 
 void add_module_update(EigenUpdate *update){
-    std::lock_guard<std::mutex> lock(update_mutex);
-
-    update_list.push_back(update);
+    update_list_.add(update);
 }
 
 EigenUpdate *get_module_update(){
-    EigenUpdate *retval;
-    std::lock_guard<std::mutex> lock(update_mutex);
-
-    if(update_list.size() > 0){
-        retval = update_list.front();
-        update_list.pop_front();
-    } else {
-        return nullptr;
-    }
-
-    return retval;
+    return update_list_.get();
 }
 
 bool is_bootloader_active(){
@@ -256,6 +249,18 @@ raw_packet *get_raw_packet(){
     return packetTracker->get_raw_packet();
 }
 
+std::string add_poll_command(EigenCommand *command, uint64_t period_ms, bool enabled){
+    return packetPoll->add_command(command, period_ms, enabled);
+}
+
+void set_poll_enable(std::string key, bool enabled){
+    packetPoll->set_enable(key, enabled);
+}
+
+void remove_poll_command(std::string key){
+    packetPoll->remove_command(key);
+}
+
 int parse_packets(int t_wait_ms, uint8_t *n_chars){
     static uint8_t packet_buffer[IN_BUFFER_SIZE];
     static uint8_t in_buffer[IN_BUFFER_SIZE];
@@ -350,32 +355,17 @@ int service_eigen_comms() {
 
     service_bootloader();
 
-    /* POLLING */
-    if(current_time_ms() - t_last_update_poll > UPDATE_TOPOLOGY_PERIOD){
-        eigen_poll_topology(0xFF);
-        t_last_update_poll = current_time_ms();
+    //Service the polling manager
+    packetPoll->service_poll();
+
+    //If there are commands from the poll manager, add them to the queue
+    EigenCommand *command = packetPoll->get_command();
+    while(command != nullptr){
+        add_command(command);
+        command = packetPoll->get_command();
     }
 
-    if(current_time_ms() - t_last_status_poll > UPDATE_STATUS_PERIOD){
-        //Poll module statuses
-        eigen_firmware_utility(0xFF, EIGEN_UTIL_STAT_CODE);
-        t_last_status_poll = current_time_ms();
-    }
-
-    //If we are due to poll, communicate with the module
-    if (current_time_ms() - t_last_poll > UPDATE_PERIOD) {
-        if(communication_config.poll_encoder_status == EIGEN_ENABLED)
-            eigen_poll_status(0xFF, EIGEN_POLL_ENC_STATUS);
-        if(communication_config.poll_module_position == EIGEN_ENABLED)
-            eigen_poll_status(0xFF, EIGEN_POLL_LOCATION);
-        if(communication_config.poll_module_velocity == EIGEN_ENABLED)
-            eigen_poll_status(0xFF, EIGEN_POLL_VELOCITY);
-        if(communication_config.poll_module_effort == EIGEN_ENABLED)
-            eigen_poll_status(0xFF, EIGEN_POLL_EFFORT);
-
-        t_last_poll = current_time_ms();
-    }
-
+    //Process any packets that are in the queue
     packet_count = parse_packets(0, NULL);
     while(packet_queue.size() > 0){
         std::string packet = packet_queue.front();
@@ -402,27 +392,15 @@ int service_eigen_comms() {
 }
 
 void add_command(EigenCommand *command){
-    std::lock_guard<std::mutex> lock(cmd_mutex);
-    cmd_list.push_back(command);
+    cmd_list_.add(command);
 }
 
 void clear_commands(){
-    std::lock_guard<std::mutex> lock(cmd_mutex);
-    cmd_list.clear();
+    cmd_list_.clear();
 }
 
 EigenCommand *get_command(){
-    EigenCommand *retval;
-    std::lock_guard<std::mutex> lock(cmd_mutex);
-
-    if(cmd_list.size() > 0){
-        retval = cmd_list.front();
-        cmd_list.pop_front();
-    } else {
-        return NULL;
-    }
-
-    return retval;
+    return cmd_list_.get();
 }
 
 bool mod_cmp(EigenModule *m1, EigenModule *m2){
@@ -461,8 +439,6 @@ ModuleShared get_module_shared_by_index(uint8_t index){
 
 ModuleShared add_module(uint8_t address){
     std::lock_guard<std::mutex> lock(module_list_mutex);
-
-    //qDebug() << address;
 
     ModuleShared mod_result = NULL;
     if(module_list.size() > 0){

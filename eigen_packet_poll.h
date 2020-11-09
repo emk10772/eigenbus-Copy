@@ -27,7 +27,7 @@ public:
 
 
 private:
-    std::map<std::string, poll_t> poll_map_;
+    std::map<std::string, poll_t *> poll_map_;
     std::mutex poll_mutex_;
 
     EigenQueue<EigenCommand> commands;

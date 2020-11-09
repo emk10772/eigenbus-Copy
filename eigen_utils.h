@@ -194,10 +194,7 @@ template <class T>
 class EigenQueue{
 public:
     inline ~EigenQueue(){
-        for(T* item : deque_){
-            delete item;
-        }
-        deque_.clear();
+        clear();
     }
 
     inline void add(T *item){
@@ -215,6 +212,15 @@ public:
         }
 
         return retval;
+    }
+
+    inline void clear(){
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        for(T* item : deque_){
+            delete item;
+        }
+        deque_.clear();
     }
 
 private:

@@ -99,41 +99,19 @@ EigenBootloader::~EigenBootloader(){
 #define PROCESS_BUFFER_SIZE (256)
 
 EigenCommand *EigenBootloader::get_command(){
-    EigenCommand *retval;
-    std::lock_guard<std::mutex> lock(cmd_mutex);
-
-    if(cmd_list.size() > 0){
-        retval = cmd_list.front();
-        cmd_list.pop_front();
-    } else {
-        return NULL;
-    }
-
-    return retval;
+    return cmd_list_.get();
 }
 
 void EigenBootloader::add_command(EigenCommand *command){
-    std::lock_guard<std::mutex> lock(cmd_mutex);
-    cmd_list.push_back(command);
+    cmd_list_.add(command);
 }
 
 EigenUpdate *EigenBootloader::get_update(){
-    EigenUpdate *retval;
-    std::lock_guard<std::mutex> lock(cmd_mutex);
-
-    if(update_list.size() > 0){
-        retval = update_list.front();
-        update_list.pop_front();
-    } else {
-        return NULL;
-    }
-
-    return retval;
+    return update_list_.get();
 }
 
 void EigenBootloader::add_update(EigenUpdate *command){
-    std::lock_guard<std::mutex> lock(cmd_mutex);
-    update_list.push_back(command);
+    update_list_.add(command);
 }
 
 void EigenBootloader::run_operation(eigen_addr_t target_addr, uint8_t mode, std::string file){

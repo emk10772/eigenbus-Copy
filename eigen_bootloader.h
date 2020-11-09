@@ -36,12 +36,10 @@ private:
     explicit EigenBootloader();
     ~EigenBootloader();
 
-    std::deque<EigenCommand *> cmd_list;
-    std::mutex cmd_mutex;
+    EigenQueue<EigenCommand> cmd_list_;
     void add_command(EigenCommand *);
 
-    std::deque<EigenUpdate *> update_list;
-    std::mutex update_mutex;
+    EigenQueue<EigenUpdate> update_list_;
     void add_update(EigenUpdate *);
 
     void run_operation(eigen_addr_t target_addr, uint8_t mode, std::string file);
