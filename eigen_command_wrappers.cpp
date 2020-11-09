@@ -1,5 +1,6 @@
 #include "eigen_command_wrappers.h"
 #include "eigen_comms.h"
+#include "eigen_parameters.h"
 
 
 /* Locomotion commands */
@@ -40,8 +41,12 @@ void eigen_read_parameter(eigen_addr_t address, uint8_t param_id){
     add_command(new EigenCommandParamRead(address, param_id));
 }
 
-void eigen_write_parameter(eigen_addr_t address, uint8_t param_id, EigenParameter param){
-    add_command(new EigenCommandParamWrite(address, param_id, param));
+void eigen_write_parameter(eigen_addr_t address, uint8_t param_id, std::string param){
+    ModuleConst mod = get_module(address);
+    auto write_param = EigenParameter(mod->parameters.value(param_id).type());
+    write_param.update_value(param);
+
+    add_command(new EigenCommandParamWrite(address, param_id, write_param));
 }
 
 void eigen_firmware_utility(eigen_addr_t address, uint16_t action){

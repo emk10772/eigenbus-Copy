@@ -46,7 +46,6 @@ int service_eigen_comms();
 bool get_poll_enabled();
 void set_poll_enabled(bool state);
 EigenUpdate *get_module_update();
-uint64_t current_time_ms();
 bool is_bootloader_active();
 bool is_bootloader_finished();
 

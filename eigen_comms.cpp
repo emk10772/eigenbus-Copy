@@ -3,7 +3,6 @@
 #include "eigen_bootloader.h"
 #include <stdlib.h>
 #include <ctype.h>
-#include <chrono>
 #include <algorithm>
 #include <deque>
 #include <stdio.h>
@@ -67,13 +66,6 @@ void write_packet(const char *buf, uint8_t len){
 
     int count = std::snprintf(s, 256, "%s:%02X\n", buf, crc);
     (*write_data)((uint8_t *)s, count);
-}
-
-uint64_t current_time_ms() {
-    auto current_time = std::chrono::system_clock::now();
-    auto epoch = current_time.time_since_epoch();
-    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
-    return milliseconds.count();
 }
 
 eigen_stats get_eigen_stats(){

@@ -17,7 +17,7 @@ std::string EigenCommandParamRead::expected_response(){
 
 
 std::string EigenCommandParamWrite::packet(){
-    return param_.print();
+    return strprintf("%02X)%02X,%s,8675309", address_, id_, param_.print().c_str());
 }
 
 std::string EigenCommandParamWrite::expected_response(){

@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <mutex>
+#include <chrono>
 
 /* Common Timeouts / Periods in milliseconds */
 #define UPDATE_PERIOD           (100)
@@ -176,5 +177,13 @@ inline uint8_t crc_8_ccitt(const char *data, uint16_t len){
 
 #define STR_PRINT_MAX (128)
 std::string strprintf(const char* format, ...);
+
+
+inline uint64_t current_time_ms() {
+    auto current_time = std::chrono::system_clock::now();
+    auto epoch = current_time.time_since_epoch();
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+    return milliseconds.count();
+}
 
 #endif

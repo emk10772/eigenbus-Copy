@@ -7,16 +7,93 @@
 template <class T>
 class EigenParameterSet{
 public:
-    void add_param(uint8_t id, T item, std::string name);
-    void update_param(uint8_t param, T item);
-    T read_param(uint8_t param);
+    inline EigenParameterSet(){
+        param_t param;
+        param.name = "";
+        param.dirty = false;
+        param.value = T();
 
-    void set_last_update();
-    void set_expected_parameters(uint8_t num_parameters);
+        param_list[0] = param;
+    }
 
-    uint8_t parameters_left() const;
-    uint64_t d_t_last_update() const;
-    std::string param_name(uint8_t id) const;
+    //void add(uint8_t id, T item, std::string name);
+    inline void add(uint8_t id, T item, std::string name){
+        std::lock_guard<std::mutex> lock(mutex);
+
+        param_t param;
+        param.name = "";
+        param.dirty = false;
+        param.value = T();
+
+        if(id >= param_list.size()){
+            //If the ID is past the end, resize to include it
+            param_list.resize(id+1, param);
+        }
+
+        param.name = name;
+        param.value = item;
+
+        if(param_list[id].name == "")
+            received_params++;
+
+        //Update the param list
+        param_list[id] = param;
+        t_last_update = current_time_ms();
+    }
+
+    //T& ref(uint8_t param);
+    inline T& ref(uint8_t param){
+        std::lock_guard<std::mutex> lock(mutex);
+
+        if(param >= param_list.size()) return param_list[0].value;
+        return param_list[param].value;
+    }
+
+    //void set_last_update();
+    inline void set_last_update(){
+        std::lock_guard<std::mutex> lock(mutex);
+
+        t_last_update = current_time_ms();
+    }
+
+    //void set_expected_parameters(uint8_t num_parameters);
+    inline void set_expected_parameters(uint8_t num_parameters){
+        std::lock_guard<std::mutex> lock(mutex);
+
+        expected_num_params = num_parameters;
+    }
+
+    //uint8_t parameters_left() const;
+    inline uint8_t parameters_left() const{
+        std::lock_guard<std::mutex> lock(mutex);
+
+        //TODO: Some sort of error fixing here. If this is wrong, we need to re check everything
+        if(received_params > expected_num_params) return 0;
+
+        return expected_num_params - received_params;
+    }
+
+    //uint64_t d_t_last_update() const;
+    inline uint64_t d_t_last_update() const{
+        return current_time_ms() - t_last_update;
+    }
+
+    //std::string name(uint8_t id) const;
+    inline std::string name(uint8_t id) const{
+        std::lock_guard<std::mutex> lock(mutex);
+        if(id >= param_list.size()) return "ERR";
+
+        std::string retval = param_list[id].name;
+        return retval;
+    }
+
+    //T value(uint8_t param) const;
+    inline T value(uint8_t param) const{
+        std::lock_guard<std::mutex> lock(mutex);
+
+        if(param >= param_list.size()) return param_list[0].value;
+        return param_list[param].value;
+    }
 
 private:
     typedef struct{
@@ -44,17 +121,18 @@ private:
 
 class EigenParameter{
 public:
-    EigenParameter(std::string printed);
-    EigenParameter(uint8_t value);
-    EigenParameter(uint16_t value);
-    EigenParameter(uint32_t value);
-    EigenParameter(uint64_t value);
-    EigenParameter(float value);
-    EigenParameter(double value);
+    EigenParameter(uint8_t type);
+    EigenParameter();
 
     ~EigenParameter();
 
-    static EigenParameter from_type(uint8_t type);
+    bool update_value(std::string val);
+    bool update_value(uint8_t val);
+    bool update_value(uint16_t val);
+    bool update_value(uint32_t val);
+    bool update_value(uint64_t val);
+    bool update_value(float val);
+    bool update_value(double val);
 
     typedef union{
         uint8_t     uint8_;
@@ -77,8 +155,23 @@ private:
 
 };
 
-class EigenMailbox{
 
+/* Mailbox Type Hints */
+#define MAILBOX_INT             (1)
+#define MAILBOX_DOUBLE          (2)
+#define MAILBOX_STRING          (3)
+#define MAILBOX_TYPE_MAX        (MAILBOX_STRING)
+class EigenMailbox{
+public:
+    EigenMailbox(uint8_t type);
+    ~EigenMailbox();
+
+    bool update_value(std::string val);
+    bool valid();
+
+private:
+    std::string value_;
+    uint8_t type_;
 };
 
 #endif // EIGEN_PARAMETERS_H

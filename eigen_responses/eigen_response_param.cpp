@@ -30,24 +30,13 @@ EigenUpdate *EigenResponseParamRead::update_module(ModuleShared mod){
             std::string param_name = tokens[2];
             //service_eigencomms should null terminate the string for us
 
-            mod->parameters.add_param(param_addr, EigenParameter::from_type(param_aux), param_name);
+            mod->parameters.add(param_addr, EigenParameter(param_aux), param_name);
 
             return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ADD, param_addr);
         }
     } else {
-        //TODO: Error checking
-        uint8_t type = mod->parameter_type(id_);
-        uint64_t value = 0;
-        if(type == _FLOAT || type == _DOUBLE){
-            double val = stod(packet_.substr(ind+1), NULL);
-            memcpy(&value, &val, sizeof(val));
-        } else {
-            value = stoull(packet_.substr(ind+1), NULL, EIGENBUS_BASE);
-        }
         //Write value to module
-        mod->update_parameter(id_, value);
-
-        //add_module_update(address, MODULE_PARAM_READ, id_);
+        mod->parameters.ref(id_).update_value(packet_.substr(ind + 1));
         return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_READ, id_);
     }
 }

@@ -34,121 +34,10 @@ EigenModule::EigenModule(uint8_t address){
     }
     this->t_sync = current_time_ms();
     this->last_debug_msg = "N/A";
-
-    this->t_last_param_update = current_time_ms();
 }
 
 EigenModule::~EigenModule(){
 
-}
-
-void EigenModule::update_parameter(uint8_t param, uint64_t value){
-    std::lock_guard<std::mutex> lock(mutex);
-
-    if(param >= param_list.size()) return;
-    param_list[param].value = value;
-
-    if(param == TYPE_PARAM){
-        this->type = value;
-    }
-}
-
-uint64_t EigenModule::read_parameter(uint8_t param){
-    std::lock_guard<std::mutex> lock(mutex);
-
-    if(param >= param_list.size()) return -1;
-    uint64_t retval = param_list[param].value;
-
-    return retval;
-}
-
-std::string EigenModule::print_parameter(uint8_t param) const{
-    std::lock_guard<std::mutex> lock(mutex);
-    if(param > param_list.size()) return "ERR\n";
-
-    uint8_t s[32];
-
-    module_param mod_param = param_list[param];
-    switch(mod_param.type){
-    case _UINT8: {
-        snprintf((char *)s, 32, "%u\n", (uint8_t)mod_param.value);
-        break;
-    } case _UINT16: {
-        snprintf((char *)s, 32, "%u\n", (uint16_t)mod_param.value);
-        break;
-    } case _UINT32: {
-        snprintf((char *)s, 32, "%u\n", (uint32_t)mod_param.value);
-        break;
-    } case _UINT64: {
-        snprintf((char *)s, 32, "%llu\n", mod_param.value);
-        break;
-    } case _FLOAT: {
-        snprintf((char *)s, 32, "%08.4f\n", *(float *)(&(mod_param.value)));
-        break;
-    } case _DOUBLE: {
-        snprintf((char *)s, 32, "%08.4f\n", *(double *)(&(mod_param.value)));
-        break;
-    } default: {
-        snprintf((char *)s, 32, "ERR\n");
-        break;
-    }
-    }
-
-    return std::string((char *)s);
-}
-
-void EigenModule::add_parameter(uint8_t id, uint8_t type, std::string name){
-    std::lock_guard<std::mutex> lock(mutex);
-
-    module_param null_param;
-    null_param.value = 0;
-    null_param.dirty = 0;
-    null_param.type = 0;
-    null_param.name = "";
-
-    if(id >= param_list.size()){
-        //If the ID is past the end, resize to include it
-        param_list.resize(id+1, null_param);
-    }
-
-    if(param_list[id].type == 0)
-        received_params++;
-
-    module_param param;
-    param.value = 0;
-    param.dirty = 0;
-    param.type = type;
-    param.name = name;
-
-    //Update the param list
-    param_list[id] = param;
-}
-
-std::string EigenModule::parameter_name(uint8_t id) const{
-    std::lock_guard<std::mutex> lock(mutex);
-    if(id >= param_list.size()) return "ERR";
-
-    std::string retval = param_list[id].name;
-    return retval;
-}
-
-void EigenModule::set_param_last_update(){
-    t_last_param_update = current_time_ms();
-}
-
-void EigenModule::set_expected_parameters(uint8_t num_parameters){
-    this->expected_num_params = num_parameters;
-}
-
-uint8_t EigenModule::parameters_left() const{
-    //TODO: Some sort of error fixing here. If this is wrong, we need to re check everything
-    if(received_params > expected_num_params) return 0;
-
-    return expected_num_params - received_params;
-}
-
-uint64_t EigenModule::d_t_param_last_update() const{
-    return current_time_ms() - t_last_param_update;
 }
 
 void EigenModule::add_downstream(uint8_t node_addr){
@@ -286,14 +175,6 @@ void EigenModule::update_orientation(uint8_t orientation_){
 std::vector<module_down_port> EigenModule::downstream() const{
     std::lock_guard<std::mutex> lock(mutex);
     return downstream_list;
-}
-
-uint8_t EigenModule::parameter_type(uint8_t id) const{
-    std::lock_guard<std::mutex> lock(mutex);
-    if(id >= param_list.size()) return 0;
-
-    uint8_t retval = param_list[id].type;
-    return retval;
 }
 
 std::string EigenModule::print_mod_name() const{
