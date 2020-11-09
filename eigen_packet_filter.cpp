@@ -132,14 +132,7 @@ packet_type EigenPacketTracker::match_response(uint8_t address, std::string pack
         //2. Garbled packet
         //To be sure that we have no duplicate addresses, poll the UIDs for this particular address
 
-#ifdef EIGEN_BTLDR_SUPPORT
-        if(!bootloader_active)
-            firmware_utility(0xFF, EIGEN_UTIL_MODULE_UID);
-#else
-        //firmware_utility(0xFF, EIGEN_UTIL_MODULE_UID);
         add_command(new EigenCommandUtility(0xFF, EIGEN_UTIL_MODULE_UID));
-        //add_command(0xFF, CMD_FIRMWARE_UTIL, EIGEN_UTIL_MODULE_UID);
-#endif
     }
 
     return EIGEN_PACKET_NONE;

@@ -144,7 +144,8 @@ void EigenBootloader::process_packet(EigenResponse *packet){
                 if(!bootloader_ack) {
                     bootloader_ack = true;
 
-                    bootload_thread = std::thread(&EigenBootloader::run_operation, this, bootloader_target_addr, bootloader_mode, bootloader_file);
+                    bootload_thread = std::thread(&EigenBootloader::run_operation,
+                                                  this, bootloader_target_addr, bootloader_mode, bootloader_file);
                 } else {
                     add_command(new EigenCommandBootloader(bootloader_target_addr, EigenCommandBootloader::BOOTLOADER_ACK));
                 }
@@ -253,24 +254,18 @@ bool EigenBootloader::bootloader_parse_packet(std::string data, uint8_t *buf, ui
 
     if(!valid){
         add_command(new EigenCommandBootloader(bootloader_target_addr, "INVLD"));
-        //request_resend_bootload(bootloader_target_addr, "INVLD");
         return false;
     } else if((2*ind) != packet_len){
         add_command(new EigenCommandBootloader(bootloader_target_addr, "LEN"));
-        //request_resend_bootload(bootloader_target_addr, "LEN");
         return false;
     } else if(ind != num_chars) {
         add_command(new EigenCommandBootloader(bootloader_target_addr, "CHAR"));
-        //request_resend_bootload(bootloader_target_addr, "CHAR");
         return false;
     } else if (crc_calc != crc_packet) {
         add_command(new EigenCommandBootloader(bootloader_target_addr, "CRC"));
-        //request_resend_bootload(bootloader_target_addr, "CRC");
         return false;
     } else if (sequence_num != bootloader_seq_num){
         add_command(new EigenCommandUser(bootloader_target_addr, bootloader_last));
-        //(*write_data)((uint8_t *)bootloader_last.c_str(), bootloader_last.length());
-        //request_resend_bootload(bootloader_target_addr, "SEQ");
         return false;
     } else {
         //Put all of the data in the buffer
@@ -306,37 +301,6 @@ int EigenBootloader::bootloader_read_data(uint8_t* buf, int len){
     else
         return CYRET_ERR_UNK;
     
-    /*
-    while(current_time_ms() - t_start < 500000){
-        parse_packets(250, &n_chars);
-        if((packet_queue.size() == 0 && current_time_ms() - t_last > 250)
-                || (n_chars > 0 && current_time_ms() - t_last > 250)){
-            if(!first_request_n){
-                first_request_n = 1;
-                (*write_data)((uint8_t *)"\n", 1);
-            } else if(current_time_ms() - t_last > 750) {
-                request_resend_bootload(bootloader_target_addr, "TIME");
-            }
-        }
-
-        while(packet_queue.size() > 0){
-            std::string packet = packet_queue.front();
-            packet_queue.pop_front();
-            process_packet((uint8_t *)packet.c_str(), packet.size());
-
-            t_last = current_time_ms();
-        }
-
-        if(bootloader_data.size() > 0){
-            std::string data = bootloader_data.front();
-            bootloader_data.pop_front();
-
-            bool success = bootloader_parse_packet(data, buf, len);
-            if(success) return CYRET_SUCCESS;
-        }
-    }
-
-    return CYRET_ERR_UNK;*/
 }
 
 int EigenBootloader::bootloader_write_data(uint8_t* buf, int len){
@@ -348,7 +312,8 @@ int EigenBootloader::bootloader_write_data(uint8_t* buf, int len){
     while(packet_ind < len){
         //Print the header
         uint8_t ct = 0;
-        uint8_t ind = snprintf(out_buf, OUT_BUF_SIZE, "%02X~d%02X,%04X,%02X,", instance->bootloader_target_addr, len, crc, instance->bootloader_seq_num);
+        uint8_t ind = snprintf(out_buf, OUT_BUF_SIZE, "%02X~d%02X,%04X,%02X,",
+                               instance->bootloader_target_addr, len, crc, instance->bootloader_seq_num);
 
         //Print the data characters
         while(ind < OUT_BUF_SIZE && ct < MAX_PACKET_CHARS && packet_ind < len){
@@ -360,12 +325,7 @@ int EigenBootloader::bootloader_write_data(uint8_t* buf, int len){
         uint8_t crc_2 = crc_8_ccitt(out_buf, ind);
 
         instance->bootloader_last = std::string(out_buf);
-        //Print the footer
-        //ind += snprintf(out_buf + ind, OUT_BUF_SIZE - ind, ":%02X\n", crc_2);
-
-        //(*write_data)((uint8_t *)out_buf, ind);
         instance->add_command(new EigenCommandUser(instance->bootloader_target_addr, out_buf));
-        //CyDelay(1);
     }
 
     //Increase the sequence counter for each packet sent
