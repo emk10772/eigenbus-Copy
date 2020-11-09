@@ -10,8 +10,9 @@ class EigenCommandUtility : public EigenCommand{
 public:
     EigenCommandUtility(eigen_addr_t address, uint16_t mode);
 
-    std::string packet() override;
-    std::string expected_response() override;
+    std::string packet() const override;
+    std::string expected_response() const override;
+    EigenCommand *clone() const override;
 
 private:
     const uint16_t mode_;

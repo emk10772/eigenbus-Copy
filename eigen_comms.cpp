@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <algorithm>
 #include <deque>
+#include <map>
 #include <stdio.h>
 #include <string.h>
 #include <cmath>
@@ -208,11 +209,6 @@ void process_packet(uint8_t *buffer, uint8_t len) {
         }
 
         if(pkt_valid == 0){
-
-#ifdef EIGEN_BTLDR_SUPPORT
-            if(bootloader_active)
-                request_resend_bootload(bootloader_target_addr, "BD-PKT");
-#endif
             return;
         }
 
@@ -239,11 +235,6 @@ void process_packet(uint8_t *buffer, uint8_t len) {
         delete response;
     } else {
 
-#ifdef EIGEN_BTLDR_SUPPORT
-        if(bootloader_active){
-        //request_resend_bootload(bootloader_target_addr, "BD-PKT");
-        }
-#endif
     }
 }
 

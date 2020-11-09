@@ -5,14 +5,17 @@ EigenCommandFloat::EigenCommandFloat(eigen_addr_t address, std::string command, 
 
 }
 
-std::string EigenCommandFloat::packet(){
+std::string EigenCommandFloat::packet() const{
     return strprintf("%02x%s%08.4f", address_, command_.c_str(), value_);
 }
 
-std::string EigenCommandFloat::expected_response(){
+std::string EigenCommandFloat::expected_response() const{
     return response_;
 }
 
+EigenCommand *EigenCommandFloat::clone() const{
+    return new EigenCommandFloat(*this);
+}
 
 EigenCommandPosition::EigenCommandPosition(eigen_addr_t address, double value)
     : EigenCommandFloat(address, "P", "", value, EIGEN_CMD_POSITION){

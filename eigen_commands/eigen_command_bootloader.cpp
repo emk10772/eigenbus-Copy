@@ -19,7 +19,7 @@ EigenCommandBootloader::EigenCommandBootloader(eigen_addr_t address, uint8_t mod
     this->mode_ = mode;
 }
 
-std::string EigenCommandBootloader::packet(){
+std::string EigenCommandBootloader::packet() const{
     switch(action_){
         case BOOTLOADER_ACK:
             return strprintf("%02x~a", address_);
@@ -32,10 +32,15 @@ std::string EigenCommandBootloader::packet(){
     }
     return "";
 }
-std::string EigenCommandBootloader::expected_response(){
+std::string EigenCommandBootloader::expected_response() const{
     //Expecting no response
     return "";
 }
+
+EigenCommand *EigenCommandBootloader::clone() const{
+    return new EigenCommandBootloader(*this);
+}
+
 
 std::string EigenCommandBootloader::msg(){
     return msg_;

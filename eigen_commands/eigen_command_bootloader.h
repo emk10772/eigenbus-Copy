@@ -15,8 +15,9 @@ public:
     EigenCommandBootloader(eigen_addr_t address, std::string msg);
     EigenCommandBootloader(eigen_addr_t address, uint8_t mode, std::string msg);
 
-    std::string packet() override;
-    std::string expected_response() override;
+    std::string packet() const override;
+    std::string expected_response() const override;
+    EigenCommand *clone() const override;
 
     std::string msg();
     uint8_t mode();

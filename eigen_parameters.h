@@ -13,6 +13,7 @@ public:
         param.dirty = false;
         param.value = T();
 
+        param_list.resize(1);
         param_list[0] = param;
     }
 

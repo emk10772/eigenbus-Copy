@@ -7,8 +7,9 @@ class EigenCommandUser : public EigenCommand{
 public:
     EigenCommandUser(eigen_addr_t address, std::string command, std::string response = "");
 
-    std::string packet() override;
-    std::string expected_response() override;
+    std::string packet() const override;
+    std::string expected_response() const override;
+    EigenCommand *clone() const override;
 
 private:
     const std::string command_;

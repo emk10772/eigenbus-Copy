@@ -7,8 +7,9 @@ class EigenCommandUIDWrite : public EigenCommand{
 public:
     EigenCommandUIDWrite(uint64_t UID, eigen_addr_t address);
 
-    std::string packet() override;
-    std::string expected_response() override;
+    std::string packet() const override;
+    std::string expected_response() const override;
+    EigenCommand *clone() const override;
 
 private:
     uint64_t UID_;

@@ -5,11 +5,11 @@ EigenCommandQuery::EigenCommandQuery(eigen_addr_t address, uint8_t type)
     : EigenCommand(address, EIGEN_PACKET_POLL, EIGEN_CMD_QUERY), type_(type) {
 }
 
-std::string EigenCommandQuery::packet(){
+std::string EigenCommandQuery::packet() const{
     return strprintf("%02xQ%02x", address_, type_);
 }
 
-std::string EigenCommandQuery::expected_response(){
+std::string EigenCommandQuery::expected_response() const{
     switch(type_){
     case EIGEN_POLL_LOCATION: 
         //Expecting a response of type L
@@ -24,4 +24,8 @@ std::string EigenCommandQuery::expected_response(){
         //Unsupported, not expecting a response
         return "";
     }
+}
+
+EigenCommand *EigenCommandQuery::clone() const{
+    return new EigenCommandQuery(*this);
 }

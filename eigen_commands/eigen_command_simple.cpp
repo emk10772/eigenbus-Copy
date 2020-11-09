@@ -5,12 +5,16 @@ EigenCommandSimple::EigenCommandSimple(eigen_addr_t address, std::string command
 
 }
 
-std::string EigenCommandSimple::packet(){
+std::string EigenCommandSimple::packet() const{
     return strprintf("%02x%s", address_, command_.c_str());
 }
 
-std::string EigenCommandSimple::expected_response(){
+std::string EigenCommandSimple::expected_response() const{
     return response_;
+}
+
+EigenCommand *EigenCommandSimple::clone() const{
+    return new EigenCommandSimple(*this);
 }
 
 

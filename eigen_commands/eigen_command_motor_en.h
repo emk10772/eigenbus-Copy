@@ -10,8 +10,9 @@ class EigenCommandMotorEnable : public EigenCommand{
 public:
     EigenCommandMotorEnable(eigen_addr_t address, uint8_t enable);
 
-    std::string packet() override;
-    std::string expected_response() override;
+    std::string packet() const override;
+    std::string expected_response() const override;
+    EigenCommand *clone() const override;
 
 private:
     uint8_t enable_;

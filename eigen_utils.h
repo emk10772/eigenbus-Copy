@@ -6,6 +6,7 @@
 #include <string>
 #include <mutex>
 #include <chrono>
+#include <deque>
 
 /* Common Timeouts / Periods in milliseconds */
 #define UPDATE_PERIOD           (100)
@@ -185,5 +186,41 @@ inline uint64_t current_time_ms() {
     auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
     return milliseconds.count();
 }
+
+/* EigenQueue:
+ * A thread safe wrapper for std::deque
+ */
+template <class T>
+class EigenQueue{
+public:
+    inline ~EigenQueue(){
+        for(T* item : deque_){
+            delete item;
+        }
+        deque_.clear();
+    }
+
+    inline void add(T *item){
+        std::lock_guard<std::mutex> lock(mutex_);
+        deque_.push_back(item);
+    }
+
+    inline T* get(){
+        T *retval = nullptr;
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        if(deque_.size() > 0){
+            retval = deque_.front();
+            deque_.pop_front();
+        }
+
+        return retval;
+    }
+
+private:
+    std::deque<T *> deque_;
+    std::mutex mutex_;
+
+};
 
 #endif

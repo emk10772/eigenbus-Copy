@@ -5,9 +5,14 @@ EigenCommandUser::EigenCommandUser(eigen_addr_t address, std::string command, st
     : EigenCommand(address, EIGEN_PACKET_CLI, EIGEN_CMD_USER), command_(command), response_(response) {
 }
 
-std::string EigenCommandUser::packet(){
+std::string EigenCommandUser::packet() const{
     return command_;
 }
-std::string EigenCommandUser::expected_response(){
+
+std::string EigenCommandUser::expected_response() const{
     return response_;
+}
+
+EigenCommand *EigenCommandUser::clone() const{
+    return new EigenCommandUser(*this);
 }

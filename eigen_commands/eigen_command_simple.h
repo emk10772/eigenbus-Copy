@@ -12,8 +12,9 @@ class EigenCommandSimple : public EigenCommand{
 public:
     EigenCommandSimple(eigen_addr_t address, std::string command, std::string response, packet_type type, command_t command_type);
 
-    std::string packet();
-    std::string expected_response();
+    std::string packet() const override;
+    std::string expected_response() const override;
+    EigenCommand *clone() const override;
     packet_type type();
 
 protected:

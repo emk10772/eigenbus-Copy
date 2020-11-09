@@ -53,6 +53,10 @@ bool is_bootloader_finished();
 void set_eigen_config(eigen_config config);
 eigen_config get_eigen_config();
 
+std::string add_poll_command(EigenCommand *command);
+void set_poll_enable(std::string key, bool enabled);
+void remove_poll_command(std::string key);
+
 //Command Interface
 void add_command(EigenCommand *command);
 void clear_commands();
