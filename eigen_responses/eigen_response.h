@@ -18,6 +18,8 @@ public:
         EIGEN_EFFORT,
         EIGEN_PARAM_READ,
         EIGEN_PARAM_WRITE,
+        EIGEN_MAIL_READ,
+        EIGEN_MAIL_WRITE,
         EIGEN_TOPOLOGY,
         EIGEN_UTILITY,
         EIGEN_BOOTLOADER

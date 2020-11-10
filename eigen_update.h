@@ -10,8 +10,6 @@ public:
         MODULE_ERROR,
         MODULE_ADDED,
         MODULE_STALE,
-        MODULE_PARAM_READ,
-        MODULE_PARAM_ADD,
         MODULE_DOWNSTREAM,
         MODULE_REMOVED,
         MODULE_BTLDR_PROGRESS,
@@ -19,8 +17,14 @@ public:
         MODULE_POS_UPDATE,
         MODULE_VEL_UPDATE,
         MODULE_EFF_UPDATE,
+        MODULE_PARAM_READ,
+        MODULE_PARAM_ADD,
         MODULE_PARAM_WRITE,
-        MODULE_PARAM_ERR
+        MODULE_PARAM_ERR,
+        MODULE_MAIL_READ,
+        MODULE_MAIL_ADD,
+        MODULE_MAIL_WRITE,
+        MODULE_MAIL_ERR
     } update_t;
 
     EigenUpdate(eigen_addr_t address, update_t type, uint8_t arg = 0, std::string data = "N/A");

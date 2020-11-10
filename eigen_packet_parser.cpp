@@ -5,6 +5,7 @@
 #include "eigen_responses/eigen_response_topology.h"
 #include "eigen_responses/eigen_response_param.h"
 #include "eigen_responses/eigen_response_bootloader.h"
+#include "eigen_responses/eigen_response_mailbox.h"
 
 template <class Response>
 EigenResponse *new_response(eigen_addr_t address, std::string packet){
@@ -20,6 +21,8 @@ EigenPacketParser::EigenPacketParser(){
     register_packet_type("|(", &new_response<EigenResponseParamRead>);
     register_packet_type("|)", &new_response<EigenResponseParamWrite>);
     register_packet_type("~", &new_response<EigenResponseBootloader>);
+    register_packet_type("|[", &new_response<EigenResponseMailboxRead>);
+    register_packet_type("|]", &new_response<EigenResponseMailboxWrite>);
 }
 
 EigenPacketParser::~EigenPacketParser(){

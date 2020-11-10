@@ -161,23 +161,75 @@ bool EigenParameter::update_value(std::string val){
 
 /* EigenMailbox Definition */
 EigenMailbox::EigenMailbox(uint8_t type){
-    if(type > 0 && type <= MAILBOX_TYPE_MAX)
-        type_ = type;
-    else
-        type_ = MAILBOX_STRING;
+    type_hint_ = type & MAILBOX_TYPE_MASK;
+    access_ = type & MAILBOX_RW_MASK;
 
-    value_ = "";
+    raw_value_ = "";
+    parsed_int_ = 0;
+    parsed_double_ = 0.0;
+    parse_valid = false;
 }
+
+EigenMailbox::EigenMailbox(){
+    type_hint_ = MAILBOX_STRING;
+    access_ = MAILBOX_READ_ONLY;
+
+    raw_value_ = "";
+    parsed_int_ = 0;
+    parsed_double_ = 0.0;
+    parse_valid = false;
+}
+
 
 EigenMailbox::~EigenMailbox(){
 
 }
 
+uint8_t EigenMailbox::type() const{
+    return type_hint_ | access_;
+}
+
+bool EigenMailbox::plottable() const{
+    return (type_hint_ == MAILBOX_INT) || (type_hint_ == MAILBOX_DOUBLE);
+}
+
 bool EigenMailbox::update_value(std::string val){
-    value_ = val;
+    raw_value_ = val;
+
+    try{
+        if(type_hint_ == MAILBOX_INT){
+            parsed_int_ = std::stoul(raw_value_, nullptr, EIGENBUS_BASE);
+            parse_valid = true;
+        } else if(type_hint_ == MAILBOX_DOUBLE) {
+            parsed_double_ = std::stod(raw_value_);
+            parse_valid = isfinite(parsed_double_);
+        }
+    } catch (std::exception e){
+        parse_valid = false;
+    }
+
     return true;
 }
 
-bool EigenMailbox::valid(){
-    return true;
+bool EigenMailbox::valid() const{
+    if(type_hint_ == MAILBOX_INT || type_hint_ == MAILBOX_DOUBLE){
+        return parse_valid;
+    } else if(type_hint_ == MAILBOX_STRING) {
+        return true;
+    }
+    return false;
+}
+
+std::string EigenMailbox::print() const {
+    return raw_value_;
+}
+
+double EigenMailbox::as_float() const {
+    if(type_hint_ == MAILBOX_INT && parse_valid){
+        return parsed_int_;
+    } else if(type_hint_ == MAILBOX_DOUBLE && parse_valid) {
+        return parsed_double_;
+    } else {
+        return nan("");
+    }
 }

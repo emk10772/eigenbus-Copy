@@ -1,7 +1,7 @@
 #include "eigen_command_utility.h"
 
 EigenCommandUtility::EigenCommandUtility(eigen_addr_t address, uint16_t mode)
-    : EigenCommand(address, EIGEN_PACKET_DEBUG, EIGEN_CMD_UTILITY), mode_(mode) {
+    : EigenCommand(address, EIGEN_PACKET_POLL, EIGEN_CMD_UTILITY), mode_(mode) {
 }
 
 std::string EigenCommandUtility::packet() const{

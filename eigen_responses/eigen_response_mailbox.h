@@ -1,11 +1,11 @@
-#ifndef EIGEN_RESPONSE_PARAM_H
-#define EIGEN_RESPONSE_PARAM_H
+#ifndef EIGEN_RESPONSE_MAILBOX_H
+#define EIGEN_RESPONSE_MAILBOX_H
 
 #include "eigen_response.h"
 
-class EigenResponseParamRead : public EigenResponse{
+class EigenResponseMailboxRead : public EigenResponse{
 public:
-    EigenResponseParamRead(eigen_addr_t address, std::string packet);
+    EigenResponseMailboxRead(eigen_addr_t address, std::string packet);
 
     EigenUpdate *update_module(ModuleShared mod) override;
 
@@ -13,9 +13,9 @@ private:
     uint8_t id_;
 };
 
-class EigenResponseParamWrite : public EigenResponse{
+class EigenResponseMailboxWrite : public EigenResponse{
 public:
-    EigenResponseParamWrite(eigen_addr_t address, std::string packet);
+    EigenResponseMailboxWrite(eigen_addr_t address, std::string packet);
 
     EigenUpdate *update_module(ModuleShared mod) override;
 private:

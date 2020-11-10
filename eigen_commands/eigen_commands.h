@@ -6,6 +6,7 @@
 #include "eigen_command_float.h"
 #include "eigen_command_motor_en.h"
 #include "eigen_command_param.h"
+#include "eigen_command_mailbox.h"
 #include "eigen_command_query.h"
 #include "eigen_command_simple.h"
 #include "eigen_command_uid_write.h"

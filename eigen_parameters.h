@@ -158,21 +158,38 @@ private:
 
 
 /* Mailbox Type Hints */
-#define MAILBOX_INT             (1)
-#define MAILBOX_DOUBLE          (2)
-#define MAILBOX_STRING          (3)
-#define MAILBOX_TYPE_MAX        (MAILBOX_STRING)
+#define MAILBOX_RW_MASK         (0x0F)
+#define MAILBOX_READ_ONLY       (0x01)
+#define MAILBOX_READ_WRITE      (0x02)
+
+#define MAILBOX_TYPE_MASK       (0xF0)
+#define MAILBOX_INT             (0x10)
+#define MAILBOX_DOUBLE          (0x20)
+#define MAILBOX_STRING          (0x40)
+
 class EigenMailbox{
 public:
     EigenMailbox(uint8_t type);
+    EigenMailbox();
+
     ~EigenMailbox();
 
     bool update_value(std::string val);
-    bool valid();
+    bool plottable() const;
+    bool valid() const;
+
+    std::string print() const;
+    uint8_t type() const;
+    double as_float() const;
 
 private:
-    std::string value_;
-    uint8_t type_;
+    std::string raw_value_;
+    uint32_t parsed_int_;
+    double parsed_double_;
+    bool parse_valid;
+
+    uint8_t type_hint_;
+    uint8_t access_;
 };
 
 #endif // EIGEN_PARAMETERS_H
