@@ -68,7 +68,7 @@ EigenUpdate *EigenResponseUtility::update_module(ModuleShared mod){
             uint8_t down_count = 0;
             for(auto port : tokens){
                 if(port[0] == 'd'){
-                    mod->set_downstream_name(down_count, port.substr(1));
+                    mod->set_downstream_name(down_count, port.substr(2));
                     down_count++;
                 }
             }

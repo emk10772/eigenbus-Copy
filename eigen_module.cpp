@@ -34,6 +34,7 @@ EigenModule::EigenModule(uint8_t address){
     }
     this->t_sync = current_time_ms();
     this->last_debug_msg = "N/A";
+    this->t_last_uptime = 0;
 }
 
 EigenModule::~EigenModule(){

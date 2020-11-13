@@ -2,6 +2,7 @@
 #define EIGEN_PACKET_FILTER_H
 
 #include "eigen_utils.h"
+#include "eigen_responses/eigen_response.h"
 #include <set>
 #include <deque>
 
@@ -41,7 +42,7 @@ public:
 
     raw_packet *get_raw_packet();
     void add_packet(eigen_addr_t addr, std::string filter, std::string packet, packet_type type);
-    packet_type match_response(uint8_t address, std::string packet);
+    packet_type match_response(uint8_t address, std::string packet, bool spontaneous = false);
     bool UID_scan_required();
     std::string *get_packet_out();
     void handle_timeout_packets();
@@ -51,6 +52,7 @@ public:
     uint64_t packets_dropped;
     uint64_t successful_packets;
     uint64_t unrequested_packets;
+    uint64_t spontaneous_packets;
     uint64_t retried_packets;
     std::string last_packet_dropped;
 

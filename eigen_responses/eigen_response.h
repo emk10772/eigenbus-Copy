@@ -22,13 +22,15 @@ public:
         EIGEN_MAIL_WRITE,
         EIGEN_TOPOLOGY,
         EIGEN_UTILITY,
-        EIGEN_BOOTLOADER
+        EIGEN_BOOTLOADER,
+        EIGEN_UPTIME
     } response_t;
 
     EigenResponse(eigen_addr_t address, std::string packet, response_t message_type);
     virtual ~EigenResponse();
 
     virtual EigenUpdate *update_module(ModuleShared mod) = 0;
+    virtual bool isSpontaneous();
 
     std::vector<std::string> additional_responses();
     bool has_additonal_responses();

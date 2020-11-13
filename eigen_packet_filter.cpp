@@ -7,6 +7,7 @@ EigenPacketTracker::EigenPacketTracker(){
     successful_packets = 0;
     unrequested_packets = 0;
     retried_packets = 0;
+    spontaneous_packets = 0;
     last_packet_dropped = "";
 }
 
@@ -111,7 +112,7 @@ void EigenPacketTracker::handle_successful_packets(){
     }
 }
 
-packet_type EigenPacketTracker::match_response(uint8_t address, std::string packet){
+packet_type EigenPacketTracker::match_response(uint8_t address, std::string packet, bool spontaneous){
     //Search our filter list for a matching packet
     auto it = packet_filter_list.begin();
     while(it != packet_filter_list.end() && !it->matches_filter(address, packet)){
@@ -123,16 +124,20 @@ packet_type EigenPacketTracker::match_response(uint8_t address, std::string pack
         it->add_response(address, packet);
         add_raw_packet(packet, it->get_type(), EIGEN_PACKET_RECV);
         return it->get_type();
-    } else {
+    } else if(!spontaneous){
         add_raw_packet(packet, EIGEN_PACKET_DEFAULT, EIGEN_PACKET_RECV);
         unrequested_packets++;
 
         //If we get an unrequested packet for a valid address there are a few possibilities:
         //1. Duplicate addresses
         //2. Garbled packet
+        //3. Packets that the modules will send on their own (Such as uptime packets)
         //To be sure that we have no duplicate addresses, poll the UIDs for this particular address
 
         add_command(new EigenCommandUtility(0xFF, EIGEN_UTIL_MODULE_UID));
+    } else {
+        add_raw_packet(packet, EIGEN_PACKET_POLL, EIGEN_PACKET_RECV);
+        spontaneous_packets++;
     }
 
     return EIGEN_PACKET_NONE;

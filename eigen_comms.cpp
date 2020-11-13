@@ -2,6 +2,7 @@
 #include "eigen_command_wrappers.h"
 #include "eigen_bootloader.h"
 #include "eigen_packet_poll.h"
+#include "eigen_vector_map.h"
 #include <stdlib.h>
 #include <ctype.h>
 #include <algorithm>
@@ -27,11 +28,8 @@ static uint64_t t_init = 0;
 
 static uint64_t frame_time = 0;
 
-//Module data structure
-static std::vector<std::shared_ptr<EigenModule>> module_list;
-std::mutex module_list_mutex;
-
-//Interface deques and mutexes for thread safety
+//Data structures
+static EigenVectorMap module_list_;
 static EigenQueue<EigenUpdate> update_list_;
 static EigenQueue<EigenCommand> cmd_list_;
 
@@ -111,11 +109,12 @@ void start_eigen_comms(uint16_t (*read)(uint8_t *buf, uint16_t max_len, int t_wa
 void clean_eigen_comms() {
     clear_module_list();
     delete packetParser;
+    delete packetPoll;
     delete packetTracker;
 }
 
 void clear_module_list(){
-    module_list.clear();
+    module_list_.clear();
     /*auto it = module_list.begin();
     while(it != module_list.end()){
         delete *it;
@@ -124,6 +123,8 @@ void clear_module_list(){
 }
 
 void clean_module_list(){
+    module_list_.clear_old(current_time_ms(), 2*UPDATE_TOPOLOGY_PERIOD);
+/*
 #ifndef MODULE_TEST
     auto mod_it = module_list.begin();
     while(mod_it != module_list.end()){
@@ -137,6 +138,7 @@ void clean_module_list(){
         }
     }
 #endif
+*/
 }
 
 void add_module_update(EigenUpdate *update){
@@ -157,12 +159,7 @@ bool is_bootloader_finished(){
 
 uint8_t generate_node_address(){
     //Not a very efficient implementation, but should be fine because we will use this very rarely
-    std::set<uint8_t> occupied_addrs;
-
-    //TODO: Add a check for too many devices
-    for(auto mod : module_list){
-        occupied_addrs.insert(mod->get_address());
-    }
+    std::set<eigen_addr_t> occupied_addrs = module_list_.keys();
 
     //Randomly try to find a free address
     uint8_t addr = rand() % 0xFF;
@@ -207,13 +204,14 @@ void process_packet(uint8_t *buffer, uint8_t len) {
 
         //If the address is valid add it to the list
         ModuleShared module = add_module(addr);
-        
-        //Check if the response matches one that we are looking for
-        packet_type type = packetTracker->match_response(addr, std::string((char *) buffer + 1));
-        
+
         //Parse the response
         EigenResponse *response = packetParser->parse_packet(addr, std::string((char *) buffer + 3));
+
         if(response != nullptr){
+            //Check if the response matches one that we are looking for
+            packet_type type = packetTracker->match_response(addr, std::string((char *) buffer + 1), response->isSpontaneous());
+
             EigenUpdate *update = response->update_module(module);
             if(update != nullptr)
                 add_module_update(update);
@@ -223,6 +221,9 @@ void process_packet(uint8_t *buffer, uint8_t len) {
                     packetTracker->add_packet(module->get_address(), pkt, "", type);
 
             bootloader->process_packet(response);
+        } else {
+            //If we could not parse the response, send it to the tracker to record the error
+            packetTracker->match_response(addr, std::string((char *) buffer + 1));
         }
         
         delete response;
@@ -412,7 +413,8 @@ bool mod_cmp_low_bnd(EigenModule *m1, uint8_t addr){
 }
 
 ModuleShared get_module_shared(uint8_t address){
-    std::lock_guard<std::mutex> lock(module_list_mutex);
+    return module_list_.get_shared(address);
+    /*std::lock_guard<std::mutex> lock(module_list_mutex);
 
     ModuleShared mod_result = NULL;
     if(module_list.size() > 0){
@@ -426,21 +428,23 @@ ModuleShared get_module_shared(uint8_t address){
 
     if(mod_result != NULL && mod_result->get_address() != address) mod_result = NULL;
 
-    return mod_result;
+    return mod_result;*/
 }
 
 ModuleShared get_module_shared_by_index(uint8_t index){
-    std::lock_guard<std::mutex> lock(module_list_mutex);
+    return module_list_.get_shared_by_ind(index);
+    /*std::lock_guard<std::mutex> lock(module_list_mutex);
 
     if(index >= module_list.size()) return NULL;
 
-    return module_list[index];
+    return module_list[index];*/
 }
 
 ModuleShared add_module(uint8_t address){
-    std::lock_guard<std::mutex> lock(module_list_mutex);
+    //std::lock_guard<std::mutex> lock(module_list_mutex);
 
-    ModuleShared mod_result = NULL;
+    ModuleShared mod_result = get_module_shared(address);
+    /*ModuleShared mod_result = NULL;
     if(module_list.size() > 0){
         for(auto mod : module_list){
             if(mod->get_address() == address){
@@ -448,10 +452,10 @@ ModuleShared add_module(uint8_t address){
                 break;
             }
         }
-    }
+    }*/
     if(mod_result == NULL || mod_result->get_address() != address){
         mod_result = std::make_shared<EigenModule>(address);
-        module_list.push_back(mod_result);
+        module_list_.insert(mod_result);
         //std::sort(module_list.begin(), module_list.end(), mod_cmp);
 
         //Log that we updated the list
@@ -474,41 +478,10 @@ ModuleShared add_module(uint8_t address){
     mod_result->stale = false;
 
     return mod_result;
-    /*
-    //TODO: FIX THIS
-
-    //Avoid overwriting if the module is already in the list
-    auto low = std::lower_bound(module_list.begin(), module_list.end(), address, mod_cmp_low_bnd);
-    if(low == module_list.end()){ //If the module does not exist
-        module_list.push_back(new Module(address));
-        std::sort(module_list.begin(), module_list.end(), mod_cmp);
-
-        //Log that we updated the list
-        list_update = true;
-        add_module_update(address, MODULE_ADDED);
-
-        firmware_utility(address, 0x02);
-        firmware_utility(address, 0x04);
-        firmware_utility(address, 0x08);
-        firmware_utility(address, 0x10);
-        firmware_utility(address, 0x40);
-
-        //Find the module again in the sorted list and return
-        low = std::lower_bound(module_list.begin(), module_list.end(), address, mod_cmp_low_bnd);
-    } else {
-        //qDebug() << (*low)->get_address();
-        //Mark that we have updated this particular module
-        add_module_update(address, MODULE_TOUCHED);
-    }
-
-    (*low)->t_last_update = current_time_ms();
-    (*low)->stale = false;
-
-    return *low;*/
 }
 
 ModuleConst get_module(uint8_t address){
-    std::lock_guard<std::mutex> lock(module_list_mutex);
+    //std::lock_guard<std::mutex> lock(module_list_mutex);
 
     /*
     auto low = std::lower_bound(module_list.begin(), module_list.end(), address, mod_cmp_low_bnd);
@@ -516,7 +489,7 @@ ModuleConst get_module(uint8_t address){
         return *null_mod;
     }*/
 
-    ModuleShared mod_result = NULL;
+    /*ModuleShared mod_result = NULL;
     if(module_list.size() > 0){
         for(auto mod : module_list){
             if(mod->get_address() == address){
@@ -529,27 +502,26 @@ ModuleConst get_module(uint8_t address){
         return NULL;
     } else {
         return std::const_pointer_cast<const EigenModule>(mod_result);
-    }
+    }*/
+
+    return module_list_.get_const(address);
 
 }
 
 ModuleConst get_module_by_index(uint8_t index){
-    std::lock_guard<std::mutex> lock(module_list_mutex);
+    /*std::lock_guard<std::mutex> lock(module_list_mutex);
 
     if(index >= module_list.size()) return NULL;
 
     ModuleShared mod = module_list[index];
-    return std::const_pointer_cast<const EigenModule>(mod);
+    return std::const_pointer_cast<const EigenModule>(mod);*/
+    return module_list_.get_const_by_ind(index);
 }
 
 uint8_t num_modules(){
-    std::lock_guard<std::mutex> lock(module_list_mutex);
+    //std::lock_guard<std::mutex> lock(module_list_mutex);
 
-    return module_list.size();
-}
-
-std::vector<ModuleShared> *get_module_list(){
-    return &module_list;
+    return module_list_.size();
 }
 
 /* Clear on read */

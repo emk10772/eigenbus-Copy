@@ -43,7 +43,7 @@ private:
     void add_update(EigenUpdate *);
 
     void run_operation(eigen_addr_t target_addr, uint8_t mode, std::string file);
-    std::thread bootload_thread;
+    std::thread *bootload_thread;
     bool bootloader_parse_packet(std::string data, uint8_t *buf, uint8_t len);
 
     std::deque<std::string> bootloader_data;

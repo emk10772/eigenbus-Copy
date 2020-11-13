@@ -28,3 +28,7 @@ bool EigenResponse::has_additonal_responses(){
 eigen_addr_t EigenResponse::address(){
     return address_;
 }
+
+bool EigenResponse::isSpontaneous(){
+    return false;
+}

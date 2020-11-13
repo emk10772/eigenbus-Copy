@@ -97,6 +97,7 @@ public:
     uint8_t LED_code[MAX_LED_CODE_LEN + 1];
     uint64_t t_sync;
     bool stale;
+    uint32_t t_last_uptime;
 
     //Command Support vector
     uint8_t command_support;

@@ -86,6 +86,7 @@ EigenBootloader::EigenBootloader(){
     bootloader_active = false;
     bootloader_ack = false;
     bootloader_mode = 0;
+    bootload_thread = nullptr;
 }
 
 EigenBootloader::~EigenBootloader(){
@@ -144,7 +145,13 @@ void EigenBootloader::process_packet(EigenResponse *packet){
                 if(!bootloader_ack) {
                     bootloader_ack = true;
 
-                    bootload_thread = std::thread(&EigenBootloader::run_operation,
+                    //TODO: Something more responsible here
+                    //Could cause memory leaks and other errors if the programming gets stuck
+                    if(bootload_thread != nullptr){
+                        //delete bootload_thread;
+                        bootload_thread = nullptr;
+                    }
+                    bootload_thread = new std::thread(&EigenBootloader::run_operation,
                                                   this, bootloader_target_addr, bootloader_mode, bootloader_file);
                 } else {
                     add_command(new EigenCommandBootloader(bootloader_target_addr, EigenCommandBootloader::BOOTLOADER_ACK));
