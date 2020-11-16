@@ -44,7 +44,6 @@ public:
     void add_packet(eigen_addr_t addr, std::string filter, std::string packet, packet_type type);
     packet_type match_response(uint8_t address, std::string packet, bool spontaneous = false);
     bool UID_scan_required();
-    std::string *get_packet_out();
     void handle_timeout_packets();
     void handle_successful_packets();
 
@@ -55,6 +54,7 @@ public:
     uint64_t spontaneous_packets;
     uint64_t retried_packets;
     std::string last_packet_dropped;
+    std::deque<std::string> packets_out;
 
 private:
     void add_raw_packet(std::string pkt_string, packet_type type, uint8_t dir);
@@ -65,7 +65,6 @@ private:
     
     //Internal deque, not thread safe
     std::deque<EigenPacketFilter> packet_filter_list;
-    std::deque<std::string> packets_out;
 
     bool requires_UID_scan;
 };

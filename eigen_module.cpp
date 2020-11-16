@@ -182,7 +182,7 @@ std::string EigenModule::print_mod_name() const{
     std::lock_guard<std::mutex> lock(mutex);
     uint8_t s[32];
 
-    snprintf((char *)s, 32, "Module %d", address);
+    snprintf((char *)s, 32, "Module %02X", address);
     return std::string((char *)s);
 }
 

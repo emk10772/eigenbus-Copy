@@ -338,6 +338,11 @@ int service_eigen_comms() {
     t_last = current_time_ms();
 
     packetTracker->handle_timeout_packets();
+    while(packetTracker->packets_out.size() > 0){
+        std::string pkt = packetTracker->packets_out.front();
+        write_packet(pkt.c_str(), pkt.length());
+        packetTracker->packets_out.pop_front();
+    }
 
     if(!bootloader->active()){
         //Execute any queued commands
