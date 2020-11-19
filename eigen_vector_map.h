@@ -29,10 +29,11 @@ public:
 
 private:
     void remove_no_lock(eigen_addr_t key);
+    bool remove_ind_no_lock(eigen_addr_t ind);
 
+    std::recursive_mutex mutex_;
     std::unordered_map<eigen_addr_t, ModuleShared> map_;
     std::vector<ModuleShared> vector_;
-    std::mutex mutex_;
 };
 
 #endif

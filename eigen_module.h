@@ -41,6 +41,7 @@ private:
     uint64_t UID;
     uint8_t type;
     uint8_t orientation;
+    uint8_t node_depth_;
 
     std::vector<module_down_port> downstream_list;
 
@@ -59,6 +60,7 @@ public:
     void update_UID(uint64_t UID_);
     void update_type(uint8_t type_);
     void update_orientation(uint8_t orientation_);
+    void update_depth(uint8_t depth);
 
     uint16_t get_encoder_status() const;
     double position() const;
@@ -72,6 +74,7 @@ public:
     uint8_t get_type() const;
     uint8_t get_hardware_type() const;
     std::string print_orientation() const;
+    uint8_t node_depth() const;
 
     double last_position_cmd;
     double last_velocity_cmd;
