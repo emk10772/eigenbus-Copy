@@ -14,17 +14,30 @@ EigenPacketPoll::~EigenPacketPoll(){
 }
 
 void EigenPacketPoll::service_poll(){
+    std::lock_guard<std::mutex> lock(poll_mutex_);
+
     for(auto item : poll_map_){
         uint64_t t_now = current_time_ms();
         if(t_now - item.second->t_last >= item.second->period_ms && item.second->enabled){
             item.second->t_last = t_now;
-            commands.add(item.second->command->clone());
+            commands_.push_back(item.second->command->clone());
         }
     }
 }
 
 EigenCommand *EigenPacketPoll::get_command(){
-    return commands.get();
+    EigenCommand *retval = nullptr;
+
+    if(commands_.size() > 0){
+        retval = commands_.front();
+        commands_.pop_front();
+    }
+
+    return retval;
+}
+
+std::deque<EigenCommand *> &EigenPacketPoll::get_commands(){
+    return commands_;
 }
 
 std::string EigenPacketPoll::add_command(EigenCommand *command, uint64_t period_ms, bool enabled){

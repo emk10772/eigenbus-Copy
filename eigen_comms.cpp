@@ -114,10 +114,6 @@ void clear_module_list(){
     module_list_.clear();
 }
 
-void clean_module_list(){
-    module_list_.clear_old(current_time_ms(), 2*UPDATE_TOPOLOGY_PERIOD);
-}
-
 void add_module_update(EigenUpdate *update){
     update_list_.add(update);
 }
@@ -292,6 +288,7 @@ void service_bootloader(){
     //Write everything from the bootloader command queue
     while(cmd != NULL){
         write_packet(cmd->packet().c_str(), cmd->packet().length());
+        packetTracker->add_packet(cmd->address(), cmd->expected_response(), cmd->packet(), cmd->type());
 
         delete cmd;
         cmd = bootloader->get_command();
@@ -307,6 +304,8 @@ void service_bootloader(){
 
 int service_eigen_comms() {
     static uint64_t t_last = current_time_ms();
+    static uint8_t ind = 0;
+    static uint64_t t_last_poll = current_time_ms();
 
     uint8_t packet_count = 0;
 
@@ -336,19 +335,15 @@ int service_eigen_comms() {
             delete cmd;
             cmd = get_command();
         }
+
+        //Service the polling manager
+        packetPoll->service_poll();
     }
 
     service_bootloader();
 
-    //Service the polling manager
-    packetPoll->service_poll();
-
     //If there are commands from the poll manager, add them to the queue
-    EigenCommand *command = packetPoll->get_command();
-    while(command != nullptr){
-        add_command(command);
-        command = packetPoll->get_command();
-    }
+    cmd_list_.add(packetPoll->get_commands());
 
     //Process any packets that are in the queue
     packet_count = parse_packets(0, NULL);
@@ -359,19 +354,25 @@ int service_eigen_comms() {
     }
 
     //Check that the module's parameters are updated properly
-    for(uint8_t ind = 0; ind < num_modules(); ind++){
+    if(current_time_ms() - t_last_poll > 50){
+        t_last_poll = current_time_ms();
+        ind = ind % num_modules();
+
         ModuleShared mod = get_module_shared_by_index(ind);
         if(mod->parameters.parameters_left() > 0 && mod->parameters.d_t_last_update() > PACKET_TIMEOUT){
             eigen_read_parameter(mod->get_address(), LIST_PARAM);
             mod->parameters.set_last_update();
         }
+
+        ind++;
     }
+
 
     //Handle the successful packets
     packetTracker->handle_successful_packets();
 
-    //Mark the stale modules as such
-    clean_module_list();
+    //Remove modules we haven't heard from recently
+    update_list_.add(module_list_.clear_old(current_time_ms(), 2*UPDATE_TOPOLOGY_PERIOD));
 
     return packet_count;
 }

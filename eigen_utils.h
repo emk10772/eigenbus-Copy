@@ -203,6 +203,25 @@ public:
         deque_.push_back(item);
     }
 
+    /* Transfer items from deque to this deque */
+    inline void add(std::deque<T*> &items){
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        while(items.size() > 0){
+            deque_.push_back(items.front());
+            items.pop_front();
+        }
+    }
+
+    /* Copy items from vector to this deque */
+    inline void add(std::vector<T*> items){
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        for(auto item : items){
+            deque_.push_back(item);
+        }
+    }
+
     inline T* get(){
         T *retval = nullptr;
         std::lock_guard<std::mutex> lock(mutex_);

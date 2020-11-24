@@ -8,6 +8,7 @@
 #include <mutex>
 #include <set>
 #include "eigen_module.h"
+#include "eigen_responses/eigen_response.h"
 
 class EigenVectorMap{
 public:
@@ -23,7 +24,7 @@ public:
     void insert(ModuleShared module);
     void remove(eigen_addr_t key);
     void clear();
-    void clear_old(uint64_t t_now, uint64_t t_stale);
+    std::vector<EigenUpdate *> clear_old(uint64_t t_now, uint64_t t_stale);
     std::set<eigen_addr_t> keys();
     eigen_addr_t size();
 

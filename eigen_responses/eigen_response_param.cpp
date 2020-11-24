@@ -32,12 +32,12 @@ EigenUpdate *EigenResponseParamRead::update_module(ModuleShared mod){
 
             mod->parameters.add(param_addr, EigenParameter(param_aux), param_name);
 
-            return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ADD, param_addr);
+            return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ADD, mod, param_addr);
         }
     } else {
         //Write value to module
         mod->parameters.ref(id_).update_value(packet_.substr(ind + 1));
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_READ, id_);
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_READ, mod, id_);
     }
 }
 
@@ -53,12 +53,12 @@ EigenUpdate *EigenResponseParamWrite::update_module(ModuleShared mod){
     id_ = stoul(packet_, &ind, EIGENBUS_BASE);
 
     if(ind != 2 || packet_[ind] != ',')
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ERR, id_);;
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ERR, mod, id_);;
 
     if(packet_[ind + 1] == 's'){
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_WRITE, id_);
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_WRITE, mod, id_);
     } else {
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ERR, id_);
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ERR, mod, id_);
     }
 }
 

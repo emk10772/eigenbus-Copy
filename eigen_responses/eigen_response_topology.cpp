@@ -43,7 +43,7 @@ EigenUpdate *EigenResponseTopology::update_module(ModuleShared mod){
     }
     
     if(topology_updated)
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_DOWNSTREAM);
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_DOWNSTREAM, mod);
     else
         return nullptr;
 }

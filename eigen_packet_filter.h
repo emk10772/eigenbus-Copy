@@ -60,8 +60,9 @@ private:
     void add_raw_packet(std::string pkt_string, packet_type type, uint8_t dir);
 
     //Raw packet storage, thread safe
-    std::deque<raw_packet *> raw_packet_list;
-    std::mutex raw_packet_mutex;
+    EigenQueue<raw_packet> raw_packets_;
+    //std::deque<raw_packet *> raw_packet_list;
+    //std::mutex raw_packet_mutex;
     
     //Internal deque, not thread safe
     std::deque<EigenPacketFilter> packet_filter_list;

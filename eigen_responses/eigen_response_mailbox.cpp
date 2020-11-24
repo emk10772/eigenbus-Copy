@@ -31,12 +31,12 @@ EigenUpdate *EigenResponseMailboxRead::update_module(ModuleShared mod){
             //service_eigencomms should null terminate the string for us
 
             mod->mailboxes.add(mail_addr, EigenMailbox(mail_type), name);
-            return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_MAIL_ADD, mail_addr);
+            return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_MAIL_ADD, mod, mail_addr);
         }
     } else {
         //Write value to module
         mod->mailboxes.ref(id_).update_value(packet_.substr(ind + 1));
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_MAIL_READ, id_);
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_MAIL_READ, mod, id_);
     }
 }
 
@@ -52,12 +52,12 @@ EigenUpdate *EigenResponseMailboxWrite::update_module(ModuleShared mod){
     id_ = stoul(packet_, &ind, EIGENBUS_BASE);
 
     if(ind != 2 || packet_[ind] != ',')
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_MAIL_ERR, id_);;
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_MAIL_ERR, mod, id_);;
 
     if(packet_[ind + 1] == 's'){
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_MAIL_WRITE, id_);
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_MAIL_WRITE, mod, id_);
     } else {
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_MAIL_ERR, id_);
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_MAIL_ERR, mod, id_);
     }
 }
 

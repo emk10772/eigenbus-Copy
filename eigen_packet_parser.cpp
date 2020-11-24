@@ -39,12 +39,12 @@ void EigenPacketParser::register_packet_type(std::string command,
 //parse_packet: takes a command packet trimmed of the address
 EigenResponse *EigenPacketParser::parse_packet(eigen_addr_t address, std::string packet){
     //If the first character is a hex digit, this packet is not a valid response
-    if(isxdigit(packet[0])) return nullptr;
+    if(isxdigit((unsigned char)packet[0])) return nullptr;
 
     //Check the second character to see if this is a "dual character" response such as |(
     std::string key;
     uint8_t key_size = 0;
-    key_size = (isxdigit(packet[1]) ? 1 : 2);
+    key_size = (isxdigit((unsigned char)packet[1]) ? 1 : 2);
     
     while(key_size > 0){
         key = packet.substr(0, key_size);

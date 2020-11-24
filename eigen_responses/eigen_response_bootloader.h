@@ -18,6 +18,7 @@ public:
 
     btldr_response_t btldr_action();
     std::string data();
+    bool isSpontaneous() override;
 
 private:
     std::string data_;

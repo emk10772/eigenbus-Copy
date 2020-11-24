@@ -2,6 +2,7 @@
 #define EIGEN_UPDATE_H
 
 #include "eigen_utils.h"
+#include "eigen_module.h"
 
 class EigenUpdate{
 public:
@@ -27,7 +28,7 @@ public:
         MODULE_MAIL_ERR
     } update_t;
 
-    EigenUpdate(eigen_addr_t address, update_t type, uint8_t arg = 0, std::string data = "N/A");
+    EigenUpdate(eigen_addr_t address, update_t type, ModuleConst mod = nullptr, uint8_t arg = 0, std::string data = "N/A");
     ~EigenUpdate();
 
     update_t type();
@@ -35,10 +36,12 @@ public:
 
     uint8_t arg();
     std::string data();
+    ModuleConst module();
 
 private:
     const eigen_addr_t address_;
     const update_t type_;
+    const ModuleConst mod_;
     const uint8_t arg_;
     const std::string data_;
 };

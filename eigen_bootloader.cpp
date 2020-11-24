@@ -132,7 +132,7 @@ void EigenBootloader::run_operation(eigen_addr_t target_addr, uint8_t mode, std:
         instance->bootloader_finished = true;
     }
 
-    add_update(new EigenUpdate(target_addr, EigenUpdate::MODULE_BTLDR_END, retval, bootloader_print_error(retval)));
+    add_update(new EigenUpdate(target_addr, EigenUpdate::MODULE_BTLDR_END, nullptr, retval, bootloader_print_error(retval)));
 }
 
 void EigenBootloader::process_packet(EigenResponse *packet){
@@ -343,7 +343,7 @@ int EigenBootloader::bootloader_write_data(uint8_t* buf, int len){
 
 void EigenBootloader::bootloader_update(uint8_t col, uint16_t row){
     instance->add_update(new EigenUpdate(instance->bootloader_target_addr,
-                                         EigenUpdate::MODULE_BTLDR_PROGRESS, row));
+                                         EigenUpdate::MODULE_BTLDR_PROGRESS, nullptr, row));
 }
 
 bool EigenBootloader::active(){

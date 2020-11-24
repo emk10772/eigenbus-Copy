@@ -22,7 +22,7 @@ EigenUpdate *EigenResponsePosition::update_module(ModuleShared mod){
     if(value_valid)
         mod->set_position(value);
 
-    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_POS_UPDATE);
+    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_POS_UPDATE, mod);
 }
 
 
@@ -37,7 +37,7 @@ EigenUpdate *EigenResponseVelocity::update_module(ModuleShared mod){
     if(value_valid)
         mod->set_velocity(value);
     
-    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_VEL_UPDATE);
+    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_VEL_UPDATE, mod);
 }
 
 
@@ -53,5 +53,5 @@ EigenUpdate *EigenResponseEffort::update_module(ModuleShared mod){
     if(value_valid)
         mod->set_effort(value);
 
-    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_EFF_UPDATE);
+    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_EFF_UPDATE, mod);
 }

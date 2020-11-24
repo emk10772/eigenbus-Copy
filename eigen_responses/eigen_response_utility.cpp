@@ -10,9 +10,10 @@ EigenResponseUtility::EigenResponseUtility(eigen_addr_t address, std::string pac
 
 EigenUpdate *EigenResponseUtility::update_module(ModuleShared mod){
     size_t ind = 0;
-    id_ = stoul(packet_, &ind, EIGENBUS_BASE);
 
     try{
+        id_ = stoul(packet_, &ind, EIGENBUS_BASE);
+
         switch(id_){
             case EIGEN_UTIL_STAT_CODE: {
                 uint8_t status_code = stoul(packet_.substr(ind+1), nullptr, EIGENBUS_BASE);

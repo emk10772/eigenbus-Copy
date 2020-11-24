@@ -27,14 +27,14 @@ ModuleConst EigenVectorMap::get_const(eigen_addr_t key){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
     if(map_.count(key) == 0) return nullptr;
-    return std::const_pointer_cast<const EigenModule>(map_[key]);
+    return make_const(map_[key]);
 }
 
 ModuleConst EigenVectorMap::get_const_by_ind(eigen_addr_t ind){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
     if(ind >= vector_.size()) return nullptr;
-    return std::const_pointer_cast<const EigenModule>(vector_[ind]);
+    return make_const(vector_[ind]);
 }
 
 bool cmp(ModuleShared module, eigen_addr_t address){
@@ -101,18 +101,25 @@ std::set<eigen_addr_t> EigenVectorMap::keys(){
     return retval;
 }
 
-void EigenVectorMap::clear_old(uint64_t t_now, uint64_t t_stale){
+std::vector<EigenUpdate *> EigenVectorMap::clear_old(uint64_t t_now, uint64_t t_stale){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     eigen_addr_t ind = 0;
     bool valid = true;
+    std::vector<EigenUpdate *> retval;
 
     while(valid && ind < vector_.size()){
         if((t_now - vector_[ind]->t_last_update) > t_stale){
+            eigen_addr_t addr = vector_[ind]->get_address();
             valid = remove_ind_no_lock(ind);
+            if(valid){
+                retval.push_back(new EigenUpdate(addr, EigenUpdate::MODULE_REMOVED));
+            }
         } else {
             ind++;
         }
     }
+
+    return retval;
 }
 
 eigen_addr_t EigenVectorMap::size(){

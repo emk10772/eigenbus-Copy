@@ -76,3 +76,8 @@ EigenUpdate *EigenResponseBootloader::update_module(ModuleShared mod){
     }*/
 }
 
+
+bool EigenResponseBootloader::isSpontaneous(){
+    return true;
+}
+

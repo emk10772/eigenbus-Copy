@@ -120,4 +120,8 @@ public:
 using ModuleConst = std::shared_ptr<EigenModule const>;
 using ModuleShared = std::shared_ptr<EigenModule>;
 
+inline ModuleConst make_const(ModuleShared module){
+    return std::const_pointer_cast<const EigenModule>(module);
+}
+
 #endif // EIGEN_MODULE_H

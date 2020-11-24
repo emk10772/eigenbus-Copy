@@ -24,13 +24,15 @@ public:
 
     void service_poll();
     EigenCommand *get_command();
+    std::deque<EigenCommand *> &get_commands();
 
 
 private:
     std::map<std::string, poll_t *> poll_map_;
     std::mutex poll_mutex_;
 
-    EigenQueue<EigenCommand> commands;
+    //Only used in same thread, does not need to be thread safe
+    std::deque<EigenCommand *> commands_;
 };
 
 #endif

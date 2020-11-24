@@ -16,25 +16,26 @@ EigenPacketTracker::~EigenPacketTracker(){
         packet_filter_list.pop_front();
     }
 
-    while(raw_packet_list.size() > 0){
+    raw_packets_.clear();
+    /*while(raw_packet_list.size() > 0){
         auto packet = raw_packet_list.front();
         raw_packet_list.pop_front();
         delete packet;
-    }
+    }*/
 }
 
 raw_packet *EigenPacketTracker::get_raw_packet(){
-    raw_packet *retval;
-    std::lock_guard<std::mutex> lock(raw_packet_mutex);
+    //raw_packet *retval;
+    /*std::lock_guard<std::mutex> lock(raw_packet_mutex);
 
     if(raw_packet_list.size() > 0){
         retval = raw_packet_list.front();
         raw_packet_list.pop_front();
     } else {
         return NULL;
-    }
+    }*/
 
-    return retval;
+    return raw_packets_.get();
 }
 
 void EigenPacketTracker::add_packet(eigen_addr_t addr, std::string filter, 
@@ -54,14 +55,14 @@ void EigenPacketTracker::add_raw_packet(std::string pkt_string, packet_type type
 
     if(config.raw_packet_en == EIGEN_DISABLED) return;
 
-    std::lock_guard<std::mutex> lock(raw_packet_mutex);
+    /*std::lock_guard<std::mutex> lock(raw_packet_mutex);*/
 
     //Add to raw packet list
     raw_packet *pkt = new raw_packet;
     pkt->packet = pkt_string;
     pkt->type = type;
     pkt->dir = dir;
-    raw_packet_list.push_back(pkt);
+    raw_packets_.add(pkt);
 }
 
 void EigenPacketTracker::handle_timeout_packets(){
