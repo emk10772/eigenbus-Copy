@@ -67,13 +67,22 @@ void write_packet(const char *buf, uint8_t len){
 eigen_stats get_eigen_stats(){
     eigen_stats stats;
     stats.uptime_ms = current_time_ms() - t_init;
-    stats.sent_packets = packetTracker->packets_sent;
-    stats.successful_packets = packetTracker->successful_packets;
-    stats.dropped_packets = packetTracker->packets_dropped;
-    stats.unrequested_packets = packetTracker->unrequested_packets;
-    stats.retried_packets = packetTracker->retried_packets;
+    stats.sent_packets = packetTracker->packets_sent.total();
+    stats.sent_rate = packetTracker->packets_sent.rate();
+    stats.successful_packets = packetTracker->successful_packets.total();
+    stats.success_rate = packetTracker->successful_packets.rate();
+    stats.dropped_packets = packetTracker->packets_dropped.total();
+    stats.dropped_rate = packetTracker->packets_dropped.rate();
+    stats.unrequested_packets = packetTracker->unrequested_packets.total();
+    stats.unrequested_rate = packetTracker->unrequested_packets.rate();
+    stats.retried_packets = packetTracker->retried_packets.total();
+    stats.retried_rate = packetTracker->retried_packets.rate();
     stats.frame_time_ms = frame_time;
     stats.last_dropped_packet = packetTracker->last_packet_dropped;
+    stats.spontaneous_packets = packetTracker->spontaneous_packets.total();
+    stats.spontaneous_rate = packetTracker->spontaneous_packets.rate();
+    stats.avg_latency = packetTracker->avg_latency();
+    stats.peak_latency = packetTracker->peak_latency();
     return stats;
 }
 
@@ -183,20 +192,23 @@ void process_packet(uint8_t *buffer, uint8_t len) {
 
         if(response != nullptr){
             //Check if the response matches one that we are looking for
-            packet_type type = packetTracker->match_response(addr, std::string((char *) buffer + 1), response->isSpontaneous());
+            packet_type type = packetTracker->match_response(module, response, std::string((char *) buffer + 1));
 
+            //Get the update and add it to the update queue if it exists
             EigenUpdate *update = response->update_module(module);
             if(update != nullptr)
                 add_module_update(update);
 
+            //If we expect more responses after this one, notify the packet tracker
             if(response->has_additonal_responses())
                 for(auto pkt : response->additional_responses())
                     packetTracker->add_packet(module->get_address(), pkt, "", type);
 
+            //Allow the bootloader to process the packets
             bootloader->process_packet(response);
         } else {
             //If we could not parse the response, send it to the tracker to record the error
-            packetTracker->match_response(addr, std::string((char *) buffer + 1));
+            packetTracker->match_response(module, nullptr, std::string((char *) buffer + 1));
         }
         
         delete response;
@@ -414,7 +426,7 @@ ModuleShared add_module(uint8_t address){
 
         //Log that we updated the list
         list_update = true;
-        add_module_update(new EigenUpdate(address, EigenUpdate::MODULE_ADDED));
+        add_module_update(new EigenUpdate(address, EigenUpdate::MODULE_ADDED, mod_result));
 
         //Ask for important info about the module
         eigen_firmware_utility(address, EIGEN_UTIL_COMMIT_VERSION);
@@ -426,7 +438,7 @@ ModuleShared add_module(uint8_t address){
         eigen_firmware_utility(address, EIGEN_UTIL_MODULE_UID);
         eigen_firmware_utility(address, EIGEN_UTIL_MODULE_STATUS);
     } else {
-        add_module_update(new EigenUpdate(address, EigenUpdate::MODULE_TOUCHED));
+        add_module_update(new EigenUpdate(address, EigenUpdate::MODULE_TOUCHED, mod_result));
     }
     mod_result->t_last_update = current_time_ms();
     mod_result->stale = false;

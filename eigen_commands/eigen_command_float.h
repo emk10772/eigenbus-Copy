@@ -5,6 +5,9 @@
 #include <stdint.h>
 #include <string>
 
+/* EigenCommandFloat:
+ * An easy base class for commands that write a double/float value to the Eigenbus.
+ */
 class EigenCommandFloat : public EigenCommand{
 public:
     EigenCommandFloat(eigen_addr_t address, std::string command, std::string response, double value, command_t command_type);

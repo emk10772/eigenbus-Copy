@@ -23,5 +23,6 @@ void eigen_firmware_utility(eigen_addr_t address, uint16_t action);
 /* Special commands */
 void eigen_user_command(eigen_addr_t address, std::string command);
 void eigen_start_bootload(uint8_t address, uint8_t mode, std::string file);
+void eigen_echo(eigen_addr_t address, std::string value);
 
 #endif

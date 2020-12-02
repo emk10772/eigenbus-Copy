@@ -286,8 +286,6 @@ bool EigenBootloader::bootloader_parse_packet(std::string data, uint8_t *buf, ui
 int EigenBootloader::bootloader_read_data(uint8_t* buf, int len){
     uint64_t t_start = current_time_ms();
     uint64_t t_last = t_start;
-    uint8_t n_chars = 0;
-    uint8_t first_request_n = 0;
     bool success = false;
 
     while(!success && current_time_ms() - t_start < 500000){

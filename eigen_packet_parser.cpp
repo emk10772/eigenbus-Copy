@@ -7,6 +7,7 @@
 #include "eigen_responses/eigen_response_bootloader.h"
 #include "eigen_responses/eigen_response_mailbox.h"
 #include "eigen_responses/eigen_response_uptime.h"
+#include "eigen_responses/eigen_response_int.h"
 
 template <class Response>
 EigenResponse *new_response(eigen_addr_t address, std::string packet){
@@ -25,6 +26,7 @@ EigenPacketParser::EigenPacketParser(){
     register_packet_type("|[", &new_response<EigenResponseMailboxRead>);
     register_packet_type("|]", &new_response<EigenResponseMailboxWrite>);
     register_packet_type("T", &new_response<EigenResponseUptime>);
+    register_packet_type("N", &new_response<EigenResponseEncoderStatus>);
 }
 
 EigenPacketParser::~EigenPacketParser(){

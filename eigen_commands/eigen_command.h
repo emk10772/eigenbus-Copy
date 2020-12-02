@@ -24,7 +24,8 @@ public:
         EIGEN_CMD_ZERO,
         EIGEN_CMD_QUERY,
         EIGEN_CMD_UID_WRITE,
-        EIGEN_CMD_MOTOR_EN
+        EIGEN_CMD_MOTOR_EN,
+        EIGEN_CMD_ECHO
     } command_t;
 
     EigenCommand(eigen_addr_t address, packet_type type, command_t command);

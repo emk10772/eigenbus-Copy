@@ -14,6 +14,9 @@ std::string EigenCommandQuery::expected_response() const{
     case EIGEN_POLL_LOCATION: 
         //Expecting a response of type L
         return "L";
+    case EIGEN_POLL_VELOCITY:
+        //Expecting a response of type V
+        return "V";
     case EIGEN_POLL_EFFORT:
         //Expecting a response of type I
         return "I";

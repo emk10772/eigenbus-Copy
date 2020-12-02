@@ -69,6 +69,11 @@ void eigen_firmware_utility(eigen_addr_t address, uint16_t action){
 void eigen_user_command(eigen_addr_t address, std::string command){
     add_command(new EigenCommandUser(address, command));
 }
+
 void eigen_start_bootload(uint8_t address, uint8_t mode, std::string file){
     add_command(new EigenCommandBootloader(address, EigenCommandBootloader::BOOTLOADER_START, mode, file));
+}
+
+void eigen_echo(eigen_addr_t address, std::string value){
+    add_command(new EigenCommandEcho(address, value));
 }

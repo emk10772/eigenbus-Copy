@@ -32,11 +32,14 @@ public:
     EigenCommandTopology(eigen_addr_t address);
 };
 
-//The eigenbus technically supports more parameters for this command,
-//but those are not used in practice
 class EigenCommandZero : public EigenCommandSimple{
 public:
-    EigenCommandZero(eigen_addr_t address);
+    EigenCommandZero(eigen_addr_t address, std::string arg = "");
+};
+
+class EigenCommandEcho : public EigenCommandSimple{
+public:
+    EigenCommandEcho(eigen_addr_t address, std::string echo_string);
 };
 
 

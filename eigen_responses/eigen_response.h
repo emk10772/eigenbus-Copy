@@ -23,7 +23,9 @@ public:
         EIGEN_TOPOLOGY,
         EIGEN_UTILITY,
         EIGEN_BOOTLOADER,
-        EIGEN_UPTIME
+        EIGEN_UPTIME,
+        EIGEN_ECHO,
+        EIGEN_ENCODER_STAT
     } response_t;
 
     EigenResponse(eigen_addr_t address, std::string packet, response_t message_type);

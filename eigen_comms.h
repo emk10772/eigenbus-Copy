@@ -30,11 +30,20 @@ typedef struct eigen_config_struct{
 typedef struct eigen_stats_struct{
     uint64_t uptime_ms;
     uint64_t sent_packets;
+    double sent_rate;
     uint64_t successful_packets;
+    double success_rate;
     uint64_t dropped_packets;
+    double dropped_rate;
     uint64_t unrequested_packets;
+    double unrequested_rate;
     uint64_t retried_packets;
+    double retried_rate;
     uint64_t frame_time_ms;
+    uint64_t spontaneous_packets;
+    double spontaneous_rate;
+    double avg_latency;
+    double peak_latency;
     std::string last_dropped_packet;
 } eigen_stats;
 

@@ -35,6 +35,10 @@ EigenModule::EigenModule(uint8_t address){
     this->t_sync = current_time_ms();
     this->last_debug_msg = "N/A";
     this->t_last_uptime = 0;
+
+    this->latency_avg_ = 0.0;
+    this->latency_peak_ = 0.0;
+    this->latency_total_ = 0;
 }
 
 EigenModule::~EigenModule(){
@@ -312,4 +316,36 @@ std::string EigenModule::print_encoder_status() const{
     if(encoder_status & ENC_SIG_AMP_WARNING)    return "Signal Amplitude Warning";
     if(encoder_status & ENC_SIG_AMP_ERROR)      return "Signal Amplitude Error";
     if(encoder_status & ENC_COUNTER_ERROR)      return "Counter Error";
+}
+
+/*  add_latency_measurement:
+    A method that records packet latency so that it may be averaged over time.
+    Calculates the moving average and stores it in a separate variable for later
+
+    This method should only ever be called from a single thread
+    There is no mutex protecting the deque. Thread safety comes from storage of
+    final result in an std::atomic variable
+*/
+void EigenModule::add_latency_measurement(uint64_t latency){
+    latencies_.push_back(latency);
+    latency_total_ += latency;
+
+    while(latencies_.size() > MAX_MOD_LATENCY_MEASUREMENT){
+        latency_total_ -= latencies_.front();
+        latencies_.pop_front();
+    }
+
+    latency_avg_ = ((double) latency_total_) / ((double) latencies_.size());
+
+    if((double) latency > latency_peak_){
+        latency_peak_ = (double)latency;
+    }
+}
+
+double EigenModule::avg_latency() const{
+    return latency_avg_;
+}
+
+double EigenModule::peak_latency() const{
+    return latency_peak_;
 }

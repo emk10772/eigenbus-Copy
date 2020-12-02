@@ -5,9 +5,12 @@
 #include <vector>
 #include <string>
 #include <mutex>
+#include <atomic>
+#include <deque>
 #include "eigen_parameters.h"
 
 #define MAX_LED_CODE_LEN (5)
+#define MAX_MOD_LATENCY_MEASUREMENT (20)
 
 typedef struct module_param_struct{
     uint8_t dirty;
@@ -45,6 +48,11 @@ private:
 
     std::vector<module_down_port> downstream_list;
 
+    std::deque<uint64_t> latencies_;
+    uint64_t latency_total_;
+    std::atomic<double> latency_avg_;
+    std::atomic<double> latency_peak_;
+
 public:
     void set_encoder_status(uint16_t status);
     void set_position(double position);
@@ -61,6 +69,10 @@ public:
     void update_type(uint8_t type_);
     void update_orientation(uint8_t orientation_);
     void update_depth(uint8_t depth);
+
+    void add_latency_measurement(uint64_t latency);
+    double avg_latency() const;
+    double peak_latency() const;
 
     uint16_t get_encoder_status() const;
     double position() const;

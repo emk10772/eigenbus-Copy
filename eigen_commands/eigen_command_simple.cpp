@@ -22,10 +22,14 @@ EigenCommandRun::EigenCommandRun(eigen_addr_t address)
     : EigenCommandSimple(address, "R", "", EIGEN_PACKET_DEFAULT, EIGEN_CMD_RUN){
 }
 
-EigenCommandZero::EigenCommandZero(eigen_addr_t address)
-    : EigenCommandSimple(address, "Z", "", EIGEN_PACKET_DEFAULT, EIGEN_CMD_ZERO){
+EigenCommandZero::EigenCommandZero(eigen_addr_t address, std::string arg)
+    : EigenCommandSimple(address, "Z" + arg, "", EIGEN_PACKET_DEFAULT, EIGEN_CMD_ZERO){
 }
 
 EigenCommandTopology::EigenCommandTopology(eigen_addr_t address)
     : EigenCommandSimple(address, "O", "S", EIGEN_PACKET_TOPO, EIGEN_CMD_TOPOLOGY){
+}
+
+EigenCommandEcho::EigenCommandEcho(eigen_addr_t address, std::string echo_string)
+    : EigenCommandSimple(address, "@" + echo_string, "@" + echo_string, EIGEN_PACKET_DEBUG, EIGEN_CMD_ECHO){
 }

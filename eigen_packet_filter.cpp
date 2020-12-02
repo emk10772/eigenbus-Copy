@@ -1,14 +1,13 @@
 #include "eigen_packet_filter.h"
 #include "eigen_comms.h"
 
+#define AVG_MAX_SIZE 50
+
 EigenPacketTracker::EigenPacketTracker(){
-    packets_sent = 0;
-    packets_dropped = 0;
-    successful_packets = 0;
-    unrequested_packets = 0;
-    retried_packets = 0;
-    spontaneous_packets = 0;
     last_packet_dropped = "";
+    latency_avg_ = 0.0;
+    latency_peak_ = 0.0;
+    latency_total_ = 0;
 }
 
 EigenPacketTracker::~EigenPacketTracker(){
@@ -17,24 +16,9 @@ EigenPacketTracker::~EigenPacketTracker(){
     }
 
     raw_packets_.clear();
-    /*while(raw_packet_list.size() > 0){
-        auto packet = raw_packet_list.front();
-        raw_packet_list.pop_front();
-        delete packet;
-    }*/
 }
 
 raw_packet *EigenPacketTracker::get_raw_packet(){
-    //raw_packet *retval;
-    /*std::lock_guard<std::mutex> lock(raw_packet_mutex);
-
-    if(raw_packet_list.size() > 0){
-        retval = raw_packet_list.front();
-        raw_packet_list.pop_front();
-    } else {
-        return NULL;
-    }*/
-
     return raw_packets_.get();
 }
 
@@ -55,8 +39,6 @@ void EigenPacketTracker::add_raw_packet(std::string pkt_string, packet_type type
 
     if(config.raw_packet_en == EIGEN_DISABLED) return;
 
-    /*std::lock_guard<std::mutex> lock(raw_packet_mutex);*/
-
     //Add to raw packet list
     raw_packet *pkt = new raw_packet;
     pkt->packet = pkt_string;
@@ -75,7 +57,7 @@ void EigenPacketTracker::handle_timeout_packets(){
         if(it->is_broadcast() && it->num_responses() > 0){
             //Bar for success for a broadcast packet is pretty low. Just want to get at least one response
             successful_packets++;
-        } else if (it->is_broadcast() || it->num_retries() >= max_retries){
+        } else if (/*it->is_broadcast() ||*/ it->num_retries() >= max_retries){
             packets_dropped++;
             last_packet_dropped = it->packet_string();
         } else {
@@ -93,6 +75,8 @@ void EigenPacketTracker::handle_timeout_packets(){
         packet_filter_list.pop_front();
         it = packet_filter_list.begin();
     }
+
+    update_rate_calculations();
 }
 
 void EigenPacketTracker::handle_successful_packets(){
@@ -111,22 +95,32 @@ void EigenPacketTracker::handle_successful_packets(){
             successful_packets++;
         }
     }
+
+    update_rate_calculations();
 }
 
-packet_type EigenPacketTracker::match_response(uint8_t address, std::string packet, bool spontaneous){
+packet_type EigenPacketTracker::match_response(ModuleShared module, EigenResponse *response, std::string raw_packet){
+    uint64_t t_now = current_time_ms();
+
     //Search our filter list for a matching packet
     auto it = packet_filter_list.begin();
-    while(it != packet_filter_list.end() && !it->matches_filter(address, packet)){
+    while(response != nullptr && it != packet_filter_list.end() && !it->matches_filter(response->address(), raw_packet)){
         it++;
     }
 
     //If we found a matching filter, add it to that filter
-    if(it != packet_filter_list.end() && it->matches_filter(address, packet)){
-        it->add_response(address, packet);
-        add_raw_packet(packet, it->get_type(), EIGEN_PACKET_RECV);
+    //First condition is technically redundant because it->matches_filter is always false for a null response
+    //It is left for robustness and clarity
+    if(response != nullptr && it != packet_filter_list.end() && it->matches_filter(response->address(), raw_packet)){
+        it->add_response(response);
+        add_raw_packet(raw_packet, it->get_type(), EIGEN_PACKET_RECV);
+        //if(!it->is_broadcast()){
+            add_latency(t_now - it->t_sent());
+            module->add_latency_measurement(t_now - it->t_sent());
+        //}
         return it->get_type();
-    } else if(!spontaneous){
-        add_raw_packet(packet, EIGEN_PACKET_DEFAULT, EIGEN_PACKET_RECV);
+    } else if(response == nullptr || !response->isSpontaneous()){
+        add_raw_packet(raw_packet, EIGEN_PACKET_DEFAULT, EIGEN_PACKET_RECV);
         unrequested_packets++;
 
         //If we get an unrequested packet for a valid address there are a few possibilities:
@@ -137,79 +131,155 @@ packet_type EigenPacketTracker::match_response(uint8_t address, std::string pack
 
         add_command(new EigenCommandUtility(0xFF, EIGEN_UTIL_MODULE_UID));
     } else {
-        add_raw_packet(packet, EIGEN_PACKET_POLL, EIGEN_PACKET_RECV);
+        add_raw_packet(raw_packet, EIGEN_PACKET_POLL, EIGEN_PACKET_RECV);
         spontaneous_packets++;
     }
 
     return EIGEN_PACKET_NONE;
 }
 
+double EigenPacketTracker::avg_latency(){
+    return latency_avg_;
+}
+
+double EigenPacketTracker::peak_latency(){
+    return latency_peak_;
+}
+
+void EigenPacketTracker::add_latency(uint64_t latency){
+    latencies_.push_back(latency);
+    latency_total_ += latency;
+
+    while(latencies_.size() > AVG_MAX_SIZE){
+        latency_total_ -= latencies_.front();
+        latencies_.pop_front();
+    }
+
+    latency_avg_ = ((double) latency_total_) / ((double) latencies_.size());
+
+    if((double) latency > latency_peak_){
+        latency_peak_ = latency;
+    }
+}
+
+void EigenPacketTracker::update_rate_calculations(){
+    packets_sent.update_calculation();
+    packets_dropped.update_calculation();
+    successful_packets.update_calculation();
+    unrequested_packets.update_calculation();
+    spontaneous_packets.update_calculation();
+    retried_packets.update_calculation();
+}
+
+
 /* Eigen Packet Class Definitions */
 //TODO: What to do when we expect multiple responses to a packet, and do not know how many?
 EigenPacketFilter::EigenPacketFilter(uint8_t address, std::string response_filter,
                                      packet_type packet, std::string packet_string){
-    this->address = address;
-    this->response_filter = response_filter;
-    this->t_sent = current_time_ms();
-    this->classification = packet;
+    this->address_ = address;
+    this->response_filter_ = response_filter;
+    this->t_sent_ = current_time_ms();
+    this->classification_ = packet;
     this->packet_string_ = packet_string;
-    this->retries = 0;
+    this->retries_ = 0;
 }
 
 EigenPacketFilter::~EigenPacketFilter(){
-    this->matched_responses.clear();
-    this->matched_addresses.clear();
+    this->matched_responses_.clear();
+    this->matched_addresses_.clear();
 }
 
 bool EigenPacketFilter::expects_response(){
-    return response_filter != "";
+    return response_filter_ != "";
 }
 
-uint8_t EigenPacketFilter::num_responses(){
-    //Should not get more than 255 responses to a single request. If we do, there is something wrong
-    return matched_responses.size();
+eigen_addr_t EigenPacketFilter::num_responses(){
+    //Should not get more than size(eigen_addr_t) responses to a single request. If we do, there is something wrong
+    return matched_responses_.size();
 }
 
-bool EigenPacketFilter::matches_filter(uint8_t address, std::string packet){
-    if(!is_broadcast() && address != this->address) return false;
-    if(matched_addresses.count(address) == 0){
-        if(packet.find(response_filter) != std::string::npos){
+bool EigenPacketFilter::matches_filter(eigen_addr_t address, std::string packet){
+    if(!is_broadcast() && address != address_) return false;
+
+    if(matched_addresses_.count(address) == 0){
+        if(packet.find(response_filter_) != std::string::npos){
             return true;
         }
     }
     return false;
 }
 
-void EigenPacketFilter::add_response(uint8_t address, std::string response){
+void EigenPacketFilter::add_response(EigenResponse *response){
+    if(response == nullptr) return;
+
     //Change to end of list for better efficiency?
-    matched_responses.insert(matched_responses.begin(), response);
-    matched_addresses.insert(address);
+    matched_responses_.push_back(response->packet());
+    matched_addresses_.insert(response->address());
 }
 
 bool EigenPacketFilter::packet_timeout(){
-    return (current_time_ms() - t_sent) > PACKET_TIMEOUT;
+    return (current_time_ms() - t_sent_) > PACKET_TIMEOUT;
 }
 
 bool EigenPacketFilter::is_broadcast(){
-    return address == 0xFF;
+    return address_ == 0xFF;
 }
 
 packet_type EigenPacketFilter::get_type(){
-    return this->classification;
+    return this->classification_;
 }
 
 uint8_t EigenPacketFilter::num_retries(){
-    return retries;
+    return retries_;
 }
 
 void EigenPacketFilter::increment_retry_count(){
-    retries++;
+    retries_++;
 }
 
 void EigenPacketFilter::reset_timeout(){
-    t_sent = current_time_ms();
+    t_sent_ = current_time_ms();
 }
 
 std::string EigenPacketFilter::packet_string(){
     return this->packet_string_;
+}
+
+uint64_t EigenPacketFilter::t_sent(){
+    return t_sent_;
+}
+
+
+
+EigenCounter::EigenCounter(uint64_t window_ms)
+    : window_(window_ms){
+    rate_ = 0;
+    total_count_ = 0;
+}
+
+EigenCounter::~EigenCounter(){
+
+}
+
+uint64_t EigenCounter::total() const{
+    return total_count_;
+}
+
+double EigenCounter::rate() const{
+    return rate_;
+}
+
+void EigenCounter::update_calculation(){
+    while(t_inc_.size() > 0 && current_time_ms() - t_inc_.front() > window_){
+        t_inc_.pop_front();
+    }
+
+    if(window_ != 0){
+        rate_ = 1000.0 * (double)t_inc_.size() / (double)window_;
+    }
+}
+
+void EigenCounter::operator++(int) {
+    t_inc_.push_back(current_time_ms());
+    total_count_++;
 }
