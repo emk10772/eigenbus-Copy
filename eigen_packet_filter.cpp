@@ -3,6 +3,8 @@
 
 #define AVG_MAX_SIZE 50
 
+#include <QDebug>
+
 EigenPacketTracker::EigenPacketTracker(){
     last_packet_dropped = "";
     latency_avg_ = 0.0;
@@ -60,9 +62,8 @@ void EigenPacketTracker::handle_timeout_packets(){
         } else if (/*it->is_broadcast() ||*/ it->num_retries() >= max_retries){
             packets_dropped++;
             last_packet_dropped = it->packet_string();
-        } else {
+        } else if(it->packet_string() != "") {
             retried_packets++;
-
             //Reset the timer, and increase the number of tries. Then resend the packet
             EigenPacketFilter packet = *it;
             packet.increment_retry_count();
@@ -99,8 +100,8 @@ void EigenPacketTracker::handle_successful_packets(){
     update_rate_calculations();
 }
 
-packet_type EigenPacketTracker::match_response(ModuleShared module, EigenResponse *response, std::string raw_packet){
-    uint64_t t_now = current_time_ms();
+response_match_t EigenPacketTracker::match_response(ModuleShared module, EigenResponse *response, std::string raw_packet){
+    uint64_t t_now = response->t_received();
 
     //Search our filter list for a matching packet
     auto it = packet_filter_list.begin();
@@ -114,14 +115,15 @@ packet_type EigenPacketTracker::match_response(ModuleShared module, EigenRespons
     if(response != nullptr && it != packet_filter_list.end() && it->matches_filter(response->address(), raw_packet)){
         it->add_response(response);
         add_raw_packet(raw_packet, it->get_type(), EIGEN_PACKET_RECV);
-        //if(!it->is_broadcast()){
-            add_latency(t_now - it->t_sent());
-            module->add_latency_measurement(t_now - it->t_sent());
-        //}
-        return it->get_type();
+
+        add_latency(t_now - it->t_sent());
+        module->add_latency_measurement(t_now - it->t_sent());
+
+        return response_match_t(it->get_type(), t_now - it->t_sent());
     } else if(response == nullptr || !response->isSpontaneous()){
         add_raw_packet(raw_packet, EIGEN_PACKET_DEFAULT, EIGEN_PACKET_RECV);
         unrequested_packets++;
+        qDebug() << "Unrequested: " << it->packet_string().c_str();
 
         //If we get an unrequested packet for a valid address there are a few possibilities:
         //1. Duplicate addresses
@@ -135,7 +137,7 @@ packet_type EigenPacketTracker::match_response(ModuleShared module, EigenRespons
         spontaneous_packets++;
     }
 
-    return EIGEN_PACKET_NONE;
+    return response_match_t(EIGEN_PACKET_NONE, 0);
 }
 
 double EigenPacketTracker::avg_latency(){

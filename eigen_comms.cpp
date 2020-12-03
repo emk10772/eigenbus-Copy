@@ -192,17 +192,17 @@ void process_packet(uint8_t *buffer, uint8_t len) {
 
         if(response != nullptr){
             //Check if the response matches one that we are looking for
-            packet_type type = packetTracker->match_response(module, response, std::string((char *) buffer + 1));
+            response_match_t retval = packetTracker->match_response(module, response, std::string((char *) buffer + 1));
 
             //Get the update and add it to the update queue if it exists
-            EigenUpdate *update = response->update_module(module);
+            EigenUpdate *update = response->update_module(module, retval.second);
             if(update != nullptr)
                 add_module_update(update);
 
             //If we expect more responses after this one, notify the packet tracker
             if(response->has_additonal_responses())
                 for(auto pkt : response->additional_responses())
-                    packetTracker->add_packet(module->get_address(), pkt, "", type);
+                    packetTracker->add_packet(module->get_address(), pkt, "", retval.first);
 
             //Allow the bootloader to process the packets
             bootloader->process_packet(response);
@@ -339,7 +339,9 @@ int service_eigen_comms() {
         EigenCommand *cmd = get_command();
 
         while(cmd != NULL){
+            ModuleShared mod = get_module_shared(cmd->address());
             write_packet(cmd->packet().c_str(), cmd->packet().length());
+            cmd->update_module(mod);
 
             packetTracker->add_packet(cmd->address(), cmd->expected_response(), cmd->packet(), cmd->type());
             bootloader->process_command(cmd);
@@ -371,7 +373,7 @@ int service_eigen_comms() {
         ind = ind % num_modules();
 
         ModuleShared mod = get_module_shared_by_index(ind);
-        if(mod->parameters.parameters_left() > 0 && mod->parameters.d_t_last_update() > PACKET_TIMEOUT){
+        if(mod->parameters.parameters_left() > 1 && mod->parameters.d_t_last_update() > PACKET_TIMEOUT){
             eigen_read_parameter(mod->get_address(), LIST_PARAM);
             mod->parameters.set_last_update();
         }

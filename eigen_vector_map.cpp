@@ -112,7 +112,7 @@ std::vector<EigenUpdate *> EigenVectorMap::clear_old(uint64_t t_now, uint64_t t_
             eigen_addr_t addr = vector_[ind]->get_address();
             valid = remove_ind_no_lock(ind);
             if(valid){
-                retval.push_back(new EigenUpdate(addr, EigenUpdate::MODULE_REMOVED));
+                retval.push_back(new EigenUpdate(addr, EigenUpdate::MODULE_REMOVED, nullptr));
             }
         } else {
             ind++;

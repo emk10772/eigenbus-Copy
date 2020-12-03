@@ -13,6 +13,6 @@ EigenResponseEcho::EigenResponseEcho(eigen_addr_t address, std::string packet)
 }
 
 
-EigenUpdate *EigenResponseEcho::update_module(ModuleShared mod){
+EigenUpdate *EigenResponseEcho::update_module(ModuleShared mod, uint64_t latency){
     return nullptr;
 }

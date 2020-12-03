@@ -20,12 +20,21 @@ EigenCommand *EigenCommandFloat::clone() const{
 EigenCommandPosition::EigenCommandPosition(eigen_addr_t address, double value)
     : EigenCommandFloat(address, "P", "", value, EIGEN_CMD_POSITION){
 }
+void EigenCommandPosition::update_module(ModuleShared mod){
+    mod->last_position_cmd = value_;
+}
 
 EigenCommandVelocity::EigenCommandVelocity(eigen_addr_t address, double value)
     : EigenCommandFloat(address, "S", "", value, EIGEN_CMD_VELOCITY){
 }
+void EigenCommandVelocity::update_module(ModuleShared mod){
+    mod->last_velocity_cmd = value_;
+}
 
 EigenCommandEffort::EigenCommandEffort(eigen_addr_t address, double value)
     : EigenCommandFloat(address, "T", "", value, EIGEN_CMD_EFFORT){
+}
+void EigenCommandEffort::update_module(ModuleShared mod){
+    mod->last_effort_cmd = value_;
 }
 

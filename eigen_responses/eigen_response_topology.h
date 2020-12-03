@@ -7,7 +7,7 @@ class EigenResponseTopology : public EigenResponse{
 public:
     EigenResponseTopology(eigen_addr_t address, std::string packet);
 
-    EigenUpdate *update_module(ModuleShared mod) override;
+    EigenUpdate *update_module(ModuleShared mod, uint64_t latency) override;
 
 private:
     uint8_t type_;

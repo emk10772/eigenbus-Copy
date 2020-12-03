@@ -7,7 +7,7 @@ class EigenResponseBootloader : public EigenResponse{
 public:
     EigenResponseBootloader(eigen_addr_t address, std::string packet);
 
-    EigenUpdate *update_module(ModuleShared mod) override;
+    EigenUpdate *update_module(ModuleShared mod, uint64_t latency) override;
 
     typedef enum{
         BOOTLOADER_READ,

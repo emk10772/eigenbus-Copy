@@ -6,7 +6,7 @@ EigenResponseUptime::EigenResponseUptime(eigen_addr_t address, std::string packe
     time = 0;
 }
 
-EigenUpdate *EigenResponseUptime::update_module(ModuleShared mod){
+EigenUpdate *EigenResponseUptime::update_module(ModuleShared mod, uint64_t latency){
     time = stoul(packet_, nullptr, EIGENBUS_BASE);
     mod->t_last_uptime = time;
 

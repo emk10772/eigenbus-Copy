@@ -31,7 +31,7 @@ public:
     EigenResponse(eigen_addr_t address, std::string packet, response_t message_type);
     virtual ~EigenResponse();
 
-    virtual EigenUpdate *update_module(ModuleShared mod) = 0;
+    virtual EigenUpdate *update_module(ModuleShared mod, uint64_t latency) = 0;
     virtual bool isSpontaneous();
 
     std::vector<std::string> additional_responses();
@@ -39,11 +39,13 @@ public:
     response_t message_type();
     std::string packet();
     eigen_addr_t address();
+    uint64_t t_received();
 
 protected:
     const eigen_addr_t address_;
     const std::string packet_;
     const response_t message_type_;
+    const uint64_t t_received_;
     std::vector<std::string> responses_;
 };
 

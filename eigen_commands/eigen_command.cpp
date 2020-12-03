@@ -9,7 +9,7 @@ EigenCommand::~EigenCommand(){
     
 }
 
-void update_module(ModuleShared mod){
+void EigenCommand::update_module(ModuleShared mod){
     
 }
 

@@ -62,6 +62,7 @@ public:
         std::lock_guard<std::mutex> lock(mutex);
 
         expected_num_params = num_parameters;
+        t_last_update = current_time_ms();
     }
 
     //uint8_t parameters_left() const;

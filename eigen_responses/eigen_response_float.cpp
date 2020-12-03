@@ -18,11 +18,11 @@ EigenResponsePosition::EigenResponsePosition(eigen_addr_t address, std::string p
     : EigenResponseFloat(address, packet, EigenResponse::EIGEN_POSITION){
 }
 
-EigenUpdate *EigenResponsePosition::update_module(ModuleShared mod){
+EigenUpdate *EigenResponsePosition::update_module(ModuleShared mod, uint64_t latency){
     if(value_valid)
         mod->set_position(value);
 
-    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_POS_UPDATE, mod);
+    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_POS_UPDATE, latency, mod);
 }
 
 
@@ -33,11 +33,11 @@ EigenResponseVelocity::EigenResponseVelocity(eigen_addr_t address, std::string p
     : EigenResponseFloat(address, packet, EigenResponse::EIGEN_VELOCITY){
 }
 
-EigenUpdate *EigenResponseVelocity::update_module(ModuleShared mod){
+EigenUpdate *EigenResponseVelocity::update_module(ModuleShared mod, uint64_t latency){
     if(value_valid)
         mod->set_velocity(value);
     
-    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_VEL_UPDATE, mod);
+    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_VEL_UPDATE, latency, mod);
 }
 
 
@@ -49,9 +49,9 @@ EigenResponseEffort::EigenResponseEffort(eigen_addr_t address, std::string packe
     : EigenResponseFloat(address, packet, EigenResponse::EIGEN_EFFORT){
 }
 
-EigenUpdate *EigenResponseEffort::update_module(ModuleShared mod){
+EigenUpdate *EigenResponseEffort::update_module(ModuleShared mod, uint64_t latency){
     if(value_valid)
         mod->set_effort(value);
 
-    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_EFF_UPDATE, mod);
+    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_EFF_UPDATE, latency, mod);
 }

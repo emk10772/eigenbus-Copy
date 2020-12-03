@@ -34,11 +34,11 @@ public:
     virtual std::string packet() const = 0;
     virtual std::string expected_response() const = 0;
     virtual EigenCommand *clone() const = 0;
+    virtual void update_module(ModuleShared mod);
 
     packet_type type();
     command_t command_type();
     eigen_addr_t address();
-    void update_module(ModuleShared mod);
 
 protected:
     const eigen_addr_t address_;

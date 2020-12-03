@@ -7,7 +7,7 @@ class EigenResponseUtility : public EigenResponse{
 public:
     EigenResponseUtility(eigen_addr_t address, std::string packet);
 
-    EigenUpdate *update_module(ModuleShared mod) override;
+    EigenUpdate *update_module(ModuleShared mod, uint64_t latency) override;
 
 private:
     uint16_t id_;

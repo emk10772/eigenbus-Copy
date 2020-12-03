@@ -7,7 +7,7 @@ class EigenResponseUptime : public EigenResponse{
 public:
     EigenResponseUptime(eigen_addr_t address, std::string packet);
 
-    EigenUpdate *update_module(ModuleShared mod) override;
+    EigenUpdate *update_module(ModuleShared mod, uint64_t latency) override;
     bool isSpontaneous() override;
 
 protected:

@@ -27,7 +27,7 @@ bool EigenResponseTopology::parse_valid(){
     return true;
 }
 
-EigenUpdate *EigenResponseTopology::update_module(ModuleShared mod){
+EigenUpdate *EigenResponseTopology::update_module(ModuleShared mod, uint64_t latency){
     bool topology_updated = false;
 
     if(parse_valid()){
@@ -43,7 +43,7 @@ EigenUpdate *EigenResponseTopology::update_module(ModuleShared mod){
     }
     
     if(topology_updated)
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_DOWNSTREAM, mod);
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_DOWNSTREAM, latency, mod);
     else
         return nullptr;
 }

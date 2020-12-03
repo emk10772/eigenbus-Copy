@@ -57,6 +57,8 @@ public:
     uint64_t t_sent();
 };
 
+using response_match_t = std::pair<packet_type, uint64_t>;
+
 class EigenPacketTracker{
 public:
     EigenPacketTracker();
@@ -64,7 +66,7 @@ public:
 
     raw_packet *get_raw_packet();
     void add_packet(eigen_addr_t addr, std::string filter, std::string packet, packet_type type);
-    packet_type match_response(ModuleShared module, EigenResponse *response, std::string raw_packet);
+    response_match_t match_response(ModuleShared module, EigenResponse *response, std::string raw_packet);
     bool UID_scan_required();
     void handle_timeout_packets();
     void handle_successful_packets();

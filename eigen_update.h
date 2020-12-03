@@ -29,11 +29,14 @@ public:
         MODULE_ENCODER_STATUS
     } update_t;
 
+    EigenUpdate(eigen_addr_t address, update_t type, uint64_t latency = 0, ModuleConst mod = nullptr, uint8_t arg = 0, std::string data = "N/A");
     EigenUpdate(eigen_addr_t address, update_t type, ModuleConst mod = nullptr, uint8_t arg = 0, std::string data = "N/A");
     ~EigenUpdate();
 
     update_t type();
     eigen_addr_t address();
+    uint64_t t_received();
+    uint64_t t_adjusted();
 
     uint8_t arg();
     std::string data();
@@ -45,6 +48,8 @@ private:
     const ModuleConst mod_;
     const uint8_t arg_;
     const std::string data_;
+    const uint64_t t_received_;
+    const uint64_t latency_;
 };
 
 #endif // EIGEN_UPDATE_H

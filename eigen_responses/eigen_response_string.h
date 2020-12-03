@@ -12,6 +12,6 @@ class EigenResponseEcho : public EigenResponseString{
 public:
     EigenResponseEcho(eigen_addr_t address, std::string packet);
 
-    EigenUpdate *update_module(ModuleShared mod) override;
+    EigenUpdate *update_module(ModuleShared mod, uint64_t latency) override;
 };
 #endif // EIGEN_RESPONSE_FLOAT_H

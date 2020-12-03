@@ -8,7 +8,7 @@ EigenResponseUtility::EigenResponseUtility(eigen_addr_t address, std::string pac
     : EigenResponse(address, packet, EigenResponse::EIGEN_UTILITY) {
 }
 
-EigenUpdate *EigenResponseUtility::update_module(ModuleShared mod){
+EigenUpdate *EigenResponseUtility::update_module(ModuleShared mod, uint64_t latency){
     size_t ind = 0;
 
     try{

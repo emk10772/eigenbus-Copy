@@ -26,16 +26,19 @@ protected:
 class EigenCommandPosition : public EigenCommandFloat{
 public:
     EigenCommandPosition(eigen_addr_t address, double value);
+    void update_module(ModuleShared mod) override;
 };
 
 class EigenCommandVelocity : public EigenCommandFloat{
 public:
     EigenCommandVelocity(eigen_addr_t address, double value);
+    void update_module(ModuleShared mod) override;
 };
 
 class EigenCommandEffort : public EigenCommandFloat{
 public:
     EigenCommandEffort(eigen_addr_t address, double value);
+    void update_module(ModuleShared mod) override;
 };
 
 #endif // EIGEN_COMMAND_FLOAT_H

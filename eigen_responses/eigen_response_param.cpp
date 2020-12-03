@@ -6,7 +6,7 @@ EigenResponseParamRead::EigenResponseParamRead(eigen_addr_t address, std::string
     
 }
 
-EigenUpdate *EigenResponseParamRead::update_module(ModuleShared mod){
+EigenUpdate *EigenResponseParamRead::update_module(ModuleShared mod, uint64_t latency){
        size_t ind = 0;
     id_ = stoul(packet_, &ind, EIGENBUS_BASE);
 
@@ -32,12 +32,12 @@ EigenUpdate *EigenResponseParamRead::update_module(ModuleShared mod){
 
             mod->parameters.add(param_addr, EigenParameter(param_aux), param_name);
 
-            return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ADD, mod, param_addr);
+            return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ADD, latency, mod, param_addr);
         }
     } else {
         //Write value to module
         mod->parameters.ref(id_).update_value(packet_.substr(ind + 1));
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_READ, mod, id_);
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_READ, latency, mod, id_);
     }
 }
 
@@ -48,17 +48,16 @@ EigenResponseParamWrite::EigenResponseParamWrite(eigen_addr_t address, std::stri
     
 }
 
-EigenUpdate *EigenResponseParamWrite::update_module(ModuleShared mod){
+EigenUpdate *EigenResponseParamWrite::update_module(ModuleShared mod, uint64_t latency){
     size_t ind = 0;
     id_ = stoul(packet_, &ind, EIGENBUS_BASE);
 
     if(ind != 2 || packet_[ind] != ',')
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ERR, mod, id_);;
-
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ERR, latency, mod, id_);
     if(packet_[ind + 1] == 's'){
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_WRITE, mod, id_);
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_WRITE, latency, mod, id_);
     } else {
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ERR, mod, id_);
+        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_PARAM_ERR, latency, mod, id_);
     }
 }
 

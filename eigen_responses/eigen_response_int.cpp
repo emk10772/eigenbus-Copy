@@ -18,7 +18,7 @@ EigenResponseEncoderStatus::EigenResponseEncoderStatus(eigen_addr_t address, std
     : EigenResponseUint(address, packet, EigenResponse::EIGEN_ENCODER_STAT){
 }
 
-EigenUpdate *EigenResponseEncoderStatus::update_module(ModuleShared mod){
+EigenUpdate *EigenResponseEncoderStatus::update_module(ModuleShared mod, uint64_t latency){
     mod->set_encoder_status(value);
-    return new EigenUpdate(address_, EigenUpdate::MODULE_ENCODER_STATUS, mod);
+    return new EigenUpdate(address_, EigenUpdate::MODULE_ENCODER_STATUS, latency, mod);
 }

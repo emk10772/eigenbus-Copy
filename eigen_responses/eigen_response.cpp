@@ -1,7 +1,7 @@
 #include "eigen_response.h"
 
 EigenResponse::EigenResponse(eigen_addr_t address, std::string packet, response_t message_type)
-    :address_(address), packet_(packet), message_type_(message_type){
+    :address_(address), packet_(packet), message_type_(message_type), t_received_(current_time_ms()){
 
 }
 
@@ -31,4 +31,8 @@ eigen_addr_t EigenResponse::address(){
 
 bool EigenResponse::isSpontaneous(){
     return false;
+}
+
+uint64_t EigenResponse::t_received(){
+    return t_received_;
 }
