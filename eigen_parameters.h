@@ -15,6 +15,10 @@ public:
 
         param_list.resize(1);
         param_list[0] = param;
+
+        expected_num_params = 0;
+        received_params = 0;
+        t_last_update = current_time_ms();
     }
 
     //void add(uint8_t id, T item, std::string name);

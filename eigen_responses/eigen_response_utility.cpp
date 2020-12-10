@@ -19,7 +19,7 @@ EigenUpdate *EigenResponseUtility::update_module(ModuleShared mod, uint64_t late
                 uint8_t status_code = stoul(packet_.substr(ind+1), nullptr, EIGENBUS_BASE);
                 if(status_code != mod->status_code){
                     //add_command(mod->get_address(), CMD_FIRMWARE_UTIL, EIGEN_UTIL_MODULE_STATUS);
-                    add_command(new EigenCommandUtility(mod->get_address(), EIGEN_UTIL_MODULE_STATUS));
+                    add_command(new EigenCommandUtility(mod->address(), EIGEN_UTIL_MODULE_STATUS));
                 }
                 break;
             }
@@ -44,10 +44,17 @@ EigenUpdate *EigenResponseUtility::update_module(ModuleShared mod, uint64_t late
 
                 mod->t_sync = current_time_ms();
                 auto tokens = stringtok(packet_.substr(ind+1), ",");
+
+                if(tokens.size() < 4) break;
+
                 mod->status_code = stoul(tokens[0], nullptr, EIGENBUS_BASE);
                 mod->sync_ind = stoul(tokens[1], nullptr, EIGENBUS_BASE);
                 mod->sync_reg = stoul(tokens[2], nullptr, EIGENBUS_BASE);
                 mod->LED_code[MAX_LED_CODE_LEN] = stoul(tokens[3], nullptr, EIGENBUS_BASE);
+
+                if(mod->LED_code[MAX_LED_CODE_LEN] > tokens.size() - 5){
+                    mod->LED_code[MAX_LED_CODE_LEN] = tokens.size() - 5;
+                }
 
                 for(uint8_t i = 0; i < mod->LED_code[MAX_LED_CODE_LEN]; i++){
                     mod->LED_code[i] = stoul(tokens[4+i], nullptr, EIGENBUS_BASE);
@@ -74,6 +81,10 @@ EigenUpdate *EigenResponseUtility::update_module(ModuleShared mod, uint64_t late
                         down_count++;
                     }
                 }
+                break;
+            }
+            case EIGEN_UTIL_MODULE_NAME: {
+                mod->module_name = packet_.substr(ind+1);
                 break;
             }
             default: {

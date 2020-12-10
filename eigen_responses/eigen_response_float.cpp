@@ -6,9 +6,13 @@ EigenResponseFloat::EigenResponseFloat(eigen_addr_t address, std::string packet,
     value = 0.0;
     value_valid = false;
 
-    value = strtod(packet_.c_str(), nullptr);
-    if(isfinite(value))
-        value_valid = true;
+    try{
+        value = strtod(packet_.c_str(), nullptr);
+        if(isfinite(value))
+            value_valid = true;
+    } catch (std::exception e) {
+        value_valid = false;
+    }
 }
 
 
@@ -22,7 +26,7 @@ EigenUpdate *EigenResponsePosition::update_module(ModuleShared mod, uint64_t lat
     if(value_valid)
         mod->set_position(value);
 
-    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_POS_UPDATE, latency, mod);
+    return new EigenUpdate(mod->address(), EigenUpdate::MODULE_POS_UPDATE, latency, mod);
 }
 
 
@@ -37,7 +41,7 @@ EigenUpdate *EigenResponseVelocity::update_module(ModuleShared mod, uint64_t lat
     if(value_valid)
         mod->set_velocity(value);
     
-    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_VEL_UPDATE, latency, mod);
+    return new EigenUpdate(mod->address(), EigenUpdate::MODULE_VEL_UPDATE, latency, mod);
 }
 
 
@@ -53,5 +57,5 @@ EigenUpdate *EigenResponseEffort::update_module(ModuleShared mod, uint64_t laten
     if(value_valid)
         mod->set_effort(value);
 
-    return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_EFF_UPDATE, latency, mod);
+    return new EigenUpdate(mod->address(), EigenUpdate::MODULE_EFF_UPDATE, latency, mod);
 }

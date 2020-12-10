@@ -101,7 +101,9 @@ void EigenPacketTracker::handle_successful_packets(){
 }
 
 response_match_t EigenPacketTracker::match_response(ModuleShared module, EigenResponse *response, std::string raw_packet){
-    uint64_t t_now = response->t_received();
+    uint64_t t_now = current_time_ms();
+    if(response != nullptr)
+        t_now = response->t_received();
 
     //Search our filter list for a matching packet
     auto it = packet_filter_list.begin();
@@ -123,7 +125,6 @@ response_match_t EigenPacketTracker::match_response(ModuleShared module, EigenRe
     } else if(response == nullptr || !response->isSpontaneous()){
         add_raw_packet(raw_packet, EIGEN_PACKET_DEFAULT, EIGEN_PACKET_RECV);
         unrequested_packets++;
-        qDebug() << "Unrequested: " << it->packet_string().c_str();
 
         //If we get an unrequested packet for a valid address there are a few possibilities:
         //1. Duplicate addresses

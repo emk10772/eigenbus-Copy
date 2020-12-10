@@ -31,17 +31,17 @@ typedef struct module_down_struct{
 */
 class EigenModule{
 public:
-    EigenModule(uint8_t address);
+    EigenModule(uint8_t address_);
     ~EigenModule();
 
 private:
-    uint8_t address;
+    uint8_t address_;
     double position_;
     double velocity_;
     double effort_;
     uint16_t encoder_status;
     mutable std::mutex mutex;
-    uint64_t UID;
+    uint64_t UID_;
     uint8_t type;
     uint8_t orientation;
     uint8_t node_depth_;
@@ -78,10 +78,10 @@ public:
     double position() const;
     double velocity() const;
     double effort() const;
-    uint8_t get_address() const;
+    uint8_t address() const;
     std::string print_mod_name() const;
     std::string print_UID() const;
-    uint64_t get_UID() const;
+    uint64_t UID() const;
     std::string print_type() const;
     uint8_t get_type() const;
     uint8_t get_hardware_type() const;
@@ -92,11 +92,18 @@ public:
     double last_velocity_cmd;
     double last_effort_cmd;
 
+    uint64_t t_broadcast_sync_start;
+    uint64_t t_broadcast_offset;
+    uint8_t broadcast_sync_count;
+    uint8_t broadcast_reg;
+    uint16_t broadcast_period;
+
     //Firmware version
     std::string firmware_version;
     std::string firmware_build_name;
     std::string firmware_build_time;
     std::string firmware_tag;
+    std::string module_name;
 
     std::string last_debug_msg;
     uint64_t t_last_update;
@@ -119,14 +126,6 @@ public:
 
     //Functions
     std::string print_encoder_status() const;
-
-    bool operator<(EigenModule other) const{
-        return address < other.address;
-    }
-    bool operator<(uint8_t other) const{
-        return address < other;
-    }
-
 };
 
 using ModuleConst = std::shared_ptr<EigenModule const>;

@@ -4,7 +4,7 @@
 /* EigenModule class code */
 
 EigenModule::EigenModule(uint8_t address){
-    this->address = address;
+    this->address_ = address;
     this->position_ = 0;
     this->velocity_ = 0;
     this->effort_ = 0;
@@ -18,12 +18,13 @@ EigenModule::EigenModule(uint8_t address){
     this->firmware_build_name = "N/A";
     this->firmware_tag = "N/A";
     this->firmware_build_time = "N/A";
+    this->module_name = "N/A";
 
     this->t_last_update = current_time_ms();
     this->stale = false;
 
     this->command_support = 0;
-    this->UID = 0; //The actual UID of a chip being 0 should be next to impossible
+    this->UID_ = 0; //The actual UID of a chip being 0 should be next to impossible
 
     this->sync_ind = 0;
     this->sync_reg = 0;
@@ -71,7 +72,7 @@ bool EigenModule::update_downstream(uint8_t ind, uint8_t node_addr){
 
     //If the port name is invalid, ask for the name again
     if(downstream_list[ind].name == "N/A"){
-        add_command(new EigenCommandUtility(address, EIGEN_UTIL_MODULE_PORTS));
+        add_command(new EigenCommandUtility(address_, EIGEN_UTIL_MODULE_PORTS));
         //firmware_utility(address, EIGEN_UTIL_MODULE_PORTS);
     }
 
@@ -94,7 +95,7 @@ bool EigenModule::update_downstream(uint8_t ind, uint8_t node_addr){
                 retval = true;
             } else {
                 //If we haven't seen the value enough times yet, keep checking to make sure it is correct
-                add_command(new EigenCommandTopology(address));
+                add_command(new EigenCommandTopology(address_));
             }
         }
         downstream_list[ind] = downstream;
@@ -137,7 +138,7 @@ std::string EigenModule::print_topology() const{
     uint8_t offset = 0;
 
     //Print the header
-    offset += snprintf((char *)(s + offset), 128 - offset, " {\"id\":\"%02X\", \"type\":\"%02X\", \"orientation\":\"%02X\", \"children\":[", address, type, orientation);
+    offset += snprintf((char *)(s + offset), 128 - offset, " {\"id\":\"%02X\", \"type\":\"%02X\", \"orientation\":\"%02X\", \"children\":[", address_, type, orientation);
 
     //Print the body
     for(auto item : downstream_list){
@@ -150,14 +151,14 @@ std::string EigenModule::print_topology() const{
     return std::string((char *)s);
 }
 
-void EigenModule::update_UID(uint64_t UID_){
+void EigenModule::update_UID(uint64_t UID_val){
     std::lock_guard<std::mutex> lock(mutex);
 
-    if(UID == 0){ //If this is the first time we have seen a UID
-        UID = UID_;
-    } else if(UID != UID_){ //If we already have a UID and this one doesn't match, there must be a conflict.
+    if(UID_ == 0){ //If this is the first time we have seen a UID
+        UID_ = UID_val;
+    } else if(UID_ != UID_val){ //If we already have a UID and this one doesn't match, there must be a conflict.
         //add_command(this->address, CMD_UID_WR_ADDR, UID_); //Add a command to resolve this conflict
-        add_command(new EigenCommandUIDWrite(UID_, address));
+        add_command(new EigenCommandUIDWrite(UID_, address_));
     }
 }
 
@@ -169,8 +170,8 @@ uint8_t EigenModule::node_depth() const{
     return node_depth_;
 }
 
-uint64_t EigenModule::get_UID() const{
-    return UID;
+uint64_t EigenModule::UID() const{
+    return UID_;
 }
 
 void EigenModule::update_type(uint8_t type_){
@@ -194,7 +195,7 @@ std::string EigenModule::print_mod_name() const{
     std::lock_guard<std::mutex> lock(mutex);
     uint8_t s[32];
 
-    snprintf((char *)s, 32, "Module %02X", address);
+    snprintf((char *)s, 32, "Module %02X", address_);
     return std::string((char *)s);
 }
 
@@ -202,7 +203,7 @@ std::string EigenModule::print_UID() const{
     std::lock_guard<std::mutex> lock(mutex);
     uint8_t s[32];
 
-    snprintf((char *)s, 32, "u%016llX", UID);
+    snprintf((char *)s, 32, "u%016llX", UID_);
     return std::string((char *)s);
 }
 
@@ -289,9 +290,9 @@ void EigenModule::set_effort(double effort){
     this->effort_ = effort;
 }
 
-uint8_t EigenModule::get_address() const{
+uint8_t EigenModule::address() const{
     std::lock_guard<std::mutex> lock(mutex);
-    return this->address;
+    return this->address_;
 }
 
 std::string EigenModule::print_encoder_status() const{

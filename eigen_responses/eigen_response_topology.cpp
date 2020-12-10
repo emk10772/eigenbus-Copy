@@ -6,16 +6,23 @@ EigenResponseTopology::EigenResponseTopology(eigen_addr_t address, std::string p
 
     //Split the packet into tokens
     auto tokens = stringtok(packet_, ",");
+    valid_ = true;
 
-    //Parse the tokens into individual values
-    for(uint8_t ind = 0; ind < tokens.size(); ind++){
-        if(ind == 0){
-            type_ = strtoul(tokens[ind].c_str(), NULL, 16);
-        } else if (ind == 1){
-            orientation_ = strtoul(tokens[ind].c_str(), NULL, 16);
-        } else {
-            down_.push_back(strtoul(tokens[ind].c_str(), NULL, 16));
+    try{
+        //Parse the tokens into individual values
+        for(uint8_t ind = 0; ind < tokens.size(); ind++){
+            if(ind == 0){
+                type_ = strtoul(tokens[ind].c_str(), NULL, 16);
+            } else if (ind == 1){
+                orientation_ = strtoul(tokens[ind].c_str(), NULL, 16);
+            } else {
+                down_.push_back(strtoul(tokens[ind].c_str(), NULL, 16));
+            }
         }
+    } catch (std::exception e){
+        type_ = 0;
+        orientation_ = 0;
+        valid_ = false;
     }
 
 }
@@ -24,7 +31,7 @@ bool EigenResponseTopology::parse_valid(){
     if(orientation_ > ORIENTATION_MAX) return false;
     if(type_ > NODE_TYPE_MAX) return false;
 
-    return true;
+    return valid_;
 }
 
 EigenUpdate *EigenResponseTopology::update_module(ModuleShared mod, uint64_t latency){
@@ -43,7 +50,7 @@ EigenUpdate *EigenResponseTopology::update_module(ModuleShared mod, uint64_t lat
     }
     
     if(topology_updated)
-        return new EigenUpdate(mod->get_address(), EigenUpdate::MODULE_DOWNSTREAM, latency, mod);
+        return new EigenUpdate(mod->address(), EigenUpdate::MODULE_DOWNSTREAM, latency, mod);
     else
         return nullptr;
 }

@@ -67,20 +67,27 @@ void write_packet(const char *buf, uint8_t len){
 eigen_stats get_eigen_stats(){
     eigen_stats stats;
     stats.uptime_ms = current_time_ms() - t_init;
+
     stats.sent_packets = packetTracker->packets_sent.total();
     stats.sent_rate = packetTracker->packets_sent.rate();
+
     stats.successful_packets = packetTracker->successful_packets.total();
     stats.success_rate = packetTracker->successful_packets.rate();
+
     stats.dropped_packets = packetTracker->packets_dropped.total();
     stats.dropped_rate = packetTracker->packets_dropped.rate();
+
     stats.unrequested_packets = packetTracker->unrequested_packets.total();
     stats.unrequested_rate = packetTracker->unrequested_packets.rate();
+
     stats.retried_packets = packetTracker->retried_packets.total();
     stats.retried_rate = packetTracker->retried_packets.rate();
-    stats.frame_time_ms = frame_time;
-    stats.last_dropped_packet = packetTracker->last_packet_dropped;
+
     stats.spontaneous_packets = packetTracker->spontaneous_packets.total();
     stats.spontaneous_rate = packetTracker->spontaneous_packets.rate();
+
+    stats.frame_time_ms = frame_time;
+    stats.last_dropped_packet = packetTracker->last_packet_dropped;
     stats.avg_latency = packetTracker->avg_latency();
     stats.peak_latency = packetTracker->peak_latency();
     return stats;
@@ -202,7 +209,7 @@ void process_packet(uint8_t *buffer, uint8_t len) {
             //If we expect more responses after this one, notify the packet tracker
             if(response->has_additonal_responses())
                 for(auto pkt : response->additional_responses())
-                    packetTracker->add_packet(module->get_address(), pkt, "", retval.first);
+                    packetTracker->add_packet(module->address(), pkt, "", retval.first);
 
             //Allow the bootloader to process the packets
             bootloader->process_packet(response);
@@ -352,6 +359,20 @@ int service_eigen_comms() {
 
         //Service the polling manager
         packetPoll->service_poll();
+
+        //Check that the module's parameters are updated properly
+        if(num_modules() > 0 && current_time_ms() - t_last_poll > 50){
+            t_last_poll = current_time_ms();
+            ind = ind % num_modules();
+
+            ModuleShared mod = get_module_shared_by_index(ind);
+            if(mod->parameters.parameters_left() > 1 && mod->parameters.d_t_last_update() > PACKET_TIMEOUT){
+                eigen_read_parameter(mod->address(), LIST_PARAM);
+                mod->parameters.set_last_update();
+            }
+
+            ind++;
+        }
     }
 
     service_bootloader();
@@ -366,21 +387,6 @@ int service_eigen_comms() {
         packet_queue.pop_front();
         process_packet((uint8_t *)packet.c_str(), packet.size());
     }
-
-    //Check that the module's parameters are updated properly
-    if(current_time_ms() - t_last_poll > 50){
-        t_last_poll = current_time_ms();
-        ind = ind % num_modules();
-
-        ModuleShared mod = get_module_shared_by_index(ind);
-        if(mod->parameters.parameters_left() > 1 && mod->parameters.d_t_last_update() > PACKET_TIMEOUT){
-            eigen_read_parameter(mod->get_address(), LIST_PARAM);
-            mod->parameters.set_last_update();
-        }
-
-        ind++;
-    }
-
 
     //Handle the successful packets
     packetTracker->handle_successful_packets();
@@ -403,14 +409,6 @@ EigenCommand *get_command(){
     return cmd_list_.get();
 }
 
-bool mod_cmp(EigenModule *m1, EigenModule *m2){
-    return (m1->get_address()) < (m2->get_address());
-}
-
-bool mod_cmp_low_bnd(EigenModule *m1, uint8_t addr){
-    return (m1->get_address()) < addr;
-}
-
 ModuleShared get_module_shared(uint8_t address){
     return module_list_.get_shared(address);
 }
@@ -422,7 +420,7 @@ ModuleShared get_module_shared_by_index(uint8_t index){
 ModuleShared add_module(uint8_t address){
     ModuleShared mod_result = get_module_shared(address);
 
-    if(mod_result == NULL || mod_result->get_address() != address){
+    if(mod_result == NULL || mod_result->address() != address){
         mod_result = std::make_shared<EigenModule>(address);
         module_list_.insert(mod_result);
 
@@ -439,6 +437,7 @@ ModuleShared add_module(uint8_t address){
         eigen_firmware_utility(address, EIGEN_UTIL_MODULE_PORTS);
         eigen_firmware_utility(address, EIGEN_UTIL_MODULE_UID);
         eigen_firmware_utility(address, EIGEN_UTIL_MODULE_STATUS);
+        eigen_firmware_utility(address, EIGEN_UTIL_MODULE_NAME);
     } else {
         add_module_update(new EigenUpdate(address, EigenUpdate::MODULE_TOUCHED, mod_result));
     }

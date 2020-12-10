@@ -13,6 +13,7 @@ private:
     uint8_t type_;
     uint8_t orientation_;
     std::vector<uint8_t> down_;
+    bool valid_;
 
     bool parse_valid();
 };

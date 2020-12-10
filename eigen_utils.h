@@ -94,6 +94,7 @@ typedef union{
 #define EIGEN_UTIL_MODULE_UID           (0x080)
 #define EIGEN_UTIL_MODULE_PORTS         (0x100)
 #define EIGEN_UTIL_DISABLE_CHECKSUM     (0x200)
+#define EIGEN_UTIL_MODULE_NAME          (0x400)
 
 /* Node Types
     Documented Here: https://docs.google.com/document/d/10HxQWy6gR4vNm7ubD_OZE42J9Y9vgy9ribtj6P2n49I/edit?usp=sharing
