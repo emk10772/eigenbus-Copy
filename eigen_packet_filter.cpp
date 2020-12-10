@@ -118,8 +118,10 @@ response_match_t EigenPacketTracker::match_response(ModuleShared module, EigenRe
         it->add_response(response);
         add_raw_packet(raw_packet, it->get_type(), EIGEN_PACKET_RECV);
 
+        if(!it->is_broadcast()){
+            module->add_latency_measurement(t_now - it->t_sent());
+        }
         add_latency(t_now - it->t_sent());
-        module->add_latency_measurement(t_now - it->t_sent());
 
         return response_match_t(it->get_type(), t_now - it->t_sent());
     } else if(response == nullptr || !response->isSpontaneous()){
