@@ -8,7 +8,7 @@ EigenResponseFloat::EigenResponseFloat(eigen_addr_t address, std::string packet,
 
     try{
         value = strtod(packet_.c_str(), nullptr);
-        if(isfinite(value))
+        if(std::isfinite(value))
             value_valid = true;
     } catch (std::exception e) {
         value_valid = false;
