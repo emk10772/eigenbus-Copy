@@ -1,6 +1,8 @@
 #include "eigen_module.h"
 #include "eigen_comms.h"
 
+#include <cmath>
+
 /* EigenModule class code */
 
 EigenModule::EigenModule(uint8_t address){
