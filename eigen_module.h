@@ -7,6 +7,7 @@
 #include <mutex>
 #include <atomic>
 #include <deque>
+#include <memory>
 #include "eigen_parameters.h"
 
 #define MAX_LED_CODE_LEN (5)
