@@ -9,6 +9,7 @@
 #include <chrono>
 #include <deque>
 #include <cmath>
+#include <algorithm>
 
 /* Common Timeouts / Periods in milliseconds */
 #define UPDATE_PERIOD           (100)
