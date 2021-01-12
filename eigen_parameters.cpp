@@ -130,7 +130,7 @@ bool EigenParameter::update_value(std::string val){
             }
             case _FLOAT: {
                 float parsed = stof(val);
-                if(isfinite(parsed)){
+                if(std::isfinite(parsed)){
                     value_.float_ = parsed;
                     return true;
                 }
@@ -138,7 +138,7 @@ bool EigenParameter::update_value(std::string val){
             }
             case _DOUBLE: {
                 double parsed = stod(val);
-                if(isfinite(parsed)){
+                if(std::isfinite(parsed)){
                     value_.double_ = parsed;
                     return true;
                 }
@@ -202,7 +202,7 @@ bool EigenMailbox::update_value(std::string val){
             parse_valid = true;
         } else if(type_hint_ == MAILBOX_DOUBLE) {
             parsed_double_ = std::stod(raw_value_);
-            parse_valid = isfinite(parsed_double_);
+            parse_valid = std::isfinite(parsed_double_);
         }
     } catch (std::exception e){
         parse_valid = false;
