@@ -8,6 +8,7 @@
 #include <mutex>
 #include <chrono>
 #include <deque>
+#include <cmath>
 
 /* Common Timeouts / Periods in milliseconds */
 #define UPDATE_PERIOD           (100)
