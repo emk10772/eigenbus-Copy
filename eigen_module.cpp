@@ -10,9 +10,9 @@ EigenModule::EigenModule(uint8_t address){
     this->effort_ = 0;
     this->encoder_status = 0;
 
-    this->last_position_cmd = NAN;
-    this->last_velocity_cmd = NAN;
-    this->last_effort_cmd = NAN;
+    this->last_position_cmd = nan("");
+    this->last_velocity_cmd = nan("");
+    this->last_effort_cmd = nan("");
 
     this->firmware_version = "N/A";
     this->firmware_build_name = "N/A";
