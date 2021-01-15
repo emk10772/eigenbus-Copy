@@ -3,6 +3,7 @@
 #include "eigen_bootloader.h"
 #include "eigen_packet_poll.h"
 #include "eigen_vector_map.h"
+#include "eigen_topology_tracker.h"
 #include <stdlib.h>
 #include <ctype.h>
 #include <algorithm>
@@ -34,6 +35,7 @@ static EigenPacketTracker *packetTracker;
 static EigenPacketParser *packetParser;
 static EigenBootloader *bootloader;
 static EigenPacketPoll *packetPoll;
+static EigenTopologyTracker *topologyTracker;
 
 static std::deque<std::string> packet_queue;
 
@@ -132,6 +134,12 @@ void clear_module_list(){
 
 void add_module_update(EigenUpdate *update){
     update_list_.add(update);
+    topologyTracker->add_update(update);
+}
+
+void add_module_update(std::vector<EigenUpdate *> updates){
+    update_list_.add(updates);
+    topologyTracker->add_update(updates);
 }
 
 EigenUpdate *get_module_update(){
@@ -392,7 +400,9 @@ int service_eigen_comms() {
     packetTracker->handle_successful_packets();
 
     //Remove modules we haven't heard from recently
-    update_list_.add(module_list_.clear_old(current_time_ms(), 2*UPDATE_TOPOLOGY_PERIOD));
+    add_module_update(module_list_.clear_old(current_time_ms(), 2*UPDATE_TOPOLOGY_PERIOD));
+
+    topologyTracker->process_updates();
 
     return packet_count;
 }
