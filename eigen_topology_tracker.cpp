@@ -41,11 +41,11 @@ eigen_addr_t EigenTopologyTracker::max_depth(){
 }
 
 std::vector<eigen_addr_t> EigenTopologyTracker::addr_by_depth(eigen_addr_t node_depth){
-
+    return std::vector<eigen_addr_t>();
 }
 
 std::vector<eigen_addr_t> EigenTopologyTracker::addr_by_downstream(eigen_addr_t addr, uint8_t port){
-
+    return std::vector<eigen_addr_t>();
 }
 
 
