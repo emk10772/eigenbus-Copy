@@ -7,6 +7,7 @@
 #include "eigen_update.h"
 #include <vector>
 #include <deque>
+#include <map>
 
 class EigenTopologyTracker{
 public:
@@ -35,6 +36,8 @@ private:
         void add_child(Node *child);
         void remove_child(Node *child);
         void remove_child(eigen_addr_t child_addr);
+        bool has_child(eigen_addr_t child);
+        bool is_root();
 
     private:
         eigen_addr_t addr_;
@@ -42,8 +45,12 @@ private:
         Node *parent_;
     };
 
+    Node *add_node(eigen_addr_t address, Node *parent = nullptr);
+    void remove_node(eigen_addr_t address);
+
     std::deque<EigenUpdate *> updates_;
-    std::vector<Node *>root_nodes_;
+    std::map<eigen_addr_t, Node *> root_nodes_;
+    std::map<eigen_addr_t, Node *> node_map_;
 };
 
 #endif
