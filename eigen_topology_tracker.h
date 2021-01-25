@@ -47,6 +47,7 @@ public:
         eigen_addr_t depth() const;
 
     private:
+        mutable std::recursive_mutex mutex_;
         eigen_addr_t addr_;
         std::map<eigen_addr_t, Node *> children_;
         Node *parent_;
@@ -61,6 +62,7 @@ public:
     const std::vector<Node *> get_depth_list(eigen_addr_t depth) const;
 
 private:
+    mutable std::recursive_mutex mutex_;
     Node *add_node(eigen_addr_t address, Node *parent = nullptr);
     void remove_node(eigen_addr_t address);
     void remove_depth(Node *node, eigen_addr_t depth);
