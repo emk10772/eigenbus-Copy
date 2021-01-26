@@ -17,6 +17,7 @@
 #include "eigen_packet_parser.h"
 #include "eigen_commands/eigen_commands.h"
 #include "eigen_responses/eigen_response.h"
+#include "eigen_topology_tracker.h"
 
 typedef struct eigen_config_struct{
     uint8_t poll_encoder_status;
@@ -78,6 +79,7 @@ ModuleConst get_module(uint8_t address);
 ModuleConst get_module_by_index(uint8_t index);
 uint8_t num_modules();
 bool list_updated();
+const EigenTopologyTracker *eigen_topology();
 
 #endif
 

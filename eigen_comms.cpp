@@ -113,6 +113,7 @@ void start_eigen_comms(uint16_t (*read)(uint8_t *buf, uint16_t max_len, int t_wa
     bootloader = EigenBootloader::getInstance();
     packetTracker = new EigenPacketTracker();
     packetParser = new EigenPacketParser();
+    topologyTracker = new EigenTopologyTracker;
 
     // Setup polling rules
     packetPoll = new EigenPacketPoll();
@@ -126,6 +127,7 @@ void clean_eigen_comms() {
     delete packetParser;
     delete packetPoll;
     delete packetTracker;
+    delete topologyTracker;
 }
 
 void clear_module_list(){
@@ -477,4 +479,8 @@ bool list_updated(){
     } else {
         return false;
     }
+}
+
+const EigenTopologyTracker *eigen_topology(){
+    return topologyTracker;
 }
