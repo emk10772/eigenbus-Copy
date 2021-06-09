@@ -4,6 +4,11 @@
 /* EigenModule class code */
 
 EigenModule::EigenModule(uint8_t address){
+    //Initialize our list with pointers to all of our class variables
+#define ENTRY(e_name, type, v_name) this->variable_list[e_name] = &this->v_name;
+    VAR_LIST
+#undef ENTRY
+
     this->address_ = address;
     this->position_ = 0;
     this->velocity_ = 0;
@@ -317,6 +322,8 @@ std::string EigenModule::print_encoder_status() const{
     if(encoder_status & ENC_SIG_AMP_WARNING)    return "Signal Amplitude Warning";
     if(encoder_status & ENC_SIG_AMP_ERROR)      return "Signal Amplitude Error";
     if(encoder_status & ENC_COUNTER_ERROR)      return "Counter Error";
+
+    return "ERROR";
 }
 
 /*  add_latency_measurement:

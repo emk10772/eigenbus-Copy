@@ -8,7 +8,9 @@
 #include <atomic>
 #include <deque>
 #include <memory>
+#include <array>
 #include "eigen_parameters.h"
+#include "eigen_variable.h"
 
 #define MAX_LED_CODE_LEN (5)
 #define MAX_MOD_LATENCY_MEASUREMENT (20)
@@ -30,22 +32,49 @@ typedef struct module_down_struct{
 /* EigenModule class
     Used to store information about modules for use by the program
 */
+
+#define VAR_LIST \
+    ENTRY(EIGEN_ADDRESS,        EigenUint8,     address) \
+    ENTRY(EIGEN_UID,            EigenUint64,    UID) \
+    ENTRY(EIGEN_TYPE,           EigenUint8,     type) \
+    ENTRY(EIGEN_ORIENTATION,    EigenUint8,     orientation) \
+    ENTRY(EIGEN_POSITION,       EigenDouble,    position) \
+    ENTRY(EIGEN_VELOCITY,       EigenDouble,    velocity) \
+    ENTRY(EIGEN_EFFORT,         EigenDouble,    effort) \
+    ENTRY(EIGEN_ENC_STATUS,     EigenUint16,    encoder_status) \
+    ENTRY(EIGEN_NODE_DEPTH,     EigenUint8,     node_depth)
+
+typedef enum{
+#define ENTRY(e_name, type, v_name) e_name,
+    VAR_LIST
+#undef ENTRY
+    EIGEN_NUM_VARIABLES
+} EigenModuleVariables;
+
 class EigenModule{
 public:
     EigenModule(uint8_t address_);
     ~EigenModule();
 
+    //Forward declarations and initializations of all variables
+#define ENTRY(e_name, type, v_name) type v_name = type(#e_name);
+    VAR_LIST
+#undef ENTRY
+
+    //Indexable array of all variables
+    std::array<const EigenVariable *, EIGEN_NUM_VARIABLES> variable_list;
+
 private:
-    uint8_t address_;
+    mutable std::mutex mutex;
+    /*uint8_t address_;
     double position_;
     double velocity_;
     double effort_;
     uint16_t encoder_status;
-    mutable std::mutex mutex;
     uint64_t UID_;
     uint8_t type;
     uint8_t orientation;
-    uint8_t node_depth_;
+    uint8_t node_depth_;*/
 
     std::vector<module_down_port> downstream_list;
 
@@ -76,18 +105,18 @@ public:
     double peak_latency() const;
 
     uint16_t get_encoder_status() const;
-    double position() const;
-    double velocity() const;
-    double effort() const;
-    uint8_t address() const;
+    //double position() const;
+    //double velocity() const;
+    //double effort() const;
+    //uint8_t address() const;
     std::string print_mod_name() const;
     std::string print_UID() const;
-    uint64_t UID() const;
+    //uint64_t UID() const;
     std::string print_type() const;
     uint8_t get_type() const;
     uint8_t get_hardware_type() const;
     std::string print_orientation() const;
-    uint8_t node_depth() const;
+    //uint8_t node_depth() const;
 
     double last_position_cmd;
     double last_velocity_cmd;
