@@ -1,12 +1,12 @@
 #include "eigen_command_float.h"
 
-EigenCommandFloat::EigenCommandFloat(eigen_addr_t address, std::string command, std::string response, double value, command_t command_type) 
-    : EigenCommand(address, EIGEN_PACKET_DEFAULT, command_type), command_(command), response_(response), value_(value){
+EigenCommandFloat::EigenCommandFloat(eigen_addr_t address, std::string command_char, std::string response, double value, command_t command_type)
+    : EigenCommand(address, EIGEN_PACKET_DEFAULT, command_type), command_char_(command_char), response_(response), value_(value){
 
 }
 
 std::string EigenCommandFloat::packet() const{
-    return strprintf("%02x%s%08.4f", address_, command_.c_str(), value_);
+    return strprintf("%02x%s%08.4f", address_, command_char_.c_str(), value_);
 }
 
 std::string EigenCommandFloat::expected_response() const{
@@ -15,6 +15,10 @@ std::string EigenCommandFloat::expected_response() const{
 
 EigenCommand *EigenCommandFloat::clone() const{
     return new EigenCommandFloat(*this);
+}
+
+EigenCommand *EigenCommandFloat::clone(eigen_addr_t addr) const{
+    return new EigenCommandFloat(addr, command_char_, response_, value_, command_);
 }
 
 EigenCommandPosition::EigenCommandPosition(eigen_addr_t address, double value)

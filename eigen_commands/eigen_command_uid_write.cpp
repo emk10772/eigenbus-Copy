@@ -16,3 +16,7 @@ std::string EigenCommandUIDWrite::expected_response() const{
 EigenCommand *EigenCommandUIDWrite::clone() const{
     return new EigenCommandUIDWrite(*this);
 }
+
+EigenCommand *EigenCommandUIDWrite::clone(eigen_addr_t addr) const{
+    return new EigenCommandUIDWrite(UID_, addr);
+}

@@ -34,6 +34,7 @@ public:
     virtual std::string packet() const = 0;
     virtual std::string expected_response() const = 0;
     virtual EigenCommand *clone() const = 0;
+    virtual EigenCommand *clone(eigen_addr_t addr) const = 0;
     virtual void update_module(ModuleShared mod);
 
     packet_type type();

@@ -15,3 +15,7 @@ std::string EigenCommandUtility::expected_response() const{
 EigenCommand *EigenCommandUtility::clone() const{
     return new EigenCommandUtility(*this);
 }
+
+EigenCommand *EigenCommandUtility::clone(eigen_addr_t addr) const{
+    return new EigenCommandUtility(addr, mode_);
+}

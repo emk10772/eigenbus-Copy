@@ -17,3 +17,7 @@ std::string EigenCommandMotorEnable::expected_response() const{
 EigenCommand *EigenCommandMotorEnable::clone() const{
     return new EigenCommandMotorEnable(*this);
 }
+
+EigenCommand *EigenCommandMotorEnable::clone(eigen_addr_t addr) const{
+    return new EigenCommandMotorEnable(addr, enable_);
+}

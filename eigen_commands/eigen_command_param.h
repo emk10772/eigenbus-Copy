@@ -12,6 +12,7 @@ public:
     std::string packet() const override;
     std::string expected_response() const override;
     EigenCommand *clone() const override;
+    EigenCommand *clone(eigen_addr_t addr) const override;
 
 private:
     uint8_t id_;
@@ -24,6 +25,7 @@ public:
     std::string packet() const override;
     std::string expected_response() const override;
     EigenCommand *clone() const override;
+    EigenCommand *clone(eigen_addr_t addr) const override;
 
 private:
     EigenParameter param_;

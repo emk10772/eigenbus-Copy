@@ -363,26 +363,3 @@ double EigenModule::peak_latency() const{
 
 
 
-EigenModuleGroup::EigenModuleGroup(std::vector<ModuleConst> modules) {
-    modules_ = modules;
-    for(ModuleConst &module : modules){
-        variable_group_.add_variables(module->variable_list);
-        module_addrs_.emplace(module->address);
-    }
-}
-
-EigenModuleGroup::~EigenModuleGroup() {
-    modules_.clear();
-}
-
-const EigenVariableGroup EigenModuleGroup::variable_group() {
-    return variable_group_;
-}
-
-bool EigenModuleGroup::contains_module(eigen_addr_t address) {
-    return module_addrs_.count(address) > 0;
-}
-
-size_t EigenModuleGroup::count() {
-    return module_addrs_.size();
-}

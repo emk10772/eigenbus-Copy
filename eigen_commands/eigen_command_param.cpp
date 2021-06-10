@@ -17,6 +17,10 @@ EigenCommand *EigenCommandParamRead::clone() const{
     return new EigenCommandParamRead(*this);
 }
 
+EigenCommand *EigenCommandParamRead::clone(eigen_addr_t addr) const{
+    return new EigenCommandParamRead(addr, id_);
+}
+
 
 
 std::string EigenCommandParamWrite::packet() const{
@@ -38,4 +42,8 @@ EigenCommandParamWrite::EigenCommandParamWrite(eigen_addr_t address, uint8_t id,
 
 EigenCommand *EigenCommandParamWrite::clone() const{
     return new EigenCommandParamWrite(*this);
+}
+
+EigenCommand *EigenCommandParamWrite::clone(eigen_addr_t addr) const{
+    return new EigenCommandParamWrite(addr, id_, param_);
 }

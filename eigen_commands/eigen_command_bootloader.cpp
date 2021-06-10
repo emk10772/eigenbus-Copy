@@ -41,6 +41,9 @@ EigenCommand *EigenCommandBootloader::clone() const{
     return new EigenCommandBootloader(*this);
 }
 
+EigenCommand *EigenCommandBootloader::clone(eigen_addr_t addr) const{
+    return new EigenCommandBootloader(addr, action_, mode_, msg_);
+}
 
 std::string EigenCommandBootloader::msg(){
     return msg_;

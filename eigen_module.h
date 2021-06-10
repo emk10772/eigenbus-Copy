@@ -171,18 +171,4 @@ inline ModuleConst make_const(ModuleShared module){
     return std::const_pointer_cast<const EigenModule>(module);
 }
 
-class EigenModuleGroup {
-public:
-    EigenModuleGroup(std::vector<ModuleConst> modules);
-    ~EigenModuleGroup();
-
-    const EigenVariableGroup variable_group();
-    bool contains_module(eigen_addr_t address);
-    size_t count();
-private:
-    std::vector<ModuleConst> modules_;
-    std::set<eigen_addr_t> module_addrs_;
-    EigenVariableGroup variable_group_;
-};
-
 #endif // EIGEN_MODULE_H

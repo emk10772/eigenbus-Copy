@@ -10,15 +10,16 @@
  */
 class EigenCommandFloat : public EigenCommand{
 public:
-    EigenCommandFloat(eigen_addr_t address, std::string command, std::string response, double value, command_t command_type);
+    EigenCommandFloat(eigen_addr_t address, std::string command_char, std::string response, double value, command_t command_type);
 
     std::string packet() const override;
     std::string expected_response() const override;
     EigenCommand *clone() const override;
+    EigenCommand *clone(eigen_addr_t addr) const override;
     packet_type type();
 
 protected:
-    const std::string command_;
+    const std::string command_char_;
     const std::string response_;
     const double value_;
 };

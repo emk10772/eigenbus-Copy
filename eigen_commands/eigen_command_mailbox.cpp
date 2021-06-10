@@ -17,6 +17,10 @@ EigenCommand *EigenCommandMailboxRead::clone() const{
     return new EigenCommandMailboxRead(*this);
 }
 
+EigenCommand *EigenCommandMailboxRead::clone(eigen_addr_t addr) const{
+    return new EigenCommandMailboxRead(addr, id_);
+}
+
 
 
 std::string EigenCommandMailboxWrite::packet() const{
@@ -36,4 +40,8 @@ EigenCommandMailboxWrite::EigenCommandMailboxWrite(eigen_addr_t address, uint8_t
 
 EigenCommand *EigenCommandMailboxWrite::clone() const{
     return new EigenCommandMailboxWrite(*this);
+}
+
+EigenCommand *EigenCommandMailboxWrite::clone(eigen_addr_t addr) const{
+    return new EigenCommandMailboxWrite(addr, id_, data_);
 }

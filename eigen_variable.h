@@ -137,23 +137,4 @@ private:
     std::string value_;
 };
 
-/* EigenVariableGroup
-    A strict observer of EigenVariables. Used to look for common values between variables.
-    Must ensure that this class does not outlive its variables
-*/
-class EigenVariableGroup {
-public:
-    EigenVariableGroup();
-
-    void add_variable(const EigenVariable *variable);
-    void add_variables(const std::vector<const EigenVariable *> variables);
-
-    std::string print_variable(const std::string key) const;
-    std::string print_variable_list(const std::string key) const;
-    const std::vector<std::string> common_keys() const;
-private:
-    std::unordered_multimap<std::string, const EigenVariable *> variable_map_;
-    std::vector<std::string> common_keys_;
-};
-
 #endif // EIGENVARIABLE_H

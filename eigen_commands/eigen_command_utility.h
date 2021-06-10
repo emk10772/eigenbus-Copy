@@ -13,6 +13,7 @@ public:
     std::string packet() const override;
     std::string expected_response() const override;
     EigenCommand *clone() const override;
+    EigenCommand *clone(eigen_addr_t addr) const override;
 
 private:
     const uint16_t mode_;

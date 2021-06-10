@@ -1,4 +1,5 @@
 #include "eigen_command.h"
+#include "../eigen_comms.h"
 
 EigenCommand::EigenCommand(eigen_addr_t address, packet_type type, command_t command) 
     : address_(address), type_(type), command_(command){

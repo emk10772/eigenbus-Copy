@@ -32,3 +32,7 @@ std::string EigenCommandQuery::expected_response() const{
 EigenCommand *EigenCommandQuery::clone() const{
     return new EigenCommandQuery(*this);
 }
+
+EigenCommand *EigenCommandQuery::clone(eigen_addr_t addr) const{
+    return new EigenCommandQuery(addr, type_);
+}

@@ -18,6 +18,7 @@
 #include "eigen_commands/eigen_commands.h"
 #include "eigen_responses/eigen_response.h"
 #include "eigen_topology_tracker.h"
+#include "eigen_groups.h"
 
 typedef struct eigen_config_struct{
     uint8_t poll_encoder_status;
