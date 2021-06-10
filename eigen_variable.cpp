@@ -13,22 +13,22 @@ EigenVarType EigenVariable::type() const {
     return type_;
 }
 
-bool EigenVariable::weak_match(EigenVariable &variable) const {
+bool EigenVariable::weak_match(const EigenVariable &variable) const {
     return (variable.name_ == name_ && variable.type_ == type_);
 }
 
 
 /* ==== EigenUint8 ==== */
-EigenUint8::EigenUint8(std::string name, uint8_t value) : EigenVariable(name, UINT8){
+EigenUint8::EigenUint8(std::string name, uint8_t value) : EigenVariable(name, EIGEN_UINT8){
     this->value_ = value;
 }
 
-bool EigenUint8::strong_match(EigenVariable &variable) const {
+bool EigenUint8::strong_match(const EigenVariable &variable) const {
     if(!weak_match(variable))
         return false;
 
     try {
-        auto var_casted = dynamic_cast<EigenUint8 &>(variable);
+        auto var_casted = dynamic_cast<const EigenUint8 &>(variable);
         return var_casted.value_ == value_;
     } catch(std::exception e){
         return false;
@@ -41,16 +41,16 @@ std::string EigenUint8::print() const {
 
 
 /* ==== EigenUint16 ==== */
-EigenUint16::EigenUint16(std::string name, uint16_t value) : EigenVariable(name, UINT16){
+EigenUint16::EigenUint16(std::string name, uint16_t value) : EigenVariable(name, EIGEN_UINT16){
     this->value_ = value;
 }
 
-bool EigenUint16::strong_match(EigenVariable &variable) const {
+bool EigenUint16::strong_match(const EigenVariable &variable) const {
     if(!weak_match(variable))
         return false;
 
     try {
-        auto var_casted = dynamic_cast<EigenUint16 &>(variable);
+        auto var_casted = dynamic_cast<const EigenUint16 &>(variable);
         return var_casted.value_ == value_;
     } catch(std::exception e){
         return false;
@@ -63,19 +63,21 @@ std::string EigenUint16::print() const {
 
 
 /* ==== EigenUint32 ==== */
-EigenUint32::EigenUint32(std::string name, uint32_t value) : EigenVariable(name, UINT32){
+EigenUint32::EigenUint32(std::string name, uint32_t value) : EigenVariable(name, EIGEN_UINT32){
     this->value_ = value;
 }
 
-bool EigenUint32::strong_match(EigenVariable &variable) const {
+bool EigenUint32::strong_match(const EigenVariable &variable) const {
     if(!weak_match(variable))
 
     try {
-        auto var_casted = dynamic_cast<EigenUint32 &>(variable);
+        auto var_casted = dynamic_cast<const EigenUint32 &>(variable);
         return var_casted.value_ == value_;
     } catch(std::exception e){
         return false;
     }
+
+    return false;
 }
 
 std::string EigenUint32::print() const {
@@ -84,16 +86,16 @@ std::string EigenUint32::print() const {
 
 
 /* ==== EigenUint64 ==== */
-EigenUint64::EigenUint64(std::string name, uint64_t value) : EigenVariable(name, UINT64){
+EigenUint64::EigenUint64(std::string name, uint64_t value) : EigenVariable(name, EIGEN_UINT64){
     this->value_ = value;
 }
 
-bool EigenUint64::strong_match(EigenVariable &variable) const {
+bool EigenUint64::strong_match(const EigenVariable &variable) const {
     if(!weak_match(variable))
         return false;
 
     try {
-        auto var_casted = dynamic_cast<EigenUint64 &>(variable);
+        auto var_casted = dynamic_cast<const EigenUint64 &>(variable);
         return var_casted.value_ == value_;
     } catch(std::exception e){
         return false;
@@ -106,16 +108,16 @@ std::string EigenUint64::print() const {
 
 
 /* ==== EigenDouble ==== */
-EigenDouble::EigenDouble(std::string name, double value) : EigenVariable(name, DOUBLE){
+EigenDouble::EigenDouble(std::string name, double value) : EigenVariable(name, EIGEN_DOUBLE){
     this->value_ = value;
 }
 
-bool EigenDouble::strong_match(EigenVariable &variable) const {
+bool EigenDouble::strong_match(const EigenVariable &variable) const {
     if(!weak_match(variable))
         return false;
 
     try {
-        auto var_casted = dynamic_cast<EigenDouble &>(variable);
+        auto var_casted = dynamic_cast<const EigenDouble &>(variable);
         return var_casted.value_ == value_;
     } catch(std::exception e){
         return false;
@@ -128,16 +130,16 @@ std::string EigenDouble::print() const {
 
 
 /* ==== EigenString ==== */
-EigenString::EigenString(std::string name, std::string value) : EigenVariable(name, STRING){
+EigenString::EigenString(std::string name, std::string value) : EigenVariable(name, EIGEN_STRING){
     this->value_ = value;
 }
 
-bool EigenString::strong_match(EigenVariable &variable) const {
+bool EigenString::strong_match(const EigenVariable &variable) const {
     if(!weak_match(variable))
         return false;
 
     try {
-        auto var_casted = dynamic_cast<EigenString &>(variable);
+        auto var_casted = dynamic_cast<const EigenString &>(variable);
         return var_casted.value_ == value_;
     } catch(std::exception e){
         return false;
@@ -155,27 +157,67 @@ EigenVariableGroup::EigenVariableGroup() {
 
 }
 
-void EigenVariableGroup::add_variable(EigenVariable &variable) {
-    if(variable_map_.count(variable.name()) > 0){
-        common_keys_.emplace_back(variable.name());
+void EigenVariableGroup::add_variable(const EigenVariable *variable) {
+    if(variable == nullptr)
+        return;
+    if(variable_map_.count(variable->name()) > 0){
+        common_keys_.emplace_back(variable->name());
     }
-    variable_map_.emplace(variable.name(), variable);
+    variable_map_.emplace(variable->name(), variable);
 }
 
-void EigenVariableGroup::add_variables(std::vector<EigenVariable &> variables) {
-    for(auto variable : variables){
+void EigenVariableGroup::add_variables(const std::vector<const EigenVariable *> variables){
+    for(auto variable : variables)
         add_variable(variable);
+}
+
+std::string EigenVariableGroup::print_variable(const std::string key) const{
+    auto its = variable_map_.equal_range(key);
+    //Check if the key exists
+    if(its.first != its.second){
+        //Get the value of the first variable under this key
+        const EigenVariable *variable = its.first->second;
+        if(variable == nullptr) //This should never happen as long as we do proper enforcement in add_variable
+            return "NULL";
+        std::string result = variable->print();
+
+        //Check if the other variables match. If they differ, return a placeholder
+        auto it = its.first;
+        it++;
+        while(it != its.second){
+            if(it->second != nullptr && !variable->strong_match(*it->second))
+                return "*";
+            it++;
+        }
+
+        return result;
+    } else {
+        return "N/A";
     }
 }
 
-std::string EigenVariableGroup::print_variable(std::string key) {
-    auto it = variable_map_.find(key);
-    if(it != variable_map_.end()){
+std::string EigenVariableGroup::print_variable_list(const std::string key) const{
+    auto its = variable_map_.equal_range(key);
+    //Check if the key exists
+    if(its.first != its.second){
+        std::string result = "";
 
+        auto it = its.first;
+        while(it != its.second){
+            if(it->second == nullptr)
+                return "NULL";
+            if(it != its.first)
+                result.append(",");
+            result.append(it->second->print());
+            it++;
+        }
+
+        return result;
+    } else {
+        return "N/A";
     }
-    //if(variable_map_.count(key) > 0)
 }
 
-std::vector<std::string> EigenVariableGroup::common_keys() {
-
+const std::vector<std::string> EigenVariableGroup::common_keys() const{
+    return common_keys_;
 }

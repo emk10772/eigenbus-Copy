@@ -33,15 +33,15 @@ EigenUpdate *EigenResponseParamRead::update_module(ModuleShared mod, uint64_t la
 
                 mod->parameters.add(param_addr, EigenParameter(param_aux), param_name);
 
-                return new EigenUpdate(mod->address(), EigenUpdate::MODULE_PARAM_ADD, latency, mod, param_addr);
+                return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_ADD, latency, mod, param_addr);
             }
         } else {
             //Write value to module
             mod->parameters.ref(id_).update_value(packet_.substr(ind + 1));
-            return new EigenUpdate(mod->address(), EigenUpdate::MODULE_PARAM_READ, latency, mod, id_);
+            return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_READ, latency, mod, id_);
         }
     } catch (std::exception e){
-        return new EigenUpdate(mod->address(), EigenUpdate::MODULE_PARAM_ERR, latency, mod);
+        return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_ERR, latency, mod);
     }
 }
 
@@ -57,15 +57,15 @@ EigenUpdate *EigenResponseParamWrite::update_module(ModuleShared mod, uint64_t l
     try {
         id_ = stoul(packet_, &ind, EIGENBUS_BASE);
     } catch (std::exception e) {
-        return new EigenUpdate(mod->address(), EigenUpdate::MODULE_PARAM_ERR, latency, mod);
+        return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_ERR, latency, mod);
     }
 
     if(ind != 2 || packet_[ind] != ',')
-        return new EigenUpdate(mod->address(), EigenUpdate::MODULE_PARAM_ERR, latency, mod, id_);
+        return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_ERR, latency, mod, id_);
     if(packet_[ind + 1] == 's'){
-        return new EigenUpdate(mod->address(), EigenUpdate::MODULE_PARAM_WRITE, latency, mod, id_);
+        return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_WRITE, latency, mod, id_);
     } else {
-        return new EigenUpdate(mod->address(), EigenUpdate::MODULE_PARAM_ERR, latency, mod, id_);
+        return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_ERR, latency, mod, id_);
     }
 }
 

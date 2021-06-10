@@ -5,15 +5,17 @@
 
 EigenModule::EigenModule(uint8_t address){
     //Initialize our list with pointers to all of our class variables
+    this->variable_list.resize(EIGEN_NUM_VARIABLES, nullptr);
 #define ENTRY(e_name, type, v_name) this->variable_list[e_name] = &this->v_name;
     VAR_LIST
 #undef ENTRY
 
-    this->address_ = address;
+    /*this->address_ = address;
     this->position_ = 0;
     this->velocity_ = 0;
     this->effort_ = 0;
-    this->encoder_status = 0;
+    this->encoder_status = 0;*/
+    this->address = address;
 
     this->last_position_cmd = nan("");
     this->last_velocity_cmd = nan("");
@@ -29,7 +31,7 @@ EigenModule::EigenModule(uint8_t address){
     this->stale = false;
 
     this->command_support = 0;
-    this->UID_ = 0; //The actual UID of a chip being 0 should be next to impossible
+    //this->UID_ = 0; //The actual UID of a chip being 0 should be next to impossible
 
     this->sync_ind = 0;
     this->sync_reg = 0;
@@ -77,7 +79,7 @@ bool EigenModule::update_downstream(uint8_t ind, uint8_t node_addr){
 
     //If the port name is invalid, ask for the name again
     if(downstream_list[ind].name == "N/A"){
-        add_command(new EigenCommandUtility(address_, EIGEN_UTIL_MODULE_PORTS));
+        add_command(new EigenCommandUtility(address, EIGEN_UTIL_MODULE_PORTS));
         //firmware_utility(address, EIGEN_UTIL_MODULE_PORTS);
     }
 
@@ -100,7 +102,7 @@ bool EigenModule::update_downstream(uint8_t ind, uint8_t node_addr){
                 retval = true;
             } else {
                 //If we haven't seen the value enough times yet, keep checking to make sure it is correct
-                add_command(new EigenCommandTopology(address_));
+                add_command(new EigenCommandTopology(address));
             }
         }
         downstream_list[ind] = downstream;
@@ -143,10 +145,11 @@ std::string EigenModule::print_topology() const{
     uint8_t offset = 0;
 
     //Print the header
-    offset += snprintf((char *)(s + offset), 128 - offset, " {\"id\":\"%02X\", \"type\":\"%02X\", \"orientation\":\"%02X\", \"children\":[", address_, type, orientation);
+    offset += snprintf((char *)(s + offset), 128 - offset, " {\"id\":\"%02X\", \"type\":\"%02X\", \"orientation\":\"%02X\", \"children\":[",
+                       (eigen_addr_t)address, (uint8_t)type, (uint8_t)orientation);
 
     //Print the body
-    for(auto item : downstream_list){
+    for(auto &item : downstream_list){
         offset += snprintf((char *)(s + offset), 128 - offset, "\"%02X\",", item.addr_current);
     }
 
@@ -159,14 +162,14 @@ std::string EigenModule::print_topology() const{
 void EigenModule::update_UID(uint64_t UID_val){
     std::lock_guard<std::mutex> lock(mutex);
 
-    if(UID_ == 0){ //If this is the first time we have seen a UID
-        UID_ = UID_val;
-    } else if(UID_ != UID_val){ //If we already have a UID and this one doesn't match, there must be a conflict.
+    if(UID == 0){ //If this is the first time we have seen a UID
+        UID = UID_val;
+    } else if(UID != UID_val){ //If we already have a UID and this one doesn't match, there must be a conflict.
         //add_command(this->address, CMD_UID_WR_ADDR, UID_); //Add a command to resolve this conflict
-        add_command(new EigenCommandUIDWrite(UID_, address_));
+        add_command(new EigenCommandUIDWrite(UID, address));
     }
 }
-
+/*
 void EigenModule::update_depth(uint8_t depth){
     node_depth_ = depth;
 }
@@ -177,7 +180,7 @@ uint8_t EigenModule::node_depth() const{
 
 uint64_t EigenModule::UID() const{
     return UID_;
-}
+}*/
 
 void EigenModule::update_type(uint8_t type_){
     std::lock_guard<std::mutex> lock(mutex);
@@ -200,7 +203,7 @@ std::string EigenModule::print_mod_name() const{
     std::lock_guard<std::mutex> lock(mutex);
     uint8_t s[32];
 
-    snprintf((char *)s, 32, "Module %02X", address_);
+    snprintf((char *)s, 32, "Module %02X", (eigen_addr_t)address);
     return std::string((char *)s);
 }
 
@@ -208,7 +211,7 @@ std::string EigenModule::print_UID() const{
     std::lock_guard<std::mutex> lock(mutex);
     uint8_t s[32];
 
-    snprintf((char *)s, 32, "u%016llX", UID_);
+    snprintf((char *)s, 32, "u%016llX", (uint64_t)UID);
     return std::string((char *)s);
 }
 
@@ -216,7 +219,7 @@ std::string EigenModule::print_type() const{
     std::lock_guard<std::mutex> lock(mutex);
     uint8_t s[32];
 
-    snprintf((char *)s, 32, "Type: %d", type);
+    snprintf((char *)s, 32, "Type: %d", (int)type);
     return std::string((char *)s);
 }
 
@@ -251,7 +254,7 @@ std::string EigenModule::print_orientation() const{
     std::lock_guard<std::mutex> lock(mutex);
     uint8_t s[32];
 
-    snprintf((char *)s, 32, "Orientation: %d", orientation);
+    snprintf((char *)s, 32, "Orientation: %d", (int)orientation);
     return std::string((char *)s);
 }
 
@@ -264,41 +267,41 @@ void EigenModule::set_encoder_status(uint16_t status){
     std::lock_guard<std::mutex> lock(mutex);
     this->encoder_status = status;
 }
-
+/*
 double EigenModule::position() const{
     std::lock_guard<std::mutex> lock(mutex);
-    return this->position_;
+    return this->position;
 }
 
 double EigenModule::velocity() const{
     std::lock_guard<std::mutex> lock(mutex);
-    return this->velocity_;
+    return this->velocity;
 }
 
 double EigenModule::effort() const{
     std::lock_guard<std::mutex> lock(mutex);
-    return this->effort_;
+    return this->effort;
 }
 
 void EigenModule::set_position(double position){
     std::lock_guard<std::mutex> lock(mutex);
-    this->position_ = position;
+    this->position = position;
 }
 
 void EigenModule::set_velocity(double velocity){
     std::lock_guard<std::mutex> lock(mutex);
-    this->velocity_ = velocity;
+    this->velocity = velocity;
 }
 
 void EigenModule::set_effort(double effort){
     std::lock_guard<std::mutex> lock(mutex);
-    this->effort_ = effort;
-}
-
+    this->effort = effort;
+}*/
+/*
 uint8_t EigenModule::address() const{
     std::lock_guard<std::mutex> lock(mutex);
-    return this->address_;
-}
+    return this->address;
+}*/
 
 std::string EigenModule::print_encoder_status() const{
     if(encoder_status == 00)                    return "Working Correctly";
@@ -356,4 +359,30 @@ double EigenModule::avg_latency() const{
 
 double EigenModule::peak_latency() const{
     return latency_peak_;
+}
+
+
+
+EigenModuleGroup::EigenModuleGroup(std::vector<ModuleConst> modules) {
+    modules_ = modules;
+    for(ModuleConst &module : modules){
+        variable_group_.add_variables(module->variable_list);
+        module_addrs_.emplace(module->address);
+    }
+}
+
+EigenModuleGroup::~EigenModuleGroup() {
+    modules_.clear();
+}
+
+const EigenVariableGroup EigenModuleGroup::variable_group() {
+    return variable_group_;
+}
+
+bool EigenModuleGroup::contains_module(eigen_addr_t address) {
+    return module_addrs_.count(address) > 0;
+}
+
+size_t EigenModuleGroup::count() {
+    return module_addrs_.size();
 }

@@ -19,7 +19,7 @@ EigenUpdate *EigenResponseUtility::update_module(ModuleShared mod, uint64_t late
                 uint8_t status_code = stoul(packet_.substr(ind+1), nullptr, EIGENBUS_BASE);
                 if(status_code != mod->status_code){
                     //add_command(mod->get_address(), CMD_FIRMWARE_UTIL, EIGEN_UTIL_MODULE_STATUS);
-                    add_command(new EigenCommandUtility(mod->address(), EIGEN_UTIL_MODULE_STATUS));
+                    add_command(new EigenCommandUtility(mod->address, EIGEN_UTIL_MODULE_STATUS));
                 }
                 break;
             }

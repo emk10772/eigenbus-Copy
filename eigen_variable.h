@@ -6,12 +6,12 @@
 #include <unordered_map>
 
 typedef enum{
-    UINT8,
-    UINT16,
-    UINT32,
-    UINT64,
-    DOUBLE,
-    STRING
+    EIGEN_UINT8,
+    EIGEN_UINT16,
+    EIGEN_UINT32,
+    EIGEN_UINT64,
+    EIGEN_DOUBLE,
+    EIGEN_STRING
 } EigenVarType;
 
 class EigenVariable {
@@ -20,8 +20,8 @@ public:
 
     std::string name() const;
     EigenVarType type() const;
-    bool weak_match(EigenVariable &variable) const;
-    virtual bool strong_match(EigenVariable &variable) const = 0;
+    bool weak_match(const EigenVariable &variable) const;
+    virtual bool strong_match(const EigenVariable &variable) const = 0;
     virtual std::string print() const = 0;
 
 private:
@@ -33,7 +33,7 @@ class EigenUint8 : public EigenVariable{
 public:
     EigenUint8(std::string name, uint8_t value = 0);
 
-    bool strong_match(EigenVariable &variable) const;
+    bool strong_match(const EigenVariable &variable) const;
     std::string print() const;
 
     operator uint8_t() const {
@@ -51,7 +51,7 @@ class EigenUint16 : public EigenVariable{
 public:
     EigenUint16(std::string name, uint16_t value = 0);
 
-    bool strong_match(EigenVariable &variable) const;
+    bool strong_match(const EigenVariable &variable) const;
     std::string print() const;
 
     operator uint16_t() const {
@@ -69,7 +69,7 @@ class EigenUint32 : public EigenVariable{
 public:
     EigenUint32(std::string name, uint32_t value = 0);
 
-    bool strong_match(EigenVariable &variable) const;
+    bool strong_match(const EigenVariable &variable) const;
     std::string print() const;
 
     operator uint32_t() const {
@@ -87,7 +87,7 @@ class EigenUint64 : public EigenVariable{
 public:
     EigenUint64(std::string name, uint64_t value = 0);
 
-    bool strong_match(EigenVariable &variable) const;
+    bool strong_match(const EigenVariable &variable) const;
     std::string print() const;
 
     operator uint64_t() const {
@@ -105,7 +105,7 @@ class EigenDouble : public EigenVariable{
 public:
     EigenDouble(std::string name, double value = 0.0);
 
-    bool strong_match(EigenVariable &variable) const;
+    bool strong_match(const EigenVariable &variable) const;
     std::string print() const;
 
     operator double() const {
@@ -123,7 +123,7 @@ class EigenString : public EigenVariable{
 public:
     EigenString(std::string name, std::string value = "");
 
-    bool strong_match(EigenVariable &variable) const;
+    bool strong_match(const EigenVariable &variable) const;
     std::string print() const;
 
     operator std::string() const {
@@ -137,17 +137,22 @@ private:
     std::string value_;
 };
 
+/* EigenVariableGroup
+    A strict observer of EigenVariables. Used to look for common values between variables.
+    Must ensure that this class does not outlive its variables
+*/
 class EigenVariableGroup {
 public:
     EigenVariableGroup();
 
-    void add_variable(EigenVariable &variable);
-    void add_variables(std::vector<EigenVariable &> variables);
+    void add_variable(const EigenVariable *variable);
+    void add_variables(const std::vector<const EigenVariable *> variables);
 
-    std::string print_variable(std::string key);
-    std::vector<std::string> common_keys();
+    std::string print_variable(const std::string key) const;
+    std::string print_variable_list(const std::string key) const;
+    const std::vector<std::string> common_keys() const;
 private:
-    std::unordered_multimap<std::string, EigenVariable&> variable_map_;
+    std::unordered_multimap<std::string, const EigenVariable *> variable_map_;
     std::vector<std::string> common_keys_;
 };
 

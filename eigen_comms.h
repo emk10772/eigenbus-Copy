@@ -75,8 +75,9 @@ void clear_commands();
 raw_packet *get_raw_packet();
 eigen_stats get_eigen_stats(); //TODO: Change to ptr?
 
-ModuleConst get_module(uint8_t address);
-ModuleConst get_module_by_index(uint8_t index);
+ModuleConst get_module(eigen_addr_t address);
+std::vector<ModuleConst> get_modules(std::vector<eigen_addr_t> addresses);
+ModuleConst get_module_by_index(eigen_addr_t index);
 uint8_t num_modules();
 bool list_updated();
 const EigenTopologyTracker *eigen_topology();

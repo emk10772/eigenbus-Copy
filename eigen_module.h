@@ -9,6 +9,7 @@
 #include <deque>
 #include <memory>
 #include <array>
+#include <set>
 #include "eigen_parameters.h"
 #include "eigen_variable.h"
 
@@ -42,7 +43,12 @@ typedef struct module_down_struct{
     ENTRY(EIGEN_VELOCITY,       EigenDouble,    velocity) \
     ENTRY(EIGEN_EFFORT,         EigenDouble,    effort) \
     ENTRY(EIGEN_ENC_STATUS,     EigenUint16,    encoder_status) \
-    ENTRY(EIGEN_NODE_DEPTH,     EigenUint8,     node_depth)
+    ENTRY(EIGEN_NODE_DEPTH,     EigenUint8,     node_depth) \
+    ENTRY(EIGEN_FIRMW_VER,      EigenString,    firmware_version) \
+    ENTRY(EIGEN_FIRMW_BLD_NAME, EigenString,    firmware_build_name) \
+    ENTRY(EIGEN_FIRMW_BLD_TIME, EigenString,    firmware_build_time) \
+    ENTRY(EIGEN_FIRMW_BLD_TAG,  EigenString,    firmware_tag) \
+    ENTRY(EIGEN_MODULE_NAME,    EigenString,    module_name)
 
 typedef enum{
 #define ENTRY(e_name, type, v_name) e_name,
@@ -62,7 +68,7 @@ public:
 #undef ENTRY
 
     //Indexable array of all variables
-    std::array<const EigenVariable *, EIGEN_NUM_VARIABLES> variable_list;
+    std::vector<const EigenVariable *> variable_list;
 
 private:
     mutable std::mutex mutex;
@@ -85,9 +91,9 @@ private:
 
 public:
     void set_encoder_status(uint16_t status);
-    void set_position(double position);
-    void set_velocity(double velocty);
-    void set_effort(double effort);
+    //void set_position(double position);
+    //void set_velocity(double velocty);
+    //void set_effort(double effort);
     void add_downstream(uint8_t node_addr);
     bool update_downstream(uint8_t ind, uint8_t node_addr);
     void set_downstream_name(uint8_t ind, std::string name);
@@ -98,7 +104,7 @@ public:
     void update_UID(uint64_t UID_);
     void update_type(uint8_t type_);
     void update_orientation(uint8_t orientation_);
-    void update_depth(uint8_t depth);
+    //void update_depth(uint8_t depth);
 
     void add_latency_measurement(uint64_t latency);
     double avg_latency() const;
@@ -129,11 +135,11 @@ public:
     uint16_t broadcast_period;
 
     //Firmware version
-    std::string firmware_version;
+    /*std::string firmware_version;
     std::string firmware_build_name;
     std::string firmware_build_time;
     std::string firmware_tag;
-    std::string module_name;
+    std::string module_name;*/
 
     std::string last_debug_msg;
     uint64_t t_last_update;
@@ -164,5 +170,19 @@ using ModuleShared = std::shared_ptr<EigenModule>;
 inline ModuleConst make_const(ModuleShared module){
     return std::const_pointer_cast<const EigenModule>(module);
 }
+
+class EigenModuleGroup {
+public:
+    EigenModuleGroup(std::vector<ModuleConst> modules);
+    ~EigenModuleGroup();
+
+    const EigenVariableGroup variable_group();
+    bool contains_module(eigen_addr_t address);
+    size_t count();
+private:
+    std::vector<ModuleConst> modules_;
+    std::set<eigen_addr_t> module_addrs_;
+    EigenVariableGroup variable_group_;
+};
 
 #endif // EIGEN_MODULE_H

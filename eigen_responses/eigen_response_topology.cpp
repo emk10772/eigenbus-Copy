@@ -50,7 +50,7 @@ EigenUpdate *EigenResponseTopology::update_module(ModuleShared mod, uint64_t lat
     }
     
     if(topology_updated)
-        return new EigenUpdate(mod->address(), EigenUpdate::MODULE_DOWNSTREAM, latency, mod);
+        return new EigenUpdate(mod->address, EigenUpdate::MODULE_DOWNSTREAM, latency, mod);
     else
         return nullptr;
 }

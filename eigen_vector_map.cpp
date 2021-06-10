@@ -38,7 +38,7 @@ ModuleConst EigenVectorMap::get_const_by_ind(eigen_addr_t ind){
 }
 
 bool cmp(ModuleShared module, eigen_addr_t address){
-    return module->address() < address;
+    return module->address < address;
 }
 
 void EigenVectorMap::remove(eigen_addr_t key){
@@ -53,7 +53,7 @@ void EigenVectorMap::remove_no_lock(eigen_addr_t key){
 
     auto where = std::lower_bound(vector_.begin(), vector_.end(), key, &cmp);
 
-    if(*where == nullptr || where->get()->address() != key)
+    if(*where == nullptr || where->get()->address != key)
         throw std::out_of_range("Vector and Map mismatch");
     else
         vector_.erase(where);
@@ -61,7 +61,7 @@ void EigenVectorMap::remove_no_lock(eigen_addr_t key){
 
 bool EigenVectorMap::remove_ind_no_lock(eigen_addr_t ind){
     if(ind >= vector_.size()) return false;
-    eigen_addr_t key = vector_[ind]->address();
+    eigen_addr_t key = vector_[ind]->address;
 
     if(map_.count(key) == 0) {
         throw std::out_of_range("Vector and Map mismatch");
@@ -75,11 +75,11 @@ bool EigenVectorMap::remove_ind_no_lock(eigen_addr_t ind){
 void EigenVectorMap::insert(ModuleShared module){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-    if(module == NULL || map_.count(module->address()) > 0) return;
+    if(module == NULL || map_.count(module->address) > 0) return;
 
-    map_[module->address()] = module;
+    map_[module->address] = module;
 
-    auto where = std::lower_bound(vector_.begin(), vector_.end(), module->address(), &cmp);
+    auto where = std::lower_bound(vector_.begin(), vector_.end(), module->address, &cmp);
     vector_.insert(where, module);
 }
 
@@ -95,7 +95,7 @@ std::set<eigen_addr_t> EigenVectorMap::keys(){
     std::set<eigen_addr_t> retval;
 
     for(auto mod : vector_){
-        retval.insert(mod->address());
+        retval.insert(mod->address);
     }
 
     return retval;
@@ -109,7 +109,7 @@ std::vector<EigenUpdate *> EigenVectorMap::clear_old(uint64_t t_now, uint64_t t_
 
     while(valid && ind < vector_.size()){
         if((t_now - vector_[ind]->t_last_update) > t_stale){
-            eigen_addr_t addr = vector_[ind]->address();
+            eigen_addr_t addr = vector_[ind]->address;
             valid = remove_ind_no_lock(ind);
             if(valid){
                 retval.push_back(new EigenUpdate(addr, EigenUpdate::MODULE_REMOVED, nullptr));

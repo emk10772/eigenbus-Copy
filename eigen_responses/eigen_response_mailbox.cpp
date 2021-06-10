@@ -32,15 +32,15 @@ EigenUpdate *EigenResponseMailboxRead::update_module(ModuleShared mod, uint64_t 
                 //service_eigencomms should null terminate the string for us
 
                 mod->mailboxes.add(mail_addr, EigenMailbox(mail_type), name);
-                return new EigenUpdate(mod->address(), EigenUpdate::MODULE_MAIL_ADD, latency, mod, mail_addr);
+                return new EigenUpdate(mod->address, EigenUpdate::MODULE_MAIL_ADD, latency, mod, mail_addr);
             }
         } else {
             //Write value to module
             mod->mailboxes.ref(id_).update_value(packet_.substr(ind + 1));
-            return new EigenUpdate(mod->address(), EigenUpdate::MODULE_MAIL_READ, latency, mod, id_);
+            return new EigenUpdate(mod->address, EigenUpdate::MODULE_MAIL_READ, latency, mod, id_);
         }
     } catch(std::exception e){
-        return new EigenUpdate(mod->address(), EigenUpdate::MODULE_MAIL_ERR, latency, mod);
+        return new EigenUpdate(mod->address, EigenUpdate::MODULE_MAIL_ERR, latency, mod);
     }
 }
 
@@ -55,16 +55,16 @@ EigenUpdate *EigenResponseMailboxWrite::update_module(ModuleShared mod, uint64_t
     try {
         id_ = stoul(packet_, &ind, EIGENBUS_BASE);
     } catch (std::exception e) {
-        return new EigenUpdate(mod->address(), EigenUpdate::MODULE_MAIL_ERR, latency, mod);
+        return new EigenUpdate(mod->address, EigenUpdate::MODULE_MAIL_ERR, latency, mod);
     }
 
     if(ind != 2 || packet_[ind] != ',')
-        return new EigenUpdate(mod->address(), EigenUpdate::MODULE_MAIL_ERR, latency, mod, id_);
+        return new EigenUpdate(mod->address, EigenUpdate::MODULE_MAIL_ERR, latency, mod, id_);
 
     if(packet_[ind + 1] == 's'){
-        return new EigenUpdate(mod->address(), EigenUpdate::MODULE_MAIL_WRITE, latency, mod, id_);
+        return new EigenUpdate(mod->address, EigenUpdate::MODULE_MAIL_WRITE, latency, mod, id_);
     } else {
-        return new EigenUpdate(mod->address(), EigenUpdate::MODULE_MAIL_ERR, latency, mod, id_);
+        return new EigenUpdate(mod->address, EigenUpdate::MODULE_MAIL_ERR, latency, mod, id_);
     }
 }
 

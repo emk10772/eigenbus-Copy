@@ -219,7 +219,7 @@ void process_packet(uint8_t *buffer, uint8_t len) {
             //If we expect more responses after this one, notify the packet tracker
             if(response->has_additonal_responses())
                 for(auto pkt : response->additional_responses())
-                    packetTracker->add_packet(module->address(), pkt, "", retval.first);
+                    packetTracker->add_packet(module->address, pkt, "", retval.first);
 
             //Allow the bootloader to process the packets
             bootloader->process_packet(response);
@@ -377,7 +377,7 @@ int service_eigen_comms() {
 
             ModuleShared mod = get_module_shared_by_index(ind);
             if(mod->parameters.parameters_left() > 1 && mod->parameters.d_t_last_update() > PACKET_TIMEOUT){
-                eigen_read_parameter(mod->address(), LIST_PARAM);
+                eigen_read_parameter(mod->address, LIST_PARAM);
                 mod->parameters.set_last_update();
             }
 
@@ -432,7 +432,7 @@ ModuleShared get_module_shared_by_index(uint8_t index){
 ModuleShared add_module(uint8_t address){
     ModuleShared mod_result = get_module_shared(address);
 
-    if(mod_result == NULL || mod_result->address() != address){
+    if(mod_result == NULL || mod_result->address != address){
         mod_result = std::make_shared<EigenModule>(address);
         module_list_.insert(mod_result);
 
@@ -459,12 +459,25 @@ ModuleShared add_module(uint8_t address){
     return mod_result;
 }
 
-ModuleConst get_module(uint8_t address){
+ModuleConst get_module(eigen_addr_t address){
     return module_list_.get_const(address);
 }
 
-ModuleConst get_module_by_index(uint8_t index){
+ModuleConst get_module_by_index(eigen_addr_t index){
     return module_list_.get_const_by_ind(index);
+}
+
+std::vector<ModuleConst> get_modules(std::vector<eigen_addr_t> addresses) {
+    std::vector<ModuleConst> retval;
+
+    //Populate a list with modules
+    for(eigen_addr_t addr : addresses){
+        auto module = get_module(addr);
+        if(module != nullptr)
+            retval.emplace_back(module);
+    }
+
+    return retval;
 }
 
 uint8_t num_modules(){
@@ -484,3 +497,4 @@ bool list_updated(){
 const EigenTopologyTracker *eigen_topology(){
     return topologyTracker;
 }
+
