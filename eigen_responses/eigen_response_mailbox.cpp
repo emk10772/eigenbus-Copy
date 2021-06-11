@@ -31,12 +31,12 @@ EigenUpdate *EigenResponseMailboxRead::update_module(ModuleShared mod, uint64_t 
                 std::string name = tokens[2];
                 //service_eigencomms should null terminate the string for us
 
-                mod->mailboxes.add(mail_addr, EigenMailbox(mail_type), name);
+                //mod->mailboxes.add(mail_addr, EigenMailbox(mail_type), name);
                 return new EigenUpdate(mod->address, EigenUpdate::MODULE_MAIL_ADD, latency, mod, mail_addr);
             }
         } else {
             //Write value to module
-            mod->mailboxes.ref(id_).update_value(packet_.substr(ind + 1));
+            //mod->mailboxes.ref(id_).update_value(packet_.substr(ind + 1));
             return new EigenUpdate(mod->address, EigenUpdate::MODULE_MAIL_READ, latency, mod, id_);
         }
     } catch(std::exception e){

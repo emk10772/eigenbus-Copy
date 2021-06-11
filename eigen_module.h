@@ -119,7 +119,7 @@ public:
     std::string last_debug_msg;
     uint64_t t_last_update;
 
-    EigenParameterSet<EigenParameter> parameters;
+    EigenParameterSet<EigenVariable> parameters;
     EigenParameterSet<EigenMailbox> mailboxes;
 
     //Status info

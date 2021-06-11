@@ -98,7 +98,7 @@ bool EigenParameter::update_value(double val){
 
 bool EigenParameter::update_value(std::string val){
     try{
-        switch(type_){
+        /*switch(type_){
             case _UINT8: {
                 uint64_t parsed = std::stoull(val, nullptr, EIGENBUS_BASE);
                 if(parsed < std::numeric_limits<uint8_t>::max()){
@@ -147,7 +147,7 @@ bool EigenParameter::update_value(std::string val){
             default:
                 return false;
         }
-        return false;
+        return false;*/
 
     } catch (std::exception e){
         //Do not update the value if the parse did not work

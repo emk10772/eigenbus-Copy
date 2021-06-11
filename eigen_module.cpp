@@ -10,11 +10,6 @@ EigenModule::EigenModule(uint8_t address){
     VAR_LIST
 #undef ENTRY
 
-    /*this->address_ = address;
-    this->position_ = 0;
-    this->velocity_ = 0;
-    this->effort_ = 0;
-    this->encoder_status = 0;*/
     this->address = address;
 
     this->last_position_cmd = nan("");
@@ -31,7 +26,7 @@ EigenModule::EigenModule(uint8_t address){
     this->stale = false;
 
     this->command_support = 0;
-    //this->UID_ = 0; //The actual UID of a chip being 0 should be next to impossible
+    this->UID = 0; //The actual UID of a chip being 0 should be next to impossible
 
     this->sync_ind = 0;
     this->sync_reg = 0;

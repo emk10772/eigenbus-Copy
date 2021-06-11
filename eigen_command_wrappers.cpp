@@ -42,11 +42,11 @@ void eigen_read_parameter(eigen_addr_t address, uint8_t param_id){
 }
 
 void eigen_write_parameter(eigen_addr_t address, uint8_t param_id, std::string param){
-    ModuleConst mod = get_module(address);
+    /*ModuleConst mod = get_module(address);
     auto write_param = EigenParameter(mod->parameters.value(param_id).type());
     write_param.update_value(param);
 
-    add_command(new EigenCommandParamWrite(address, param_id, write_param));
+    add_command(new EigenCommandParamWrite(address, param_id, write_param));*/
 }
 
 void eigen_read_mailbox(eigen_addr_t address, uint8_t id){
@@ -54,11 +54,11 @@ void eigen_read_mailbox(eigen_addr_t address, uint8_t id){
 }
 
 void eigen_write_mailbox(eigen_addr_t address, uint8_t id, std::string packet){
-    ModuleConst mod = get_module(address);
+    /*ModuleConst mod = get_module(address);
     auto mail = EigenMailbox(mod->mailboxes.value(id).type());
     mail.update_value(packet);
 
-    add_command(new EigenCommandMailboxWrite(address, id, mail));
+    add_command(new EigenCommandMailboxWrite(address, id, mail));*/
 }
 
 void eigen_firmware_utility(eigen_addr_t address, uint16_t action){

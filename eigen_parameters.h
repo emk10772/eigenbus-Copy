@@ -11,7 +11,7 @@ public:
         param_t param;
         param.name = "";
         param.dirty = false;
-        param.value = T();
+        param.value = nullptr;
 
         param_list.resize(1);
         param_list[0] = param;
@@ -22,13 +22,13 @@ public:
     }
 
     //void add(uint8_t id, T item, std::string name);
-    inline void add(uint8_t id, T item, std::string name){
+    inline void add(uint8_t id, T *item, std::string name){
         std::lock_guard<std::mutex> lock(mutex);
 
         param_t param;
         param.name = "";
         param.dirty = false;
-        param.value = T();
+        param.value = nullptr;
 
         if(id >= param_list.size()){
             //If the ID is past the end, resize to include it
@@ -47,12 +47,12 @@ public:
     }
 
     //T& ref(uint8_t param);
-    inline T& ref(uint8_t param){
+    /*inline T& ref(uint8_t param){
         std::lock_guard<std::mutex> lock(mutex);
 
         if(param >= param_list.size()) return param_list[0].value;
         return param_list[param].value;
-    }
+    }*/
 
     //void set_last_update();
     inline void set_last_update(){
@@ -94,10 +94,10 @@ public:
     }
 
     //T value(uint8_t param) const;
-    inline T value(uint8_t param) const{
+    inline T *value(uint8_t param) const{
         std::lock_guard<std::mutex> lock(mutex);
 
-        if(param >= param_list.size()) return param_list[0].value;
+        if(param >= param_list.size()) return nullptr;
         return param_list[param].value;
     }
 
@@ -105,7 +105,7 @@ private:
     typedef struct{
         bool dirty;
         std::string name;
-        T value;
+        T *value;
     } param_t;
 
     mutable std::mutex mutex;
@@ -117,12 +117,12 @@ private:
 };
 
 /* Param Types */
-#define _UINT8                  (1)
-#define _UINT16                 (2)
-#define _UINT32                 (3)
-#define _FLOAT                  (4)
-#define _UINT64                 (5)
-#define _DOUBLE                 (6)
+#define PARAM_TYPE_UINT8        (1)
+#define PARAM_TYPE_UINT16       (2)
+#define PARAM_TYPE_UINT32       (3)
+#define PARAM_TYPE_FLOAT        (4)
+#define PARAM_TYPE_UINT64       (5)
+#define PARAM_TYPE_DOUBLE       (6)
 #define PARAM_TYPE_MAX          (_DOUBLE)
 
 class EigenParameter{

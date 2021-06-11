@@ -66,6 +66,8 @@ private:
     std::vector<ModuleConst> modules_;
     std::set<eigen_addr_t> module_addrs_;
     EigenVariableGroup variable_group_;
+    EigenVariableGroup parameter_group_;
+    EigenVariableGroup mailbox_group_;
     std::unordered_multimap<std::string, std::string> poll_keys_;
 };
 

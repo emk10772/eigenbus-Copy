@@ -39,6 +39,19 @@ std::string EigenUint8::print() const {
     return strprintf("%02X", value_);
 }
 
+bool EigenUint8::parse_value(std::string encoded) {
+    try{
+        uint64_t parsed = std::stoull(encoded, nullptr, EIGENBUS_BASE);
+        if(parsed < std::numeric_limits<uint8_t>::max()){
+            value_ = (uint8_t) parsed;
+            return true;
+        }
+    } catch(std::exception e) {
+        return false;
+    }
+    return false;
+}
+
 
 /* ==== EigenUint16 ==== */
 EigenUint16::EigenUint16(std::string name, uint16_t value) : EigenVariable(name, EIGEN_UINT16){
@@ -59,6 +72,19 @@ bool EigenUint16::strong_match(const EigenVariable &variable) const {
 
 std::string EigenUint16::print() const {
     return strprintf("%04X", value_);
+}
+
+bool EigenUint16::parse_value(std::string encoded) {
+    try{
+        uint64_t parsed = std::stoull(encoded, nullptr, EIGENBUS_BASE);
+        if(parsed < std::numeric_limits<uint16_t>::max()){
+            value_ = (uint16_t) parsed;
+            return true;
+        }
+    } catch(std::exception e) {
+        return false;
+    }
+    return false;
 }
 
 
@@ -84,6 +110,19 @@ std::string EigenUint32::print() const {
     return strprintf("%08lX", value_);
 }
 
+bool EigenUint32::parse_value(std::string encoded) {
+    try{
+        uint64_t parsed = std::stoull(encoded, nullptr, EIGENBUS_BASE);
+        if(parsed < std::numeric_limits<uint32_t>::max()){
+            value_ = (uint32_t) parsed;
+            return true;
+        }
+    } catch(std::exception e) {
+        return false;
+    }
+    return false;
+}
+
 
 /* ==== EigenUint64 ==== */
 EigenUint64::EigenUint64(std::string name, uint64_t value) : EigenVariable(name, EIGEN_UINT64){
@@ -104,6 +143,17 @@ bool EigenUint64::strong_match(const EigenVariable &variable) const {
 
 std::string EigenUint64::print() const {
     return strprintf("%016llX", value_);
+}
+
+bool EigenUint64::parse_value(std::string encoded) {
+    try{
+        uint64_t parsed = std::stoull(encoded, nullptr, EIGENBUS_BASE);
+        value_ = (uint64_t) parsed;
+        return true;
+    } catch(std::exception e) {
+        return false;
+    }
+    return false;
 }
 
 
@@ -128,6 +178,19 @@ std::string EigenDouble::print() const {
     return strprintf("%08.4f", value_);
 }
 
+bool EigenDouble::parse_value(std::string encoded) {
+    try{
+        double parsed = stod(encoded);
+        if(std::isfinite(parsed)){
+            value_ = parsed;
+            return true;
+        }
+    } catch(std::exception e) {
+        return false;
+    }
+    return false;
+}
+
 
 /* ==== EigenString ==== */
 EigenString::EigenString(std::string name, std::string value) : EigenVariable(name, EIGEN_STRING){
@@ -148,4 +211,9 @@ bool EigenString::strong_match(const EigenVariable &variable) const {
 
 std::string EigenString::print() const {
     return value_;
+}
+
+bool EigenString::parse_value(std::string encoded) {
+    value_ = encoded;
+    return true;
 }

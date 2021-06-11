@@ -218,7 +218,7 @@ void process_packet(uint8_t *buffer, uint8_t len) {
 
             //If we expect more responses after this one, notify the packet tracker
             if(response->has_additonal_responses())
-                for(auto pkt : response->additional_responses())
+                for(auto &pkt : response->additional_responses())
                     packetTracker->add_packet(module->address, pkt, "", retval.first);
 
             //Allow the bootloader to process the packets
@@ -450,6 +450,7 @@ ModuleShared add_module(uint8_t address){
         eigen_firmware_utility(address, EIGEN_UTIL_MODULE_UID);
         eigen_firmware_utility(address, EIGEN_UTIL_MODULE_STATUS);
         eigen_firmware_utility(address, EIGEN_UTIL_MODULE_NAME);
+        eigen_read_parameter(address, 00);
     } else {
         add_module_update(new EigenUpdate(address, EigenUpdate::MODULE_TOUCHED, mod_result));
     }
