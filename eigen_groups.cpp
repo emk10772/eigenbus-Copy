@@ -21,6 +21,30 @@ void EigenVariableGroup::add_variables(const std::vector<const EigenVariable *> 
         add_variable(variable);
 }
 
+bool EigenVariableGroup::values_match(const std::string key) const{
+    auto its = variable_map_.equal_range(key);
+    //Check if the key exists
+    if(its.first != its.second){
+        //Get the value of the first variable under this key
+        const EigenVariable *variable = its.first->second;
+        if(variable == nullptr) //This should never happen as long as we do proper enforcement in add_variable
+            return false;
+
+        //Check if the other variables match. If they differ, return false
+        auto it = its.first;
+        it++;
+        while(it != its.second){
+            if(it->second != nullptr && !variable->strong_match(*it->second))
+                return false;
+            it++;
+        }
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
 std::string EigenVariableGroup::print_variable(const std::string key) const{
     auto its = variable_map_.equal_range(key);
     //Check if the key exists
@@ -85,6 +109,11 @@ EigenModuleGroup::EigenModuleGroup(std::vector<ModuleConst> modules) {
 
 EigenModuleGroup::~EigenModuleGroup() {
     modules_.clear();
+
+    for(auto &key : poll_keys_){
+        remove_poll_command(key.second);
+    }
+    poll_keys_.clear();
 }
 
 const EigenVariableGroup EigenModuleGroup::variable_group() {
@@ -93,6 +122,10 @@ const EigenVariableGroup EigenModuleGroup::variable_group() {
 
 bool EigenModuleGroup::contains_module(eigen_addr_t address) {
     return module_addrs_.count(address) > 0;
+}
+
+bool EigenModuleGroup::contains_module(ModuleConst mod) {
+    return module_addrs_.count(mod->address) > 0;
 }
 
 size_t EigenModuleGroup::count() {
@@ -105,4 +138,44 @@ void EigenModuleGroup::group_command(EigenCommand *command) {
         add_command(cloned_command);
     }
     delete command;
+}
+
+std::string EigenModuleGroup::group_poll(EigenCommand *command, uint64_t period_ms, bool enabled) {
+    std::string main_key = command->packet();
+    for(auto &module : modules_) {
+        std::string key = add_poll_command(command->clone(module->address), period_ms, enabled);
+        poll_keys_.emplace(main_key, key);
+    }
+    return main_key;
+}
+
+void EigenModuleGroup::group_poll_set_enabled(std::string poll_key, bool enabled) {
+    auto keys = poll_keys_.equal_range(poll_key);
+    auto it = keys.first;
+    while(it != keys.second){
+        set_poll_enable(it->second, enabled);
+        it++;
+    }
+}
+
+void EigenModuleGroup::group_poll_remove(std::string poll_key) {
+    auto keys = poll_keys_.equal_range(poll_key);
+    auto it = keys.first;
+    while(it != keys.second){
+        remove_poll_command(it->second);
+        it++;
+    }
+    poll_keys_.erase(poll_key);
+}
+
+std::vector<ModuleConst> EigenModuleGroup::modules(){
+    return modules_;
+}
+
+std::string EigenModuleGroup::key_to_string(const std::string key) const {
+    return variable_group_.print_variable(key);
+}
+
+std::string EigenModuleGroup::key_to_list_string(const std::string key) const {
+    return variable_group_.print_variable_list(key);
 }

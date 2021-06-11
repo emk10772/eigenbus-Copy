@@ -11,7 +11,7 @@ EigenCommand::~EigenCommand(){
 }
 
 void EigenCommand::update_module(ModuleShared mod){
-    
+
 }
 
 packet_type EigenCommand::type(){

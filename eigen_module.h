@@ -48,7 +48,12 @@ typedef struct module_down_struct{
     ENTRY(EIGEN_FIRMW_BLD_NAME, EigenString,    firmware_build_name) \
     ENTRY(EIGEN_FIRMW_BLD_TIME, EigenString,    firmware_build_time) \
     ENTRY(EIGEN_FIRMW_BLD_TAG,  EigenString,    firmware_tag) \
-    ENTRY(EIGEN_MODULE_NAME,    EigenString,    module_name)
+    ENTRY(EIGEN_MODULE_NAME,    EigenString,    module_name) \
+    ENTRY(EIGEN_CMD_SUPPORT,    EigenUint8,     command_support) \
+    ENTRY(EIGEN_LAST_POS_CMD,   EigenDouble,    last_position_cmd) \
+    ENTRY(EIGEN_LAST_VEL_CMD,   EigenDouble,    last_velocity_cmd) \
+    ENTRY(EIGEN_LAST_EFF_CMD,   EigenDouble,    last_effort_cmd)
+
 
 typedef enum{
 #define ENTRY(e_name, type, v_name) e_name,
@@ -72,15 +77,6 @@ public:
 
 private:
     mutable std::mutex mutex;
-    /*uint8_t address_;
-    double position_;
-    double velocity_;
-    double effort_;
-    uint16_t encoder_status;
-    uint64_t UID_;
-    uint8_t type;
-    uint8_t orientation;
-    uint8_t node_depth_;*/
 
     std::vector<module_down_port> downstream_list;
 
@@ -91,9 +87,6 @@ private:
 
 public:
     void set_encoder_status(uint16_t status);
-    //void set_position(double position);
-    //void set_velocity(double velocty);
-    //void set_effort(double effort);
     void add_downstream(uint8_t node_addr);
     bool update_downstream(uint8_t ind, uint8_t node_addr);
     void set_downstream_name(uint8_t ind, std::string name);
@@ -104,42 +97,24 @@ public:
     void update_UID(uint64_t UID_);
     void update_type(uint8_t type_);
     void update_orientation(uint8_t orientation_);
-    //void update_depth(uint8_t depth);
 
     void add_latency_measurement(uint64_t latency);
     double avg_latency() const;
     double peak_latency() const;
 
     uint16_t get_encoder_status() const;
-    //double position() const;
-    //double velocity() const;
-    //double effort() const;
-    //uint8_t address() const;
     std::string print_mod_name() const;
     std::string print_UID() const;
-    //uint64_t UID() const;
     std::string print_type() const;
     uint8_t get_type() const;
     uint8_t get_hardware_type() const;
     std::string print_orientation() const;
-    //uint8_t node_depth() const;
-
-    double last_position_cmd;
-    double last_velocity_cmd;
-    double last_effort_cmd;
 
     uint64_t t_broadcast_sync_start;
     uint64_t t_broadcast_offset;
     uint8_t broadcast_sync_count;
     uint8_t broadcast_reg;
     uint16_t broadcast_period;
-
-    //Firmware version
-    /*std::string firmware_version;
-    std::string firmware_build_name;
-    std::string firmware_build_time;
-    std::string firmware_tag;
-    std::string module_name;*/
 
     std::string last_debug_msg;
     uint64_t t_last_update;
@@ -156,9 +131,6 @@ public:
     uint64_t t_sync;
     bool stale;
     uint32_t t_last_uptime;
-
-    //Command Support vector
-    uint8_t command_support;
 
     //Functions
     std::string print_encoder_status() const;

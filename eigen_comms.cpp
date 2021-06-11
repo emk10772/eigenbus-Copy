@@ -355,10 +355,10 @@ int service_eigen_comms() {
         //Execute any queued commands
         EigenCommand *cmd = get_command();
 
-        while(cmd != NULL){
+        while(cmd != nullptr){
             ModuleShared mod = get_module_shared(cmd->address());
             write_packet(cmd->packet().c_str(), cmd->packet().length());
-            cmd->update_module(mod);
+            if(mod) cmd->update_module(mod);
 
             packetTracker->add_packet(cmd->address(), cmd->expected_response(), cmd->packet(), cmd->type());
             bootloader->process_command(cmd);

@@ -64,7 +64,7 @@ EigenUpdate *EigenResponseUtility::update_module(ModuleShared mod, uint64_t late
                 break;
             }
             case EIGEN_UTIL_MODULE_CAPABILITY: {
-                mod->command_support = stoul(packet_.substr(ind+1), nullptr, EIGENBUS_BASE);
+                mod->command_support = (uint8_t)stoul(packet_.substr(ind+1), nullptr, EIGENBUS_BASE);
                 break;
             }
             case EIGEN_UTIL_MODULE_UID: {
