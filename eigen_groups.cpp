@@ -3,17 +3,17 @@
 
 
 /* ==== EigenVariableGroup ==== */
-EigenVariableGroup::EigenVariableGroup() {
-
+EigenVariableGroup::EigenVariableGroup(eigen_addr_t min_count) {
+    min_count_ = min_count;
 }
 
 void EigenVariableGroup::add_variable(const EigenVariable *variable) {
     if(variable == nullptr)
         return;
-    if(variable_map_.count(variable->name()) > 0){
+    variable_map_.emplace(variable->name(), variable);
+    if(variable_map_.count(variable->name()) >= min_count_){
         common_keys_.emplace_back(variable->name());
     }
-    variable_map_.emplace(variable->name(), variable);
 }
 
 void EigenVariableGroup::add_variables(const std::vector<const EigenVariable *> variables){
@@ -101,8 +101,13 @@ const std::vector<std::string> EigenVariableGroup::common_keys() const{
 
 EigenModuleGroup::EigenModuleGroup(std::vector<ModuleConst> modules) {
     modules_ = modules;
+    variable_group_ = EigenVariableGroup(modules.size());
+    parameter_group_ = EigenVariableGroup(modules.size());
+    mailbox_group_ = EigenVariableGroup(modules.size());
+
     for(ModuleConst &module : modules){
         variable_group_.add_variables(module->variable_list);
+        parameter_group_.add_variables(module->parameters.list());
         module_addrs_.emplace(module->address);
     }
 }
@@ -118,6 +123,10 @@ EigenModuleGroup::~EigenModuleGroup() {
 
 const EigenVariableGroup EigenModuleGroup::variable_group() {
     return variable_group_;
+}
+
+const EigenVariableGroup EigenModuleGroup::parameter_group() {
+    return parameter_group_;
 }
 
 bool EigenModuleGroup::contains_module(eigen_addr_t address) {

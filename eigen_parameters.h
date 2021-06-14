@@ -101,6 +101,14 @@ public:
         return param_list[param].value;
     }
 
+    inline std::vector<const T *> list() const{
+        std::vector<const T *> retval = {};
+        for(auto &param : param_list){
+            retval.emplace_back(param.value);
+        }
+        return retval;
+    }
+
 private:
     typedef struct{
         bool dirty;

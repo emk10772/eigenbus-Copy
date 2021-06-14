@@ -12,7 +12,7 @@
 */
 class EigenVariableGroup {
 public:
-    EigenVariableGroup();
+    EigenVariableGroup(eigen_addr_t min_count = 0);
 
     void add_variable(const EigenVariable *variable);
     void add_variables(const std::vector<const EigenVariable *> variables);
@@ -38,6 +38,7 @@ public:
 private:
     std::unordered_multimap<std::string, const EigenVariable *> variable_map_;
     std::vector<std::string> common_keys_;
+    eigen_addr_t min_count_;
 };
 
 class EigenModuleGroup {
@@ -46,6 +47,7 @@ public:
     ~EigenModuleGroup();
 
     const EigenVariableGroup variable_group();
+    const EigenVariableGroup parameter_group();
     bool contains_module(eigen_addr_t address);
     bool contains_module(ModuleConst module);
     size_t count();
