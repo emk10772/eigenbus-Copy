@@ -1,8 +1,12 @@
 #include "eigen_variable.h"
 #include "eigen_utils.h"
 
-EigenVariable::EigenVariable(std::string name, EigenVarType type) : name_(name), type_(type){
-
+EigenVariable::EigenVariable(std::string name, EigenVarType type)
+    : name_(name), type_(type){
+    id_ = 0;
+    mod_address_ = 0xFF;
+    addr_set_ = false;
+    id_set_ = false;
 }
 
 std::string EigenVariable::name() const {
@@ -15,6 +19,28 @@ EigenVarType EigenVariable::type() const {
 
 bool EigenVariable::weak_match(const EigenVariable &variable) const {
     return (variable.name_ == name_ && variable.type_ == type_);
+}
+
+eigen_addr_t EigenVariable::id() const {
+    return id_;
+}
+
+eigen_addr_t EigenVariable::module_address() const {
+    return mod_address_;
+}
+
+bool EigenVariable::parent_info_valid() const {
+    return id_set_ && addr_set_ && mod_address_ != 0xFF;
+}
+
+void EigenVariable::set_id(eigen_addr_t id) {
+    id_set_ = true;
+    id_ = id;
+}
+
+void EigenVariable::set_address(eigen_addr_t addr) {
+    addr_set_ = true;
+    mod_address_ = addr;
 }
 
 

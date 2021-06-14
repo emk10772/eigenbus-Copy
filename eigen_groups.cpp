@@ -16,9 +16,14 @@ void EigenVariableGroup::add_variable(const EigenVariable *variable) {
     }
 }
 
-void EigenVariableGroup::add_variables(const std::vector<const EigenVariable *> variables){
+void EigenVariableGroup::add_variables(const std::vector<const EigenVariable *> variables) {
     for(auto variable : variables)
         add_variable(variable);
+}
+
+void EigenVariableGroup::add_variables(EigenVariableGroup *group) {
+    for(auto &item : group->variable_map_)
+        add_variable(item.second);
 }
 
 bool EigenVariableGroup::values_match(const std::string key) const{
@@ -96,14 +101,29 @@ const std::vector<std::string> EigenVariableGroup::common_keys() const{
     return common_keys_;
 }
 
+const std::vector<const EigenVariable *> EigenVariableGroup::variables(const std::string key) const {
+    auto vars = variable_map_.equal_range(key);
+    std::vector<const EigenVariable *> retval = {};
+    for(auto it = vars.first; it != vars.second; ++it)
+        retval.emplace_back(it->second);
+    return retval;
+}
+
+int EigenVariableGroup::common_key_index(std::string key) const {
+    auto it = std::find(common_keys_.begin(), common_keys_.end(), key);
+    if(it == common_keys_.end())
+        return -1;
+    return std::distance(common_keys_.begin(), it);
+}
+
 
 /* ==== EigenModuleGroup ==== */
 
 EigenModuleGroup::EigenModuleGroup(std::vector<ModuleConst> modules) {
     modules_ = modules;
-    variable_group_ = EigenVariableGroup(modules.size());
-    parameter_group_ = EigenVariableGroup(modules.size());
-    mailbox_group_ = EigenVariableGroup(modules.size());
+    variable_group_ = EigenVariableGroup((eigen_addr_t)modules.size());
+    parameter_group_ = EigenVariableGroup((eigen_addr_t)modules.size());
+    mailbox_group_ = EigenVariableGroup((eigen_addr_t)modules.size());
 
     for(ModuleConst &module : modules){
         variable_group_.add_variables(module->variable_list);

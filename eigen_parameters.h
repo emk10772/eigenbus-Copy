@@ -102,6 +102,8 @@ public:
     }
 
     inline std::vector<const T *> list() const{
+        std::lock_guard<std::mutex> lock(mutex);
+
         std::vector<const T *> retval = {};
         for(auto &param : param_list){
             retval.emplace_back(param.value);

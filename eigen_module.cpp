@@ -9,7 +9,12 @@ EigenModule::EigenModule(uint8_t address){
 #define ENTRY(e_name, type, v_name) this->variable_list[e_name] = &this->v_name;
     VAR_LIST
 #undef ENTRY
-
+    //Set the IDs for each variable
+#define ENTRY(e_name, type, v_name)     \
+    this->v_name.set_id(e_name);        \
+    this->v_name.set_address(address);  \
+    VAR_LIST
+#undef ENTRY
     this->address = address;
 
     this->last_position_cmd = nan("");
@@ -262,41 +267,6 @@ void EigenModule::set_encoder_status(uint16_t status){
     std::lock_guard<std::mutex> lock(mutex);
     this->encoder_status = status;
 }
-/*
-double EigenModule::position() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    return this->position;
-}
-
-double EigenModule::velocity() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    return this->velocity;
-}
-
-double EigenModule::effort() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    return this->effort;
-}
-
-void EigenModule::set_position(double position){
-    std::lock_guard<std::mutex> lock(mutex);
-    this->position = position;
-}
-
-void EigenModule::set_velocity(double velocity){
-    std::lock_guard<std::mutex> lock(mutex);
-    this->velocity = velocity;
-}
-
-void EigenModule::set_effort(double effort){
-    std::lock_guard<std::mutex> lock(mutex);
-    this->effort = effort;
-}*/
-/*
-uint8_t EigenModule::address() const{
-    std::lock_guard<std::mutex> lock(mutex);
-    return this->address;
-}*/
 
 std::string EigenModule::print_encoder_status() const{
     if(encoder_status == 00)                    return "Working Correctly";

@@ -8,7 +8,8 @@
 
 /* EigenVariableGroup
     A strict observer of EigenVariables. Used to look for common values between variables.
-    Must ensure that this class does not outlive its variables
+    Must ensure that this class does not outlive its variables.
+    Underlying data structure is not designed to be thread safe. Should not be modified while in use
 */
 class EigenVariableGroup {
 public:
@@ -16,10 +17,13 @@ public:
 
     void add_variable(const EigenVariable *variable);
     void add_variables(const std::vector<const EigenVariable *> variables);
+    void add_variables(EigenVariableGroup *group);
 
     std::string print_variable(const std::string key) const;
     std::string print_variable_list(const std::string key) const;
     const std::vector<std::string> common_keys() const;
+    const std::vector<const EigenVariable *> variables(const std::string key) const;
+    int common_key_index(std::string) const;
     bool values_match(const std::string key) const;
     template<typename T> const T* value(const std::string key) const{
         //using type = std::remove_pointer_t<T>;
@@ -67,10 +71,10 @@ public:
 private:
     std::vector<ModuleConst> modules_;
     std::set<eigen_addr_t> module_addrs_;
+    std::unordered_multimap<std::string, std::string> poll_keys_;
     EigenVariableGroup variable_group_;
     EigenVariableGroup parameter_group_;
     EigenVariableGroup mailbox_group_;
-    std::unordered_multimap<std::string, std::string> poll_keys_;
 };
 
 #endif // EIGENGROUP_H

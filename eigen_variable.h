@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include "eigen_utils.h"
 
 typedef enum{
     EIGEN_UINT8,
@@ -21,11 +22,21 @@ public:
     std::string name() const;
     EigenVarType type() const;
     bool weak_match(const EigenVariable &variable) const;
+    eigen_addr_t id() const;
+    eigen_addr_t module_address() const;
+    bool parent_info_valid() const;
+    void set_id(eigen_addr_t id);
+    void set_address(eigen_addr_t addr);
+
     virtual bool strong_match(const EigenVariable &variable) const = 0;
     virtual std::string print() const = 0;
     virtual bool parse_value(std::string encoded) = 0;
 
 private:
+    bool addr_set_;
+    bool id_set_;
+    eigen_addr_t mod_address_;
+    eigen_addr_t id_;
     const std::string name_;
     const EigenVarType type_;
 };

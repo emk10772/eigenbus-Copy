@@ -43,17 +43,20 @@ EigenUpdate *EigenResponseParamRead::update_module(ModuleShared mod, uint64_t la
                     variable = new EigenDouble(param_name);
                 }
 
-                if(variable)
+                if(variable) {
                     mod->parameters.add(param_addr, variable, param_name);
-
-                return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_ADD, latency, mod, param_addr);
+                    variable->set_id(param_addr);
+                    variable->set_address(mod->address);
+                    return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_ADD, latency, mod, param_addr);
+                }
+                return nullptr;
             }
         } else {
             //Write value to module
             EigenVariable *variable = mod->parameters.value(id_);
             if(variable)
                 variable->parse_value(packet_.substr(ind + 1));
-            return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_READ, latency, mod, id_);
+            return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_READ, latency, mod, id_, mod->parameters.name(id_));
         }
     } catch (std::exception e){
         return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_ERR, latency, mod);
