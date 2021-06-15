@@ -258,6 +258,10 @@ std::string EigenModule::print_orientation() const{
     return std::string((char *)s);
 }
 
+bool EigenModule::valid() const {
+    return parameters.expected() != 0 && parameters.parameters_left() == 0;
+}
+
 uint16_t EigenModule::get_encoder_status() const{
     std::lock_guard<std::mutex> lock(mutex);
     return this->encoder_status;

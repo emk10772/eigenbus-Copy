@@ -19,6 +19,7 @@ public:
         expected_num_params = 0;
         received_params = 0;
         t_last_update = current_time_ms();
+        request_in_progress = false;
     }
 
     //void add(uint8_t id, T item, std::string name);
@@ -79,9 +80,21 @@ public:
         return expected_num_params - received_params;
     }
 
+    inline uint8_t expected() const {
+        return expected_num_params;
+    }
+
     //uint64_t d_t_last_update() const;
     inline uint64_t d_t_last_update() const{
         return current_time_ms() - t_last_update;
+    }
+
+    inline void set_request_in_progress(bool value){
+        request_in_progress = value;
+    }
+
+    inline bool update_required(){
+        return !request_in_progress && parameters_left() > 0 && d_t_last_update() > PACKET_TIMEOUT;
     }
 
     //std::string name(uint8_t id) const;
@@ -123,6 +136,7 @@ private:
     uint64_t t_last_update;
     uint8_t expected_num_params;
     uint8_t received_params;
+    bool request_in_progress;
 
 };
 

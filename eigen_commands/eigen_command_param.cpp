@@ -21,6 +21,10 @@ EigenCommand *EigenCommandParamRead::clone(eigen_addr_t addr) const{
     return new EigenCommandParamRead(addr, id_);
 }
 
+void EigenCommandParamRead::update_module(ModuleShared mod){
+    mod->parameters.set_request_in_progress(false);
+}
+
 
 
 std::string EigenCommandParamWrite::packet() const{

@@ -13,6 +13,7 @@ public:
     std::string expected_response() const override;
     EigenCommand *clone() const override;
     EigenCommand *clone(eigen_addr_t addr) const override;
+    void update_module(ModuleShared mod) override;
 
 private:
     uint8_t id_;

@@ -109,6 +109,7 @@ public:
     uint8_t get_type() const;
     uint8_t get_hardware_type() const;
     std::string print_orientation() const;
+    bool valid() const;
 
     uint64_t t_broadcast_sync_start;
     uint64_t t_broadcast_offset;

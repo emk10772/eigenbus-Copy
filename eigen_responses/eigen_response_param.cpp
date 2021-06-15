@@ -25,7 +25,7 @@ EigenUpdate *EigenResponseParamRead::update_module(ModuleShared mod, uint64_t la
                     responses_.push_back(strprintf("|(00,%02X", i));
                 }
 
-                mod->parameters.set_expected_parameters(param_aux);
+                mod->parameters.set_expected_parameters(param_aux - 1);
                 return nullptr;
             } else {
                 std::string param_name = tokens[2];

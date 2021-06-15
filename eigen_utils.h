@@ -11,11 +11,14 @@
 #include <cmath>
 #include <algorithm>
 
-/* Common Timeouts / Periods in milliseconds */
-#define UPDATE_PERIOD           (100)
-#define UPDATE_TOPOLOGY_PERIOD  (1000)
-#define UPDATE_STATUS_PERIOD    (250)
-#define PACKET_TIMEOUT          (600)
+/* Common Timeouts / Periods in milliseconds
+    Prime numbers used to reduce overlap
+*/
+#define UPDATE_PERIOD           (101)
+#define SLOW_CMD_PERIOD         (89)
+#define UPDATE_TOPOLOGY_PERIOD  (1009)
+#define UPDATE_STATUS_PERIOD    (251)
+#define PACKET_TIMEOUT          (601)
 
 /* POLL DEFINITIONS */
 #define EIGEN_POLL_LOCATION         (0x01)
