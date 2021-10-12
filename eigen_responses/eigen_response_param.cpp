@@ -28,7 +28,9 @@ EigenUpdate *EigenResponseParamRead::update_module(ModuleShared mod, uint64_t la
                 mod->parameters.set_expected_parameters(param_aux);
                 return nullptr;
             } else {
-                std::string param_name = tokens[2];
+                std::string param_name = "ERR";
+                if(tokens.size() > 2)
+                    param_name = tokens[2];
                 //service_eigencomms should null terminate the string for us
 
                 mod->parameters.add(param_addr, EigenParameter(param_aux), param_name);
