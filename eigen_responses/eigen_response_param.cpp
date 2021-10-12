@@ -28,7 +28,9 @@ EigenUpdate *EigenResponseParamRead::update_module(ModuleShared mod, uint64_t la
                 mod->parameters.set_expected_parameters(param_aux - 1);
                 return nullptr;
             } else {
-                std::string param_name = tokens[2];
+                std::string param_name = "ERR";
+                if(tokens.size() > 2)
+                    param_name = tokens[2];
                 //service_eigencomms should null terminate the string for us
                 EigenVariable *variable = nullptr;
                 if(param_aux == PARAM_TYPE_UINT8){
