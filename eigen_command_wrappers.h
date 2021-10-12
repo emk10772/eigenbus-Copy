@@ -15,7 +15,7 @@ void eigen_set_motor_enable(eigen_addr_t address, uint8_t mode);
 void eigen_poll_status(eigen_addr_t address, uint8_t action);
 void eigen_poll_topology(eigen_addr_t address);
 void eigen_read_parameter(eigen_addr_t address, uint8_t param_id);
-void eigen_write_parameter(eigen_addr_t address, uint8_t param_id, std::string param);
+void eigen_write_parameter(eigen_addr_t address, uint8_t param_id, EigenVariable *variable);
 void eigen_read_mailbox(eigen_addr_t address, uint8_t id);
 void eigen_write_mailbox(eigen_addr_t address, uint8_t id, std::string value);
 void eigen_firmware_utility(eigen_addr_t address, uint16_t action);

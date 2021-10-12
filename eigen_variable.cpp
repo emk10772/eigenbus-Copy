@@ -78,6 +78,17 @@ bool EigenUint8::parse_value(std::string encoded) {
     return false;
 }
 
+EigenVariable *EigenUint8::clone() const{
+    EigenUint8 *retval = new EigenUint8(name_, value_);
+
+    retval->id_ = id_;
+    retval->mod_address_ = mod_address_;
+    retval->addr_set_ = addr_set_;
+    retval->id_set_ = id_set_;
+
+    return retval;
+}
+
 
 /* ==== EigenUint16 ==== */
 EigenUint16::EigenUint16(std::string name, uint16_t value) : EigenVariable(name, EIGEN_UINT16){
@@ -111,6 +122,17 @@ bool EigenUint16::parse_value(std::string encoded) {
         return false;
     }
     return false;
+}
+
+EigenVariable *EigenUint16::clone() const{
+    EigenUint16 *retval = new EigenUint16(name_, value_);
+
+    retval->id_ = id_;
+    retval->mod_address_ = mod_address_;
+    retval->addr_set_ = addr_set_;
+    retval->id_set_ = id_set_;
+
+    return retval;
 }
 
 
@@ -149,6 +171,17 @@ bool EigenUint32::parse_value(std::string encoded) {
     return false;
 }
 
+EigenVariable *EigenUint32::clone() const{
+    EigenUint32 *retval = new EigenUint32(name_, value_);
+
+    retval->id_ = id_;
+    retval->mod_address_ = mod_address_;
+    retval->addr_set_ = addr_set_;
+    retval->id_set_ = id_set_;
+
+    return retval;
+}
+
 
 /* ==== EigenUint64 ==== */
 EigenUint64::EigenUint64(std::string name, uint64_t value) : EigenVariable(name, EIGEN_UINT64){
@@ -180,6 +213,17 @@ bool EigenUint64::parse_value(std::string encoded) {
         return false;
     }
     return false;
+}
+
+EigenVariable *EigenUint64::clone() const{
+    EigenUint64 *retval = new EigenUint64(name_, value_);
+
+    retval->id_ = id_;
+    retval->mod_address_ = mod_address_;
+    retval->addr_set_ = addr_set_;
+    retval->id_set_ = id_set_;
+
+    return retval;
 }
 
 
@@ -217,6 +261,17 @@ bool EigenDouble::parse_value(std::string encoded) {
     return false;
 }
 
+EigenVariable *EigenDouble::clone() const{
+    EigenDouble *retval = new EigenDouble(name_, value_);
+
+    retval->id_ = id_;
+    retval->mod_address_ = mod_address_;
+    retval->addr_set_ = addr_set_;
+    retval->id_set_ = id_set_;
+
+    return retval;
+}
+
 
 /* ==== EigenString ==== */
 EigenString::EigenString(std::string name, std::string value) : EigenVariable(name, EIGEN_STRING){
@@ -242,4 +297,15 @@ std::string EigenString::print() const {
 bool EigenString::parse_value(std::string encoded) {
     value_ = encoded;
     return true;
+}
+
+EigenVariable *EigenString::clone() const{
+    EigenString *retval = new EigenString(name_, value_);
+
+    retval->id_ = id_;
+    retval->mod_address_ = mod_address_;
+    retval->addr_set_ = addr_set_;
+    retval->id_set_ = id_set_;
+
+    return retval;
 }

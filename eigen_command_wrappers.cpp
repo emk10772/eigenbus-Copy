@@ -41,12 +41,8 @@ void eigen_read_parameter(eigen_addr_t address, uint8_t param_id){
     add_command(new EigenCommandParamRead(address, param_id));
 }
 
-void eigen_write_parameter(eigen_addr_t address, uint8_t param_id, std::string param){
-    /*ModuleConst mod = get_module(address);
-    auto write_param = EigenParameter(mod->parameters.value(param_id).type());
-    write_param.update_value(param);
-
-    add_command(new EigenCommandParamWrite(address, param_id, write_param));*/
+void eigen_write_parameter(eigen_addr_t address, uint8_t id, EigenVariable *variable){
+    add_command(new EigenCommandParamWrite(address, id, variable));
 }
 
 void eigen_read_mailbox(eigen_addr_t address, uint8_t id){

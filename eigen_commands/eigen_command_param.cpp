@@ -28,20 +28,24 @@ void EigenCommandParamRead::update_module(ModuleShared mod){
 
 
 std::string EigenCommandParamWrite::packet() const{
-    return strprintf("%02X)%02X,%s,8675309", address_, id_, param_.print().c_str());
+    return strprintf("%02X)%02X,%s,8675309", address_, id_, param_->print().c_str());
 }
 
 std::string EigenCommandParamWrite::expected_response() const{
     //Check if the param type is valid
-    if(param_.type() == 0 || param_.type() > PARAM_TYPE_MAX) return "";
+    //if(param_.type() == 0 || param_.type() > PARAM_TYPE_MAX) return "";
 
     //Return expected response if param type is correct
     return strprintf("|)%02X", id_);
 }
 
-EigenCommandParamWrite::EigenCommandParamWrite(eigen_addr_t address, uint8_t id, EigenParameter param)
+EigenCommandParamWrite::EigenCommandParamWrite(eigen_addr_t address, uint8_t id, EigenVariable *param)
     : EigenCommand(address, EIGEN_PACKET_DEBUG, EIGEN_CMD_PARAM_WRITE), param_(param){
     id_ = id;
+}
+
+EigenCommandParamWrite::~EigenCommandParamWrite(){
+    delete param_;
 }
 
 EigenCommand *EigenCommandParamWrite::clone() const{

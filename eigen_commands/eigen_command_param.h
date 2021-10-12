@@ -21,7 +21,8 @@ private:
 
 class EigenCommandParamWrite : public EigenCommand{
 public:
-    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, EigenParameter param);
+    EigenCommandParamWrite(eigen_addr_t address, uint8_t id, EigenVariable *param);
+    ~EigenCommandParamWrite();
 
     std::string packet() const override;
     std::string expected_response() const override;
@@ -29,7 +30,7 @@ public:
     EigenCommand *clone(eigen_addr_t addr) const override;
 
 private:
-    EigenParameter param_;
+    EigenVariable *param_;
     uint8_t id_;
 };
 
