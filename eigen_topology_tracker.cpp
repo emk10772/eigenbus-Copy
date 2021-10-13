@@ -38,7 +38,7 @@ void EigenTopologyTracker::process_updates(){
                 Node *node = node_map_[update->address()];
                 //Check if the node already has an entry for the specific port
                 eigen_addr_t ind = 0;
-                for(auto port : update->module()->downstream()){
+                for(auto &port : update->module()->downstream()){
                     if(port.addr_current != 0xFF && !node->has_child(port.addr_current)){
                         Node *child = add_node(port.addr_current, node);
                         node->add_child(child);
@@ -48,7 +48,8 @@ void EigenTopologyTracker::process_updates(){
                 }
             }
         } else if (update->type() == EigenUpdate::MODULE_ADDED && update->module() != nullptr){
-            add_node(update->address());
+            if(node_map_.count(update->address()) == 0)
+                add_node(update->address());
         } else if (update->type() == EigenUpdate::MODULE_REMOVED){
             remove_node(update->address());
         }
@@ -135,7 +136,7 @@ const std::vector<EigenTopologyTracker::Node *> EigenTopologyTracker::get_depth_
 eigen_addr_t EigenTopologyTracker::max_depth() const{
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-    return depth_list_.size();
+    return (eigen_addr_t) depth_list_.size();
 }
 
 void EigenTopologyTracker::remove_depth(Node *node, eigen_addr_t depth){
@@ -235,7 +236,7 @@ int EigenTopologyTracker::Node::childNumber() const{
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
     if(parent_)
-        return std::distance(parent_->children_.begin(), parent_->children_.find(addr_));
+        return (int) std::distance(parent_->children_.begin(), parent_->children_.find(addr_));
     return 0;
 }
 
