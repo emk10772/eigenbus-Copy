@@ -7,6 +7,8 @@
 #include <atomic>
 #include <deque>
 
+#define MAX_RAW_PACKETS     100
+
 class EigenCounter {
 public:
     EigenCounter(uint64_t window_ms = 2000);
@@ -89,7 +91,7 @@ private:
 
     //Raw packet storage, thread safe
     EigenQueue<raw_packet> raw_packets_;
-    
+
     //Internal deques, not thread safe
     std::deque<EigenPacketFilter> packet_filter_list;
     std::deque<uint64_t> latencies_;

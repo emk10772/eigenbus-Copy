@@ -204,9 +204,15 @@ public:
         clear();
     }
 
+    inline void setMax(uint16_t max){
+        max_len_ = max;
+    }
+
     inline void add(T *item){
         std::lock_guard<std::mutex> lock(mutex_);
         deque_.push_back(item);
+        if(max_len_ > 0 && deque_.size() > max_len_)
+            deque_.pop_front();
     }
 
     /* Transfer items from deque to this deque */
@@ -252,7 +258,7 @@ public:
 private:
     std::deque<T *> deque_;
     std::mutex mutex_;
-
+    uint16_t max_len_ = 0;
 };
 
 #endif

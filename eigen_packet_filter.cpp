@@ -1,7 +1,7 @@
 #include "eigen_packet_filter.h"
 #include "eigen_comms.h"
 
-#define AVG_MAX_SIZE 50
+#define AVG_MAX_SIZE        50
 
 #include <QDebug>
 
@@ -10,6 +10,8 @@ EigenPacketTracker::EigenPacketTracker(){
     latency_avg_ = 0.0;
     latency_peak_ = 0.0;
     latency_total_ = 0;
+
+    raw_packets_.setMax(MAX_RAW_PACKETS);
 }
 
 EigenPacketTracker::~EigenPacketTracker(){
@@ -47,6 +49,7 @@ void EigenPacketTracker::add_raw_packet(std::string pkt_string, packet_type type
     pkt->type = type;
     pkt->dir = dir;
     raw_packets_.add(pkt);
+
 }
 
 void EigenPacketTracker::handle_timeout_packets(){
