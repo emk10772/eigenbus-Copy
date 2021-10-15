@@ -50,7 +50,10 @@ EigenModule::EigenModule(uint8_t address){
 }
 
 EigenModule::~EigenModule(){
+    variable_list.clear();
 
+    parameters.~EigenParameterSet();
+    mailboxes.~EigenParameterSet();
 }
 
 void EigenModule::add_downstream(uint8_t node_addr){

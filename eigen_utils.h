@@ -211,8 +211,11 @@ public:
     inline void add(T *item){
         std::lock_guard<std::mutex> lock(mutex_);
         deque_.push_back(item);
-        if(max_len_ > 0 && deque_.size() > max_len_)
+        if(max_len_ > 0 && deque_.size() > max_len_){
+            auto val = deque_.front();
             deque_.pop_front();
+            delete val;
+        }
     }
 
     /* Transfer items from deque to this deque */

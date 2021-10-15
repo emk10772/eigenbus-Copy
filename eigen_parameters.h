@@ -8,7 +8,7 @@ template <class T>
 class EigenParameterSet{
 public:
     inline EigenParameterSet(){
-        param_t param;
+        param_set_item_t param;
         param.name = "";
         param.dirty = false;
         param.value = nullptr;
@@ -22,11 +22,18 @@ public:
         request_in_progress = false;
     }
 
+    inline ~EigenParameterSet(){
+        for(param_set_item_t item : param_list){
+            delete item.value;
+        }
+        param_list.clear();
+    }
+
     //void add(uint8_t id, T item, std::string name);
     inline void add(uint8_t id, T *item, std::string name){
         std::lock_guard<std::mutex> lock(mutex);
 
-        param_t param;
+        param_set_item_t param;
         param.name = "";
         param.dirty = false;
         param.value = nullptr;
@@ -41,6 +48,9 @@ public:
 
         if(param_list[id].name == "")
             received_params++;
+
+        if(param_list[id].value)
+            delete param_list[id].value;
 
         //Update the param list
         param_list[id] = param;
@@ -129,10 +139,10 @@ private:
         bool dirty;
         std::string name;
         T *value;
-    } param_t;
+    } param_set_item_t;
 
     mutable std::mutex mutex;
-    std::vector<param_t> param_list;
+    std::vector<param_set_item_t> param_list;
     uint64_t t_last_update;
     uint8_t expected_num_params;
     uint8_t received_params;
