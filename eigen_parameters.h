@@ -104,7 +104,7 @@ public:
     }
 
     inline bool update_required(){
-        return parameters_left() > 0 && (d_t_last_update() > PACKET_TIMEOUT || !request_in_progress);
+        return (expected_num_params == 0 || parameters_left() > 0) && d_t_last_update() > PACKET_TIMEOUT && !request_in_progress;
     }
 
     //std::string name(uint8_t id) const;
