@@ -65,7 +65,8 @@ public:
     //Wrappers for variable_group value functions
     template<typename T> const T* key_to_value(const std::string key) const{
         return variable_group_.value<T>(key);
-    };
+    }
+
     std::string key_to_string(const std::string key) const;
     std::string key_to_list_string(const std::string key) const;
 private:
