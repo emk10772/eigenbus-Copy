@@ -15,6 +15,7 @@ class EigenVariableGroup {
 public:
     EigenVariableGroup(eigen_addr_t min_count = 0);
 
+    //Utility functions for adding variables to this group
     void add_variable(const EigenVariable *variable);
     void add_variables(const std::vector<const EigenVariable *> variables);
     void add_variables(EigenVariableGroup *group);
@@ -25,14 +26,18 @@ public:
     const std::vector<const EigenVariable *> variables(const std::string key) const;
     int common_key_index(std::string) const;
     bool values_match(const std::string key) const;
+
+    //T *value: A template for getting a value from the specified key
     template<typename T> const T* value(const std::string key) const{
-        //using type = std::remove_pointer_t<T>;
+        //Make sure that this is the correct type
         static_assert(std::is_base_of<EigenVariable, T>::value,
                             "Base type must be of EigenVariable");
         try {
+            //Return a null reference if either is true:
+            // 1. The values do not match in type or value
+            // 2. The variable does not match the provided type
             if(!values_match(key)) return nullptr;
             const EigenVariable *var = variable_map_.find(key)->second;
-            //const T retval = dynamic_cast<const T>(var);
             return dynamic_cast<const T*>(var);;
         } catch (std::exception e) {
             return nullptr;
@@ -71,13 +76,14 @@ public:
     std::string key_to_string(const std::string key) const;
     std::string key_to_list_string(const std::string key) const;
     std::string print_list(const eigen_addr_t max_len) const;
+
 private:
-    std::vector<ModuleConst> modules_;
-    std::set<eigen_addr_t> module_addrs_;
-    std::unordered_multimap<std::string, std::string> poll_keys_;
-    EigenVariableGroup variable_group_;
-    EigenVariableGroup parameter_group_;
-    EigenVariableGroup mailbox_group_;
+    std::vector<ModuleConst> modules_;      //List of modules that are in this group
+    std::set<eigen_addr_t> module_addrs_;   //A set of the module addresses for fast inclusion checks
+    std::unordered_multimap<std::string, std::string> poll_keys_; //List of keys used for group polling
+    EigenVariableGroup variable_group_;     //All of the standard Eigenbus variables for each module
+    EigenVariableGroup parameter_group_;    //Non-volatile parameter group
+    EigenVariableGroup mailbox_group_;      //Volatile paramater group
 };
 
 #endif // EIGENGROUP_H

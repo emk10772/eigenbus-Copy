@@ -125,5 +125,5 @@ std::vector<EigenUpdate *> EigenVectorMap::clear_old(uint64_t t_now, uint64_t t_
 eigen_addr_t EigenVectorMap::size(){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-    return vector_.size();
+    return (eigen_addr_t) vector_.size();
 }

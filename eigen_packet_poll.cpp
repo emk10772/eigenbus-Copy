@@ -5,7 +5,7 @@ EigenPacketPoll::EigenPacketPoll(){
 }
 
 EigenPacketPoll::~EigenPacketPoll(){
-    for(auto item : poll_map_){
+    for(auto &item : poll_map_){
         delete item.second->command;
         delete item.second;
     }

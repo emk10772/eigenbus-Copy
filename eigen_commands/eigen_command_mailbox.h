@@ -20,7 +20,7 @@ private:
 
 class EigenCommandMailboxWrite : public EigenCommand{
 public:
-    EigenCommandMailboxWrite(eigen_addr_t address, uint8_t id, EigenMailbox data);
+    EigenCommandMailboxWrite(eigen_addr_t address, uint8_t id, std::string data);
 
     std::string packet() const override;
     std::string expected_response() const override;
@@ -28,7 +28,7 @@ public:
     EigenCommand *clone(eigen_addr_t addr) const override;
 
 private:
-    EigenMailbox data_;
+    std::string data_;
     uint8_t id_;
 };
 

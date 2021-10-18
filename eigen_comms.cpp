@@ -177,7 +177,7 @@ uint8_t generate_node_address(){
 }
 
 void process_packet(uint8_t *buffer, uint8_t len) {
-    uint8_t addr = 0;
+    eigen_addr_t addr = 0;
     uint8_t *ptr = buffer;
     
     if (len > 3 && buffer[0] == '.' &&
@@ -185,14 +185,14 @@ void process_packet(uint8_t *buffer, uint8_t len) {
 
         uint8_t pkt_valid = 1;
         //Check for a valid address
-        addr = strtol((char *)buffer+1, (char **)&ptr, 16);
+        addr = (eigen_addr_t) strtol((char *)buffer+1, (char **)&ptr, 16);
         if (ptr - buffer != 3){
             pkt_valid = 0;
         }
 
         //Check the checksum. Should start at len - 3 if this is a valid packet
         if(buffer[len-3] == ':'){
-            uint8_t chk_read = strtol((char *)buffer + len - 2, NULL, 16);
+            uint8_t chk_read = (uint8_t) strtol((char *)buffer + len - 2, NULL, 16);
             uint8_t chk_calc = crc_8_ccitt((char *)buffer, len-3);
             if(chk_read != chk_calc){
                 pkt_valid = 0;

@@ -29,7 +29,6 @@ public:
         param_list.clear();
     }
 
-    //void add(uint8_t id, T item, std::string name);
     inline void add(uint8_t id, T *item, std::string name){
         std::lock_guard<std::mutex> lock(mutex);
 
@@ -57,22 +56,12 @@ public:
         t_last_update = current_time_ms();
     }
 
-    //T& ref(uint8_t param);
-    /*inline T& ref(uint8_t param){
-        std::lock_guard<std::mutex> lock(mutex);
-
-        if(param >= param_list.size()) return param_list[0].value;
-        return param_list[param].value;
-    }*/
-
-    //void set_last_update();
     inline void set_last_update(){
         std::lock_guard<std::mutex> lock(mutex);
 
         t_last_update = current_time_ms();
     }
 
-    //void set_expected_parameters(uint8_t num_parameters);
     inline void set_expected_parameters(uint8_t num_parameters){
         std::lock_guard<std::mutex> lock(mutex);
 
@@ -80,7 +69,6 @@ public:
         t_last_update = current_time_ms();
     }
 
-    //uint8_t parameters_left() const;
     inline uint8_t parameters_left() const{
         std::lock_guard<std::mutex> lock(mutex);
 
@@ -94,7 +82,6 @@ public:
         return expected_num_params;
     }
 
-    //uint64_t d_t_last_update() const;
     inline uint64_t d_t_last_update() const{
         return current_time_ms() - t_last_update;
     }
@@ -107,7 +94,6 @@ public:
         return (expected_num_params == 0 || parameters_left() > 0) && d_t_last_update() > PACKET_TIMEOUT && !request_in_progress;
     }
 
-    //std::string name(uint8_t id) const;
     inline std::string name(uint8_t id) const{
         std::lock_guard<std::mutex> lock(mutex);
         if(id >= param_list.size()) return "ERR";
@@ -116,7 +102,6 @@ public:
         return retval;
     }
 
-    //T value(uint8_t param) const;
     inline T *value(uint8_t param) const{
         std::lock_guard<std::mutex> lock(mutex);
 
@@ -159,43 +144,6 @@ private:
 #define PARAM_TYPE_DOUBLE       (6)
 #define PARAM_TYPE_MAX          (_DOUBLE)
 
-class EigenParameter{
-public:
-    EigenParameter(uint8_t type);
-    EigenParameter();
-
-    ~EigenParameter();
-
-    bool update_value(std::string val);
-    bool update_value(uint8_t val);
-    bool update_value(uint16_t val);
-    bool update_value(uint32_t val);
-    bool update_value(uint64_t val);
-    bool update_value(float val);
-    bool update_value(double val);
-
-    typedef union{
-        uint8_t     uint8_;
-        uint16_t    uint16_;
-        uint32_t    uint32_;
-        uint64_t    uint64_;
-        float       float_;
-        double      double_;
-    } eigen_param_t;
-
-    eigen_param_t value() const;
-    uint8_t type() const;
-
-    std::string print() const;
-    std::string print_as(uint8_t type) const;
-
-private:
-    eigen_param_t value_;
-    uint8_t type_;
-
-};
-
-
 /* Mailbox Type Hints */
 #define MAILBOX_RW_MASK         (0x0F)
 #define MAILBOX_READ_ONLY       (0x01)
@@ -205,30 +153,5 @@ private:
 #define MAILBOX_INT             (0x10)
 #define MAILBOX_DOUBLE          (0x20)
 #define MAILBOX_STRING          (0x40)
-
-class EigenMailbox{
-public:
-    EigenMailbox(uint8_t type);
-    EigenMailbox();
-
-    ~EigenMailbox();
-
-    bool update_value(std::string val);
-    bool plottable() const;
-    bool valid() const;
-
-    std::string print() const;
-    uint8_t type() const;
-    double as_float() const;
-
-private:
-    std::string raw_value_;
-    uint32_t parsed_int_;
-    double parsed_double_;
-    bool parse_valid;
-
-    uint8_t type_hint_;
-    uint8_t access_;
-};
 
 #endif // EIGEN_PARAMETERS_H

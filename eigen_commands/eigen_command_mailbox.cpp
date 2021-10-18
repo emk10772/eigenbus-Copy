@@ -24,16 +24,16 @@ EigenCommand *EigenCommandMailboxRead::clone(eigen_addr_t addr) const{
 
 
 std::string EigenCommandMailboxWrite::packet() const{
-    return strprintf("%02X]%02X,%s,8675309", address_, id_, data_.print().c_str());
+    return strprintf("%02X]%02X,%s,8675309", address_, id_, data_.c_str());
 }
 
 std::string EigenCommandMailboxWrite::expected_response() const{
-    if(!data_.valid()) return "";
+    if(data_ == "") return "";
 
     return strprintf("|]%02X", id_);
 }
 
-EigenCommandMailboxWrite::EigenCommandMailboxWrite(eigen_addr_t address, uint8_t id, EigenMailbox data)
+EigenCommandMailboxWrite::EigenCommandMailboxWrite(eigen_addr_t address, uint8_t id, std::string data)
     : EigenCommand(address, EIGEN_PACKET_DEBUG, EIGEN_CMD_MAIL_WRITE), data_(data){
     id_ = id;
 }
