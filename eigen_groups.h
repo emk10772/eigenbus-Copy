@@ -52,6 +52,7 @@ public:
 
     const EigenVariableGroup variable_group();
     const EigenVariableGroup parameter_group();
+    const EigenVariableGroup mailbox_group();
     bool contains_module(eigen_addr_t address);
     bool contains_module(ModuleConst module);
     size_t count();
@@ -69,6 +70,7 @@ public:
 
     std::string key_to_string(const std::string key) const;
     std::string key_to_list_string(const std::string key) const;
+    std::string print_list(const eigen_addr_t max_len) const;
 private:
     std::vector<ModuleConst> modules_;
     std::set<eigen_addr_t> module_addrs_;

@@ -7,6 +7,7 @@ EigenVariable::EigenVariable(std::string name, EigenVarType type)
     mod_address_ = 0xFF;
     addr_set_ = false;
     id_set_ = false;
+    plottable_ = false;
 }
 
 std::string EigenVariable::name() const {
@@ -33,6 +34,10 @@ bool EigenVariable::parent_info_valid() const {
     return id_set_ && addr_set_ && mod_address_ != 0xFF;
 }
 
+bool EigenVariable::plottable() const {
+    return plottable_;
+}
+
 void EigenVariable::set_id(eigen_addr_t id) {
     id_set_ = true;
     id_ = id;
@@ -43,10 +48,15 @@ void EigenVariable::set_address(eigen_addr_t addr) {
     mod_address_ = addr;
 }
 
+double EigenVariable::as_plottable() const {
+    return nan("");
+}
+
 
 /* ==== EigenUint8 ==== */
 EigenUint8::EigenUint8(std::string name, uint8_t value) : EigenVariable(name, EIGEN_UINT8){
     this->value_ = value;
+    plottable_ = true;
 }
 
 bool EigenUint8::strong_match(const EigenVariable &variable) const {
@@ -89,10 +99,15 @@ EigenVariable *EigenUint8::clone() const{
     return retval;
 }
 
+double EigenUint8::as_plottable() const {
+    return (double) value_;
+}
+
 
 /* ==== EigenUint16 ==== */
 EigenUint16::EigenUint16(std::string name, uint16_t value) : EigenVariable(name, EIGEN_UINT16){
     this->value_ = value;
+    plottable_ = true;
 }
 
 bool EigenUint16::strong_match(const EigenVariable &variable) const {
@@ -135,10 +150,15 @@ EigenVariable *EigenUint16::clone() const{
     return retval;
 }
 
+double EigenUint16::as_plottable() const {
+    return (double) value_;
+}
+
 
 /* ==== EigenUint32 ==== */
 EigenUint32::EigenUint32(std::string name, uint32_t value) : EigenVariable(name, EIGEN_UINT32){
     this->value_ = value;
+    plottable_ = true;
 }
 
 bool EigenUint32::strong_match(const EigenVariable &variable) const {
@@ -182,10 +202,15 @@ EigenVariable *EigenUint32::clone() const{
     return retval;
 }
 
+double EigenUint32::as_plottable() const {
+    return (double) value_;
+}
+
 
 /* ==== EigenUint64 ==== */
 EigenUint64::EigenUint64(std::string name, uint64_t value) : EigenVariable(name, EIGEN_UINT64){
     this->value_ = value;
+    plottable_ = true;
 }
 
 bool EigenUint64::strong_match(const EigenVariable &variable) const {
@@ -226,10 +251,15 @@ EigenVariable *EigenUint64::clone() const{
     return retval;
 }
 
+double EigenUint64::as_plottable() const {
+    return (double) value_;
+}
+
 
 /* ==== EigenDouble ==== */
 EigenDouble::EigenDouble(std::string name, double value) : EigenVariable(name, EIGEN_DOUBLE){
     this->value_ = value;
+    plottable_ = true;
 }
 
 bool EigenDouble::strong_match(const EigenVariable &variable) const {
@@ -270,6 +300,10 @@ EigenVariable *EigenDouble::clone() const{
     retval->id_set_ = id_set_;
 
     return retval;
+}
+
+double EigenDouble::as_plottable() const {
+    return value_;
 }
 
 

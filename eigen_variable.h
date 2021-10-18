@@ -25,6 +25,7 @@ public:
     eigen_addr_t id() const;
     eigen_addr_t module_address() const;
     bool parent_info_valid() const;
+    bool plottable() const;
     void set_id(eigen_addr_t id);
     void set_address(eigen_addr_t addr);
 
@@ -32,8 +33,10 @@ public:
     virtual std::string print() const = 0;
     virtual bool parse_value(std::string encoded) = 0;
     virtual EigenVariable *clone() const = 0;
+    virtual double as_plottable() const;
 
 protected:
+    bool plottable_;
     bool addr_set_;
     bool id_set_;
     eigen_addr_t mod_address_;
@@ -50,6 +53,7 @@ public:
     std::string print() const;
     bool parse_value(std::string encoded);
     EigenVariable *clone() const;
+    double as_plottable() const;
 
     operator uint8_t() const {
         return value_;
@@ -70,6 +74,7 @@ public:
     std::string print() const;
     bool parse_value(std::string encoded);
     EigenVariable *clone() const;
+    double as_plottable() const;
 
     operator uint16_t() const {
         return value_;
@@ -90,6 +95,7 @@ public:
     std::string print() const;
     bool parse_value(std::string encoded);
     EigenVariable *clone() const;
+    double as_plottable() const;
 
     operator uint32_t() const {
         return value_;
@@ -110,6 +116,7 @@ public:
     std::string print() const;
     bool parse_value(std::string encoded);
     EigenVariable *clone() const;
+    double as_plottable() const;
 
     operator uint64_t() const {
         return value_;
@@ -130,6 +137,7 @@ public:
     std::string print() const;
     bool parse_value(std::string encoded);
     EigenVariable *clone() const;
+    double as_plottable() const;
 
     operator double() const {
         return value_;

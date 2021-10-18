@@ -25,23 +25,43 @@ EigenUpdate *EigenResponseMailboxRead::update_module(ModuleShared mod, uint64_t 
                     responses_.push_back(strprintf("|[00,%02X", i));
                 }
 
-                mod->parameters.set_expected_parameters(mail_type);
+                mod->mailboxes.set_expected_parameters(mail_type);
                 return nullptr;
             } else {
                 std::string name = tokens[2];
                 //service_eigencomms should null terminate the string for us
 
-                //mod->mailboxes.add(mail_addr, EigenMailbox(mail_type), name);
-                return new EigenUpdate(mod->address, EigenUpdate::MODULE_MAIL_ADD, latency, mod, mail_addr);
+                EigenVariable *variable = nullptr;
+                if(mail_type & MAILBOX_INT){
+                    variable = new EigenUint64(name);
+                } else if(mail_type & MAILBOX_DOUBLE){
+                    variable = new EigenDouble(name);
+                } else if(mail_type & MAILBOX_STRING){
+                    variable = new EigenString(name);
+                }
+
+                if(variable) {
+                    mod->mailboxes.add(mail_addr, variable, name);
+                    variable->set_id(mail_addr);
+                    variable->set_address(mod->address);
+                    return new EigenUpdate(mod->address, EigenUpdate::MODULE_MAIL_ADD, latency, mod, mail_addr);
+                }
             }
         } else {
             //Write value to module
-            //mod->mailboxes.ref(id_).update_value(packet_.substr(ind + 1));
-            return new EigenUpdate(mod->address, EigenUpdate::MODULE_MAIL_READ, latency, mod, id_);
+            EigenVariable *variable = mod->mailboxes.value(id_);
+            bool valid = false;
+            if(variable)
+                valid = variable->parse_value(packet_.substr(ind + 1));
+
+            if(valid)
+                return new EigenUpdate(mod->address, EigenUpdate::MODULE_MAIL_READ, latency, mod, id_);
         }
     } catch(std::exception e){
         return new EigenUpdate(mod->address, EigenUpdate::MODULE_MAIL_ERR, latency, mod);
     }
+
+    return nullptr;
 }
 
 

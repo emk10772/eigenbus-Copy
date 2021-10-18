@@ -172,18 +172,6 @@ void EigenModule::update_UID(uint64_t UID_val){
         add_command(new EigenCommandUIDWrite(UID, address));
     }
 }
-/*
-void EigenModule::update_depth(uint8_t depth){
-    node_depth_ = depth;
-}
-
-uint8_t EigenModule::node_depth() const{
-    return node_depth_;
-}
-
-uint64_t EigenModule::UID() const{
-    return UID_;
-}*/
 
 void EigenModule::update_type(uint8_t type_){
     std::lock_guard<std::mutex> lock(mutex);

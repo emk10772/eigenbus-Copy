@@ -26,7 +26,8 @@ public:
         MODULE_MAIL_ADD,
         MODULE_MAIL_WRITE,
         MODULE_MAIL_ERR,
-        MODULE_ENCODER_STATUS
+        MODULE_ENCODER_STATUS,
+        MODULE_UTIL_UPDATE
     } update_t;
 
     EigenUpdate(eigen_addr_t address, update_t type, uint64_t latency = 0, ModuleConst mod = nullptr, uint8_t arg = 0, std::string data = "N/A");

@@ -128,6 +128,7 @@ EigenModuleGroup::EigenModuleGroup(std::vector<ModuleConst> modules) {
     for(ModuleConst &module : modules){
         variable_group_.add_variables(module->variable_list);
         parameter_group_.add_variables(module->parameters.list());
+        mailbox_group_.add_variables(module->mailboxes.list());
         module_addrs_.emplace(module->address);
     }
 }
@@ -147,6 +148,10 @@ const EigenVariableGroup EigenModuleGroup::variable_group() {
 
 const EigenVariableGroup EigenModuleGroup::parameter_group() {
     return parameter_group_;
+}
+
+const EigenVariableGroup EigenModuleGroup::mailbox_group() {
+    return mailbox_group_;
 }
 
 bool EigenModuleGroup::contains_module(eigen_addr_t address) {
@@ -207,4 +212,21 @@ std::string EigenModuleGroup::key_to_string(const std::string key) const {
 
 std::string EigenModuleGroup::key_to_list_string(const std::string key) const {
     return variable_group_.print_variable_list(key);
+}
+
+std::string EigenModuleGroup::print_list(const eigen_addr_t max_len) const {
+    std::string retval = "";
+    for(auto &mod : modules_){
+        retval.append(strprintf("%02X, ", (uint8_t)mod->address));
+    }
+
+    //Remove the trailing comma and space
+    if(retval.size() > 0)
+        retval = retval.substr(0, retval.size() - 2);
+
+
+    if(max_len > 0 && retval.size() > max_len)
+        retval = retval.substr(0, max_len - 3).append("...");
+
+    return retval;
 }

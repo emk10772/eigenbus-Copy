@@ -56,13 +56,17 @@ EigenUpdate *EigenResponseParamRead::update_module(ModuleShared mod, uint64_t la
         } else {
             //Write value to module
             EigenVariable *variable = mod->parameters.value(id_);
+            bool valid = false;
             if(variable)
-                variable->parse_value(packet_.substr(ind + 1));
-            return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_READ, latency, mod, id_, mod->parameters.name(id_));
+                valid = variable->parse_value(packet_.substr(ind + 1));
+            if(valid)
+                return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_READ, latency, mod, id_, mod->parameters.name(id_));
         }
     } catch (std::exception e){
         return new EigenUpdate(mod->address, EigenUpdate::MODULE_PARAM_ERR, latency, mod);
     }
+
+    return nullptr;
 }
 
 

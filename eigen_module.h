@@ -52,7 +52,8 @@ typedef struct module_down_struct{
     ENTRY(EIGEN_CMD_SUPPORT,    EigenUint8,     command_support) \
     ENTRY(EIGEN_LAST_POS_CMD,   EigenDouble,    last_position_cmd) \
     ENTRY(EIGEN_LAST_VEL_CMD,   EigenDouble,    last_velocity_cmd) \
-    ENTRY(EIGEN_LAST_EFF_CMD,   EigenDouble,    last_effort_cmd)
+    ENTRY(EIGEN_LAST_EFF_CMD,   EigenDouble,    last_effort_cmd) \
+    ENTRY(EIGEN_MODULE_STATUS,  EigenString,    module_status)
 
 
 typedef enum{
@@ -121,10 +122,9 @@ public:
     uint64_t t_last_update;
 
     EigenParameterSet<EigenVariable> parameters;
-    EigenParameterSet<EigenMailbox> mailboxes;
+    EigenParameterSet<EigenVariable> mailboxes;
 
     //Status info
-    std::string module_status;
     uint8_t status_code;
     uint8_t sync_ind;
     uint16_t sync_reg;

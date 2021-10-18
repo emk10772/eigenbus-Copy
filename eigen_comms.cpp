@@ -484,8 +484,6 @@ ModuleShared add_module(uint8_t address){
         eigen_firmware_utility(address, EIGEN_UTIL_MODULE_NAME);
 
         read_module_params(mod_result);
-        //cmd_list_slow_.add(new EigenCommandParamRead(address, LIST_PARAM));
-        //eigen_read_parameter(address, 00);
     } else {
         add_module_update(new EigenUpdate(address, EigenUpdate::MODULE_TOUCHED, mod_result));
     }
@@ -499,6 +497,10 @@ void read_module_params(ModuleShared module){
     cmd_list_slow_.add(new EigenCommandParamRead(module->address, LIST_PARAM));
     module->parameters.set_request_in_progress(true);
     module->parameters.set_last_update();
+
+    cmd_list_slow_.add(new EigenCommandMailboxRead(module->address, LIST_PARAM));
+    module->mailboxes.set_request_in_progress(true);
+    module->mailboxes.set_last_update();
 }
 
 ModuleConst get_module(eigen_addr_t address){

@@ -21,23 +21,23 @@ EigenUpdate *EigenResponseUtility::update_module(ModuleShared mod, uint64_t late
                     //add_command(mod->get_address(), CMD_FIRMWARE_UTIL, EIGEN_UTIL_MODULE_STATUS);
                     add_command(new EigenCommandUtility(mod->address, EIGEN_UTIL_MODULE_STATUS));
                 }
-                break;
+                return new EigenUpdate(mod->address, EigenUpdate::MODULE_UTIL_UPDATE, latency, mod, id_);
             }
             case EIGEN_UTIL_COMMIT_VERSION: {
                 mod->firmware_version = packet_.substr(ind+1);
-                break;
+                return new EigenUpdate(mod->address, EigenUpdate::MODULE_UTIL_UPDATE, latency, mod, id_);
             }
             case EIGEN_UTIL_BUILD_TIME: {
                 mod->firmware_build_time = packet_.substr(ind+1);
-                break;
+                return new EigenUpdate(mod->address, EigenUpdate::MODULE_UTIL_UPDATE, latency, mod, id_);
             }
             case EIGEN_UTIL_BUILD_USER: {
                 mod->firmware_build_name = packet_.substr(ind+1);
-                break;
+                return new EigenUpdate(mod->address, EigenUpdate::MODULE_UTIL_UPDATE, latency, mod, id_);
             }
             case EIGEN_UTIL_GIT_DESCRIBE: {
                 mod->firmware_tag = packet_.substr(ind+1);
-                break;
+                return new EigenUpdate(mod->address, EigenUpdate::MODULE_UTIL_UPDATE, latency, mod, id_);
             }
             case EIGEN_UTIL_MODULE_STATUS: {
                 //TODO: Error checking!
@@ -61,15 +61,15 @@ EigenUpdate *EigenResponseUtility::update_module(ModuleShared mod, uint64_t late
                 }
 
                 mod->module_status = tokens.back();
-                break;
+                return new EigenUpdate(mod->address, EigenUpdate::MODULE_UTIL_UPDATE, latency, mod, id_);
             }
             case EIGEN_UTIL_MODULE_CAPABILITY: {
                 mod->command_support = (uint8_t)stoul(packet_.substr(ind+1), nullptr, EIGENBUS_BASE);
-                break;
+                return new EigenUpdate(mod->address, EigenUpdate::MODULE_UTIL_UPDATE, latency, mod, id_);
             }
             case EIGEN_UTIL_MODULE_UID: {
                 mod->update_UID(stoull(packet_.substr(ind+1), nullptr, EIGENBUS_BASE));
-                break;
+                return new EigenUpdate(mod->address, EigenUpdate::MODULE_UTIL_UPDATE, latency, mod, id_);
             }
             case EIGEN_UTIL_MODULE_PORTS: {
                 auto tokens = stringtok(packet_.substr(ind + 1), ",");
@@ -81,11 +81,11 @@ EigenUpdate *EigenResponseUtility::update_module(ModuleShared mod, uint64_t late
                         down_count++;
                     }
                 }
-                break;
+                return new EigenUpdate(mod->address, EigenUpdate::MODULE_UTIL_UPDATE, latency, mod, id_);
             }
             case EIGEN_UTIL_MODULE_NAME: {
                 mod->module_name = packet_.substr(ind+1);
-                break;
+                return new EigenUpdate(mod->address, EigenUpdate::MODULE_UTIL_UPDATE, latency, mod, id_);
             }
             default: {
                 return nullptr;
