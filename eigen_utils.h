@@ -15,7 +15,7 @@
     Prime numbers used to reduce overlap
 */
 #define UPDATE_PERIOD           (101)
-#define SLOW_CMD_PERIOD         (89)
+#define SLOW_CMD_PERIOD         (43)
 #define UPDATE_TOPOLOGY_PERIOD  (1009)
 #define UPDATE_STATUS_PERIOD    (251)
 #define PACKET_TIMEOUT          (601)
