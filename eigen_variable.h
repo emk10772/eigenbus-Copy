@@ -1,3 +1,13 @@
+/* eigen_variable.h
+ *
+ * This file holds the EigenVariable class. The EigenVariable class is
+ * the backbone of the parsing and group value comparing infrastructure.
+ *
+ * The EigenVariable class provides a virtual interface that allows for
+ * string-based keying, variable type / value comparing, plotting support,
+ * cloning, parsing, and parent information.
+ */
+
 #ifndef EIGENVARIABLE_H
 #define EIGENVARIABLE_H
 
@@ -19,6 +29,7 @@ class EigenVariable {
 public:
     EigenVariable(std::string name, EigenVarType type);
 
+    /* Getters - const */
     std::string name() const;
     EigenVarType type() const;
     bool weak_match(const EigenVariable &variable) const;
@@ -26,23 +37,31 @@ public:
     eigen_addr_t module_address() const;
     bool parent_info_valid() const;
     bool plottable() const;
+
+    /* Setters */
     void set_id(eigen_addr_t id);
     void set_address(eigen_addr_t addr);
 
+    /* Virtual functions */
+    //Does this variable match in type and value to another
     virtual bool strong_match(const EigenVariable &variable) const = 0;
+    //Print this variable in string form
     virtual std::string print() const = 0;
+    //Parse an encoded string value
     virtual bool parse_value(std::string encoded) = 0;
+    //Clone this variable
     virtual EigenVariable *clone() const = 0;
+    //Plottable (floating point) value
     virtual double as_plottable() const;
 
 protected:
-    bool plottable_;
-    bool addr_set_;
-    bool id_set_;
-    eigen_addr_t mod_address_;
-    eigen_addr_t id_;
-    const std::string name_;
-    const EigenVarType type_;
+    bool plottable_;            //Can it be put in a plot?
+    bool addr_set_;             //Does it have a module it belongs to?
+    bool id_set_;               //Is this part of a set where it has an ID?
+    eigen_addr_t mod_address_;  //Address of the module it belongs to
+    eigen_addr_t id_;           //ID in the set it belongs to
+    const std::string name_;    //String key of this variable
+    const EigenVarType type_;   //Type of this variable
 };
 
 class EigenUint8 : public EigenVariable{

@@ -435,6 +435,8 @@ int service_eigen_comms() {
     add_module_update(module_list_pub_.clear_old(current_time_ms(), 2*UPDATE_TOPOLOGY_PERIOD));
     module_list_.clear_old(current_time_ms(), 2*UPDATE_TOPOLOGY_PERIOD);
 
+    //Process any updates before returning
+    //Otherwise the interface might delete the updates first
     topologyTracker->process_updates();
 
     return packet_count;

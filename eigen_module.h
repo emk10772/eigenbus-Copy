@@ -16,13 +16,8 @@
 #define MAX_LED_CODE_LEN (5)
 #define MAX_MOD_LATENCY_MEASUREMENT (20)
 
-typedef struct module_param_struct{
-    uint8_t dirty;
-    uint8_t type;
-    std::string name;
-    uint64_t value;
-} module_param;
 
+//Struct to keep track of downstream port info
 typedef struct module_down_struct{
     uint8_t addr_current;
     uint8_t addr_diff;
@@ -30,10 +25,12 @@ typedef struct module_down_struct{
     std::string name;
 } module_down_port;
 
-/* EigenModule class
-    Used to store information about modules for use by the program
-*/
 
+
+/* This is a handy trick from c called an X-Macro.
+ * This is used to automatically define a variable and add it to a variable list at the same time
+ * IMPORTANT: Variables that are not defined in this list will not be accessible by EigenVariableGroups!
+*/
 #define VAR_LIST \
     ENTRY(EIGEN_ADDRESS,        EigenUint8,     address) \
     ENTRY(EIGEN_UID,            EigenUint64,    UID) \
@@ -55,7 +52,6 @@ typedef struct module_down_struct{
     ENTRY(EIGEN_LAST_EFF_CMD,   EigenDouble,    last_effort_cmd) \
     ENTRY(EIGEN_MODULE_STATUS,  EigenString,    module_status)
 
-
 typedef enum{
 #define ENTRY(e_name, type, v_name) e_name,
     VAR_LIST
@@ -63,6 +59,10 @@ typedef enum{
     EIGEN_NUM_VARIABLES
 } EigenModuleVariables;
 
+
+/* EigenModule class
+    Used to store information about modules for use by the program
+*/
 class EigenModule{
 public:
     EigenModule(uint8_t address_);

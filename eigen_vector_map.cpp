@@ -9,6 +9,11 @@ EigenVectorMap::~EigenVectorMap(){
     clear();
 }
 
+/* ModuleShared EigenVectorMap::get_shared(eigen_addr_t key)
+ *
+ * Returns a mutable reference to a module, selected by its address, if
+ * it exists in the data structure.
+ */
 ModuleShared EigenVectorMap::get_shared(eigen_addr_t key){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -16,6 +21,11 @@ ModuleShared EigenVectorMap::get_shared(eigen_addr_t key){
     return map_[key];
 }
 
+/* ModuleShared EigenVectorMap::get_shared_by_ind(eigen_addr_t ind)
+ *
+ * Returns a mutable reference to a module, selected by its index in a sorted
+ * list, if it exists in the data structure.
+ */
 ModuleShared EigenVectorMap::get_shared_by_ind(eigen_addr_t ind){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -23,6 +33,11 @@ ModuleShared EigenVectorMap::get_shared_by_ind(eigen_addr_t ind){
     return vector_[ind];
 }
 
+/* ModuleConst EigenVectorMap::get_const(eigen_addr_t key)
+ *
+ * Returns an immutable reference to a module, selected by its address, if
+ * it exists in the data structure.
+ */
 ModuleConst EigenVectorMap::get_const(eigen_addr_t key){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -30,6 +45,11 @@ ModuleConst EigenVectorMap::get_const(eigen_addr_t key){
     return make_const(map_[key]);
 }
 
+/* ModuleConst EigenVectorMap::get_const_by_ind(eigen_addr_t ind)
+ *
+ * Returns an immutable reference to a module, selected by its index in a sorted
+ * list, if it exists in the data structure.
+ */
 ModuleConst EigenVectorMap::get_const_by_ind(eigen_addr_t ind){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -37,15 +57,28 @@ ModuleConst EigenVectorMap::get_const_by_ind(eigen_addr_t ind){
     return make_const(vector_[ind]);
 }
 
+/* bool cmp(ModuleShared module, eigen_addr_t address)
+ *
+ * Private helper function used to sort the module list
+ */
 bool cmp(ModuleShared module, eigen_addr_t address){
     return module->address < address;
 }
 
+/* void EigenVectorMap::remove(eigen_addr_t key)
+ *
+ * Remove a module, by address, from the data structure.
+ */
 void EigenVectorMap::remove(eigen_addr_t key){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     remove_no_lock(key);
 }
 
+/* void EigenVectorMap::remove_no_lock(eigen_addr_t key)
+ *
+ * Remove a module, by address, from the data structure.
+ * Non-thread-safe version
+ */
 void EigenVectorMap::remove_no_lock(eigen_addr_t key){
     if(map_.count(key) == 0) return;
 
@@ -59,6 +92,11 @@ void EigenVectorMap::remove_no_lock(eigen_addr_t key){
         vector_.erase(where);
 }
 
+/* bool EigenVectorMap::remove_ind_no_lock(eigen_addr_t ind)
+ *
+ * Remove a module, by index, from the data structure.
+ * Non-thread-safe version
+ */
 bool EigenVectorMap::remove_ind_no_lock(eigen_addr_t ind){
     if(ind >= vector_.size()) return false;
     eigen_addr_t key = vector_[ind]->address;
@@ -72,6 +110,12 @@ bool EigenVectorMap::remove_ind_no_lock(eigen_addr_t ind){
     }
 }
 
+/* void EigenVectorMap::insert(ModuleShared module)
+ *
+ * Inserts a module into the data structure.
+ * This function guarantees uniqueness by address in the data structure.
+ * (No two modules can have the same address)
+ */
 void EigenVectorMap::insert(ModuleShared module){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -83,6 +127,10 @@ void EigenVectorMap::insert(ModuleShared module){
     vector_.insert(where, module);
 }
 
+/* void EigenVectorMap::clear()
+ *
+ * This function clears the entire data structure
+ */
 void EigenVectorMap::clear(){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -90,17 +138,29 @@ void EigenVectorMap::clear(){
     vector_.clear();
 }
 
+
+/* std::set<eigen_addr_t> EigenVectorMap::keys()
+ *
+ * Generates a set of module addresses for inclusion checks
+ */
 std::set<eigen_addr_t> EigenVectorMap::keys(){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     std::set<eigen_addr_t> retval;
 
-    for(auto mod : vector_){
+    for(auto &mod : vector_){
         retval.insert(mod->address);
     }
 
     return retval;
 }
 
+/* std::vector<EigenUpdate *> EigenVectorMap::clear_old(uint64_t t_now, uint64_t t_stale)
+ *
+ * This function will clear out stale modules. A stale module is defined as any
+ * module that has not received an update in less than <t_stale> milliseconds.
+ *
+ * It will return a list of updates, with an update for every module that was removed.
+ */
 std::vector<EigenUpdate *> EigenVectorMap::clear_old(uint64_t t_now, uint64_t t_stale){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     eigen_addr_t ind = 0;
@@ -122,6 +182,10 @@ std::vector<EigenUpdate *> EigenVectorMap::clear_old(uint64_t t_now, uint64_t t_
     return retval;
 }
 
+/* eigen_addr_t EigenVectorMap::size()
+ *
+ * Returns the number of elements in this container
+ */
 eigen_addr_t EigenVectorMap::size(){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 

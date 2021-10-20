@@ -2,12 +2,20 @@
 #include <iterator>
 
 EigenTopologyTracker::EigenTopologyTracker(){
-    root_node_ = new Node(0xFF, this);
+    root_node_ = new Node(0xFF, this); //The root node has an address of 0xFF, or invalid
     add_depth(root_node_, 0);
 }
 
 EigenTopologyTracker::~EigenTopologyTracker(){
     delete root_node_;
+
+    for(auto node : node_map_){
+        node.second->set_parent(nullptr);
+        delete node.second;
+    }
+
+    node_map_.clear();
+    depth_list_.clear();
 }
 
 void EigenTopologyTracker::add_update(EigenUpdate *update){
@@ -24,6 +32,14 @@ void EigenTopologyTracker::add_update(std::vector<EigenUpdate *> updates){
     }
 }
 
+/* void EigenTopologyTracker::process_updates()
+ *
+ * This function is responsible for maintaining the topology graph based on
+ * module updates. It focuses on three types of updates:
+ *  1. MODULE_DOWNSTREAM: Downstream ports have changes
+ *  2. MODULE_ADDED: A new module has been added
+ *  3. MODULE_REMOVED: A module has been removed
+ */
 void EigenTopologyTracker::process_updates(){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -31,34 +47,45 @@ void EigenTopologyTracker::process_updates(){
     while(it != updates_.end()){
         EigenUpdate *update = *it;
 
-        if(update == nullptr) return;
+        if(update == nullptr) return; //If the update is invalid, we are done here
 
+        //Module ports have been updated
         if(update->type() == EigenUpdate::MODULE_DOWNSTREAM && update->module() != nullptr){
+            //Check that there is a node with this address
             if(node_map_.count(update->address()) != 0){
                 Node *node = node_map_[update->address()];
+
                 //Check if the node already has an entry for the specific port
                 eigen_addr_t ind = 0;
                 for(auto &port : update->module()->downstream()){
+                    //If there is no node at the port representing this module, add one
                     if(port.addr_current != 0xFF && !node->has_child(port.addr_current)){
                         Node *child = add_node(port.addr_current, node);
                         node->add_child(child);
-                        child->set_port(ind, port.name);
+                        child->set_port(ind, port.name); //Update the child with its index and port name
                     }
                     ind++;
                 }
             }
+        //If there is a module added, add a new node if there is not yet one in the map
         } else if (update->type() == EigenUpdate::MODULE_ADDED && update->module() != nullptr){
             if(node_map_.count(update->address()) == 0)
                 add_node(update->address());
+        //Delete the node that has been removed
         } else if (update->type() == EigenUpdate::MODULE_REMOVED){
             remove_node(update->address());
         }
 
+        //Get the next update
         updates_.pop_front();
         it = updates_.begin();
     }
 }
 
+/* EigenTopologyTracker::Node *EigenTopologyTracker::add_node(eigen_addr_t address, Node *parent)
+ *
+ * Adds or fetches a node corresponding to the specified address
+ */
 EigenTopologyTracker::Node *EigenTopologyTracker::add_node(eigen_addr_t address, Node *parent){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -71,16 +98,18 @@ EigenTopologyTracker::Node *EigenTopologyTracker::add_node(eigen_addr_t address,
             root_node_->add_child(node);
 
         return node;
-    //If there is a node, detach it from its current parent
+    //If there is a node, reset its parenthood to the new parent
     } else {
         Node *node = node_map_[address];
 
+        //If the node already has a parent, detatch it
         if(node->parent() != parent){
             if(node->parent() != nullptr)
                 node->parent()->remove_child(node);
             node->set_parent(parent);
         }
 
+        //If this is a top level node, add it to the root node
         if(parent == nullptr)
             root_node_->add_child(node);
 
@@ -88,15 +117,22 @@ EigenTopologyTracker::Node *EigenTopologyTracker::add_node(eigen_addr_t address,
     }
 }
 
+/* void EigenTopologyTracker::remove_node(eigen_addr_t address)
+ *
+ * Deletes the node corresponding to the specified address
+ */
 void EigenTopologyTracker::remove_node(eigen_addr_t address){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
+    //Make sure that the node exists first
     if(node_map_.count(address) != 0){
         Node *node = node_map_[address];
 
+        //Remove it from its parent and the depth list
         node->parent()->remove_child(node);
         remove_depth(node, node->depth());
 
+        //Remove it from the node map, and add any orphaned children to the root node
         node_map_.erase(address);
         for(auto child : node->children()){
             root_node_->add_child(child.second);
@@ -106,6 +142,12 @@ void EigenTopologyTracker::remove_node(eigen_addr_t address){
     }
 }
 
+/* const EigenTopologyTracker::Node *EigenTopologyTracker::get_node(eigen_addr_t address) const
+ *
+ * Get the node with the corresponding address.
+ * If the address is 0xFF, then it is the root node.
+ * Returns null if the address does not correspond to an existing node.
+ */
 const EigenTopologyTracker::Node *EigenTopologyTracker::get_node(eigen_addr_t address) const{
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -118,6 +160,10 @@ const EigenTopologyTracker::Node *EigenTopologyTracker::get_node(eigen_addr_t ad
     return nullptr;
 }
 
+/* const EigenTopologyTracker::Node *EigenTopologyTracker::root_node() const
+ *
+ * Returns a pointer to the root node of the graph
+ */
 const EigenTopologyTracker::Node *EigenTopologyTracker::root_node() const{
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -274,7 +320,7 @@ void EigenTopologyTracker::Node::update_depth(EigenTopologyTracker::Node *caller
 
     //Update our children
     for(auto child : children_){
-        child.second->update_depth(caller);
+        child.second->update_depth(caller_);
     }
 }
 

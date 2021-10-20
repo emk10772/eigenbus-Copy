@@ -38,6 +38,10 @@ const uint8_t CRC_8_TABLE[256] = {
     0xE6, 0xE1, 0xE8, 0xEF, 0xFA, 0xFD, 0xF4, 0xF3
 };
 
+/* std::string strprintf(const char* format, ...)
+ *
+ * A helper function for using snprintf but packaging the result into a string
+ */
 std::string strprintf(const char* format, ...){
     char buffer[STR_PRINT_MAX];
     va_list args;

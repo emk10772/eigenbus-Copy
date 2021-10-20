@@ -151,9 +151,9 @@ typedef struct raw_packet_struct{
     uint8_t dir;
 } raw_packet;
 
+
 //Function source:
 //    https://stackoverflow.com/questions/59572907/why-strtok-takes-a-char-and-not-a-const-char
-
 inline std::vector<std::string> stringtok (const std::string& s, const std::string& delim)
 {
     std::vector<std::string> v {};  /* vector of strings for tokens */
@@ -183,10 +183,18 @@ inline uint8_t crc_8_ccitt(const char *data, uint16_t len){
     return crc; //Final of 0x00
 }
 
+/* std::string strprintf(const char* format, ...)
+ *
+ * A helper function for using snprintf but packaging the result into a string.
+ * The string can be at most STR_PRINT_MAX in length.
+ */
 #define STR_PRINT_MAX (128)
 std::string strprintf(const char* format, ...);
 
-
+/* inline uint64_t current_time_ms()
+ *
+ * Helper function for generating a time in milliseconds
+ */
 inline uint64_t current_time_ms() {
     auto current_time = std::chrono::system_clock::now();
     auto epoch = current_time.time_since_epoch();
@@ -204,10 +212,12 @@ public:
         clear();
     }
 
+    /* Set a maximum length for this queue */
     inline void setMax(uint16_t max){
         max_len_ = max;
     }
 
+    /* Add an item. Deletes the first item if there is no space */
     inline void add(T *item){
         std::lock_guard<std::mutex> lock(mutex_);
         deque_.push_back(item);
@@ -237,6 +247,7 @@ public:
         }
     }
 
+    /* Get an item. Returns null if there are no items */
     inline T* get(){
         T *retval = nullptr;
         std::lock_guard<std::mutex> lock(mutex_);
@@ -249,6 +260,7 @@ public:
         return retval;
     }
 
+    /* Clear all items */
     inline void clear(){
         std::lock_guard<std::mutex> lock(mutex_);
 

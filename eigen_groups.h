@@ -1,3 +1,13 @@
+/* eigen_groups.h
+ *
+ * This file is the workhorse of module grouping. It contains tools for grouping
+ * modules together and comparing their values. This interface vastly simplifies
+ * group selection on the GUI side.
+ *
+ * Check https://github.com/biorobotics/titan-scope for examples on usage of this
+ * file.
+ */
+
 #ifndef EIGENGROUP_H
 #define EIGENGROUP_H
 
@@ -58,23 +68,26 @@ public:
     const EigenVariableGroup variable_group();
     const EigenVariableGroup parameter_group();
     const EigenVariableGroup mailbox_group();
+
+    //Helper functions for checking the modules in this group
     bool contains_module(eigen_addr_t address);
     bool contains_module(ModuleConst module);
     size_t count();
-    void group_command(EigenCommand *command);
+    std::vector<ModuleConst> modules();
 
+    //Group command utilities
+    void group_command(EigenCommand *command);
     std::string group_poll(EigenCommand *command, uint64_t period_ms = UPDATE_PERIOD, bool enabled = true);
     void group_poll_set_enabled(std::string key, bool enabled = true);
     void group_poll_remove(std::string key);
-    std::vector<ModuleConst> modules();
 
     //Wrappers for variable_group value functions
     template<typename T> const T* key_to_value(const std::string key) const{
         return variable_group_.value<T>(key);
     }
-
     std::string key_to_string(const std::string key) const;
     std::string key_to_list_string(const std::string key) const;
+
     std::string print_list(const eigen_addr_t max_len) const;
 
 private:
