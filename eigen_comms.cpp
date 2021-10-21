@@ -54,6 +54,7 @@ EigenCommand *get_command();
 void add_module_update(EigenUpdate *update);
 uint8_t generate_node_address();
 void read_module_params(ModuleShared module);
+void read_module_mailboxes(ModuleShared module);
 
 //Module list interface functions
 ModuleShared add_module(uint8_t address);
@@ -406,8 +407,9 @@ int service_eigen_comms() {
                 } else {
                     if(mod->parameters.update_required()){
                         read_module_params(mod);
-                        //cmd_list_slow_.add(new EigenCommandParamRead(mod->address, LIST_PARAM));
-                        //mod->parameters.set_last_update();
+                    }
+                    if(mod->mailboxes.update_required()){
+                        read_module_mailboxes(mod);
                     }
                     it++;
                 }
@@ -470,10 +472,6 @@ ModuleShared add_module(uint8_t address){
         module_list_.insert(mod_result);
         module_init_list_.emplace_back(mod_result);
 
-        //Log that we updated the list
-        //list_update = true;
-        //add_module_update(new EigenUpdate(address, EigenUpdate::MODULE_ADDED, mod_result));
-
         //Ask for important info about the module
         eigen_firmware_utility(address, EIGEN_UTIL_COMMIT_VERSION);
         eigen_firmware_utility(address, EIGEN_UTIL_BUILD_TIME);
@@ -486,6 +484,7 @@ ModuleShared add_module(uint8_t address){
         eigen_firmware_utility(address, EIGEN_UTIL_MODULE_NAME);
 
         read_module_params(mod_result);
+        read_module_mailboxes(mod_result);
     } else {
         add_module_update(new EigenUpdate(address, EigenUpdate::MODULE_TOUCHED, mod_result));
     }
@@ -499,7 +498,9 @@ void read_module_params(ModuleShared module){
     cmd_list_slow_.add(new EigenCommandParamRead(module->address, LIST_PARAM));
     module->parameters.set_request_in_progress(true);
     module->parameters.set_last_update();
+}
 
+void read_module_mailboxes(ModuleShared module){
     cmd_list_slow_.add(new EigenCommandMailboxRead(module->address, LIST_PARAM));
     module->mailboxes.set_request_in_progress(true);
     module->mailboxes.set_last_update();

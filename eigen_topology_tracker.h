@@ -53,15 +53,15 @@ public:
         ~Node();
 
         /* Getters */
-        eigen_addr_t address() const; //What is the address of the module represented by this node
-        eigen_addr_t port_id() const; //What port of this module's parent is this node connected to
-        std::string port_name() const; //Name of the port this module is connected to
-        std::string text() const; //String representation of this module
-        const Node *parent() const; //Get the parent of this node
-        int childNumber() const; //Get this node's index in its parent's child map
-        Node *parent(); //Parent of this node, but not const
-        const std::map<eigen_addr_t, Node *> children() const; //What are the children of this node
-        const Node *child(eigen_addr_t index) const; //Get the nth child of this node
+        eigen_addr_t address() const;                           //What is the address of the module represented by this node
+        eigen_addr_t port_id() const;                           //What port of this module's parent is this node connected to
+        std::string port_name() const;                          //Name of the port this module is connected to
+        std::string text() const;                               //String representation of this module
+        const Node *parent() const;                             //Get the parent of this node
+        int childNumber() const;                                //Get this node's index in its parent's child map
+        Node *parent();                                         //Parent of this node, but not const
+        const std::map<eigen_addr_t, Node *> children() const;  //What are the children of this node
+        const Node *child(eigen_addr_t index) const;            //Get the nth child of this node
 
         /* Setters */
         void update_depth(Node *caller = nullptr);
@@ -75,14 +75,14 @@ public:
         eigen_addr_t depth() const;
 
     private:
-        mutable std::recursive_mutex mutex_;        //Mutex for thread safety
-        eigen_addr_t addr_;                         //Address of module this represents
-        std::map<eigen_addr_t, Node *> children_;   //Children of this node
-        Node *parent_;                              //Parent of this node
-        eigen_addr_t port_id_;                      //ID of the port this node is connected to
-        std::string port_name_;                     //Name of the port this node is connected to
-        eigen_addr_t depth_;                        //Depth in the tree
-        EigenTopologyTracker *tracker_;             //Reference to owner
+        mutable std::recursive_mutex mutex_;                    //Mutex for thread safety
+        eigen_addr_t addr_;                                     //Address of module this represents
+        std::map<eigen_addr_t, Node *> children_;               //Children of this node
+        Node *parent_;                                          //Parent of this node
+        eigen_addr_t port_id_;                                  //ID of the port this node is connected to
+        std::string port_name_;                                 //Name of the port this node is connected to
+        eigen_addr_t depth_;                                    //Depth in the tree
+        EigenTopologyTracker *tracker_;                         //Reference to owner
     };
 
     //Topology information functions

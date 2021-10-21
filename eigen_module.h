@@ -40,7 +40,6 @@ typedef struct module_down_struct{
     ENTRY(EIGEN_VELOCITY,       EigenDouble,    velocity) \
     ENTRY(EIGEN_EFFORT,         EigenDouble,    effort) \
     ENTRY(EIGEN_ENC_STATUS,     EigenUint16,    encoder_status) \
-    ENTRY(EIGEN_NODE_DEPTH,     EigenUint8,     node_depth) \
     ENTRY(EIGEN_FIRMW_VER,      EigenString,    firmware_version) \
     ENTRY(EIGEN_FIRMW_BLD_NAME, EigenString,    firmware_build_name) \
     ENTRY(EIGEN_FIRMW_BLD_TIME, EigenString,    firmware_build_time) \

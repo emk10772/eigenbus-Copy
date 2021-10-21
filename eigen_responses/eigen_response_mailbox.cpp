@@ -25,7 +25,7 @@ EigenUpdate *EigenResponseMailboxRead::update_module(ModuleShared mod, uint64_t 
                     responses_.push_back(strprintf("|[00,%02X", i));
                 }
 
-                mod->mailboxes.set_expected_parameters(mail_type);
+                mod->mailboxes.set_expected_parameters(mail_type - 1);
                 return nullptr;
             } else {
                 std::string name = tokens[2];

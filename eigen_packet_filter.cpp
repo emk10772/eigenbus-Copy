@@ -26,6 +26,11 @@ raw_packet *EigenPacketTracker::get_raw_packet(){
     return raw_packets_.get();
 }
 
+/* void EigenPacketTracker::add_packet(eigen_addr_t addr, std::string filter,
+ *  std::string packet, packet_type type = EIGEN_PACKET_DEFAULT)
+ *
+ *  Adds a new packet to be tracked.
+ */
 void EigenPacketTracker::add_packet(eigen_addr_t addr, std::string filter, 
     std::string packet, packet_type type = EIGEN_PACKET_DEFAULT){
     
@@ -38,7 +43,13 @@ void EigenPacketTracker::add_packet(eigen_addr_t addr, std::string filter,
     packets_sent++;
 }
 
-void EigenPacketTracker::add_raw_packet(std::string pkt_string, packet_type type, uint8_t dir){
+/* void EigenPacketTracker::add_raw_packet(std::string pkt_string,
+ *                                      packet_type type, uint8_t dir)
+ *
+ *  Adds a raw packet to be output to a console or log
+ */
+void EigenPacketTracker::add_raw_packet(std::string pkt_string,
+                                        packet_type type, uint8_t dir){
     auto config = get_eigen_config();
 
     if(config.raw_packet_en == EIGEN_DISABLED) return;
@@ -52,19 +63,29 @@ void EigenPacketTracker::add_raw_packet(std::string pkt_string, packet_type type
 
 }
 
+/* void EigenPacketTracker::handle_timeout_packets()
+ *
+ * This function deals with any packets that have timed out. Timed out means
+ * that we have not found any responses within the timeout period.
+ */
 void EigenPacketTracker::handle_timeout_packets(){
     uint8_t max_retries = get_eigen_config().max_retries;
 
     //Newest packets are put into this queue from the back. Will be sorted in order of time because of this
     //Clear the timed out packets from the front of the queue
     auto it = packet_filter_list.begin();
-    while(it != packet_filter_list.end() && it->packet_timeout()){
+    while(it != packet_filter_list.end() && it->is_packet_timeout()){
+
+        //Bar for success for a broadcast packet is pretty low. Just want to get at least one response
         if(it->is_broadcast() && it->num_responses() > 0){
-            //Bar for success for a broadcast packet is pretty low. Just want to get at least one response
             successful_packets++;
-        } else if (/*it->is_broadcast() ||*/ it->num_retries() >= max_retries){
+
+        //If we have reached the maximum number of retires then consider the packet as dropped
+        } else if (it->num_retries() >= max_retries){
             packets_dropped++;
             last_packet_dropped = it->packet_string();
+
+        //If we haven't reached the max number of retries and there is a valid packet string then resend it
         } else if(it->packet_string() != "") {
             retried_packets++;
             //Reset the timer, and increase the number of tries. Then resend the packet
@@ -103,21 +124,31 @@ void EigenPacketTracker::handle_successful_packets(){
     update_rate_calculations();
 }
 
-response_match_t EigenPacketTracker::match_response(ModuleShared module, EigenResponse *response, std::string raw_packet){
+/* response_match_t EigenPacketTracker::match_response(ModuleShared module,
+ *                      EigenResponse *response, std::string raw_packet)
+ *
+ * This function tries to match a response to a command to categorize it.
+ */
+response_match_t EigenPacketTracker::match_response(ModuleShared module,
+                        EigenResponse *response, std::string raw_packet){
     uint64_t t_now = current_time_ms();
     if(response != nullptr)
         t_now = response->t_received();
 
     //Search our filter list for a matching packet
     auto it = packet_filter_list.begin();
-    while(response != nullptr && it != packet_filter_list.end() && !it->matches_filter(response->address(), raw_packet)){
+    while(response != nullptr && it != packet_filter_list.end() &&
+          !it->matches_filter(response->address(), raw_packet)){
         it++;
     }
 
-    //If we found a matching filter, add it to that filter
-    //First condition is technically redundant because it->matches_filter is always false for a null response
-    //It is left for robustness and clarity
-    if(response != nullptr && it != packet_filter_list.end() && it->matches_filter(response->address(), raw_packet)){
+    /*  If we found a matching filter, add it to that filter
+     *
+     *  The first condition is technically redundant because it->matches_filter
+     *  is always false for a null response. It is left for robustness and clarity
+     */
+    if(response != nullptr && it != packet_filter_list.end() &&
+            it->matches_filter(response->address(), raw_packet)){
         it->add_response(response);
         add_raw_packet(raw_packet, it->get_type(), EIGEN_PACKET_RECV);
 
@@ -127,6 +158,11 @@ response_match_t EigenPacketTracker::match_response(ModuleShared module, EigenRe
         add_latency(t_now - it->t_sent());
 
         return response_match_t(it->get_type(), t_now - it->t_sent());
+
+    /* If this packet isn't valid, doesn't have a match, and isn't a packet
+     * that a module can send on its own (a spontaneous packet), then is is
+     * marked as unrequested.
+     */
     } else if(response == nullptr || !response->isSpontaneous()){
         add_raw_packet(raw_packet, EIGEN_PACKET_DEFAULT, EIGEN_PACKET_RECV);
         unrequested_packets++;
@@ -138,6 +174,8 @@ response_match_t EigenPacketTracker::match_response(ModuleShared module, EigenRe
         //To be sure that we have no duplicate addresses, poll the UIDs for this particular address
 
         add_command(new EigenCommandUtility(0xFF, EIGEN_UTIL_MODULE_UID));
+
+    //Spontaneous packets, categorize it as a "POLL" packet type
     } else {
         add_raw_packet(raw_packet, EIGEN_PACKET_POLL, EIGEN_PACKET_RECV);
         spontaneous_packets++;
@@ -180,15 +218,16 @@ void EigenPacketTracker::update_rate_calculations(){
 }
 
 
-/* Eigen Packet Class Definitions */
-//TODO: What to do when we expect multiple responses to a packet, and do not know how many?
+
+
+/* ====== EigenPacketFilter Definitions  ====== */
 EigenPacketFilter::EigenPacketFilter(uint8_t address, std::string response_filter,
                                      packet_type packet, std::string packet_string){
-    this->address_ = address;
-    this->response_filter_ = response_filter;
-    this->t_sent_ = current_time_ms();
-    this->classification_ = packet;
-    this->packet_string_ = packet_string;
+    this->address_ = address;                   //What is the address associated with the command
+    this->response_filter_ = response_filter;   //What is the filter we should be using
+    this->t_sent_ = current_time_ms();          //When was this sent
+    this->classification_ = packet;             //What is the packet type (poll, topology, debug, etc.)
+    this->packet_string_ = packet_string;       //What is the raw string
     this->retries_ = 0;
 }
 
@@ -197,18 +236,38 @@ EigenPacketFilter::~EigenPacketFilter(){
     this->matched_addresses_.clear();
 }
 
+/* bool EigenPacketFilter::expects_response()
+ *
+ * Most commands result in a response from the modules, but some do not. This
+ * function indicates whether or not this command warrants a response.
+ *
+ * User commands will probably have no expected response so that they show up
+ * in the console window.
+ */
 bool EigenPacketFilter::expects_response(){
     return response_filter_ != "";
 }
 
+/* eigen_addr_t EigenPacketFilter::num_responses()
+ *
+ * Returns the number of responses that have been matched with this filter.
+ */
 eigen_addr_t EigenPacketFilter::num_responses(){
-    //Should not get more than size(eigen_addr_t) responses to a single request. If we do, there is something wrong
+    //Should not get more than max_int(eigen_addr_t) responses to a single request.
+    //If we do, there is something wrong
     return matched_responses_.size();
 }
 
+/* bool EigenPacketFilter::matches_filter(eigen_addr_t address, std::string packet)
+ *
+ * Checks whether or not a packet matches this particular filter.
+ */
 bool EigenPacketFilter::matches_filter(eigen_addr_t address, std::string packet){
+    //If this is a broadcast packet then it can match any address
     if(!is_broadcast() && address != address_) return false;
 
+    //Only try to match this packet if we don't have one with this address
+    //This is to prevent broadcast packets from sucking up all of the responses
     if(matched_addresses_.count(address) == 0){
         if(packet.find(response_filter_) != std::string::npos){
             return true;
@@ -217,19 +276,23 @@ bool EigenPacketFilter::matches_filter(eigen_addr_t address, std::string packet)
     return false;
 }
 
+/* void EigenPacketFilter::add_response(EigenResponse *response)
+ *
+ * Adds a matched response to the packet filter
+ */
 void EigenPacketFilter::add_response(EigenResponse *response){
     if(response == nullptr) return;
 
-    //Change to end of list for better efficiency?
     matched_responses_.push_back(response->packet());
     matched_addresses_.insert(response->address());
 }
 
-bool EigenPacketFilter::packet_timeout(){
+bool EigenPacketFilter::is_packet_timeout(){
     return (current_time_ms() - t_sent_) > PACKET_TIMEOUT;
 }
 
 bool EigenPacketFilter::is_broadcast(){
+    //Broadcast packets are marked with an INVALID address, or 0xFF
     return address_ == 0xFF;
 }
 
@@ -259,6 +322,7 @@ uint64_t EigenPacketFilter::t_sent(){
 
 
 
+/* ====== EigenCounter Class Definitions ====== */
 EigenCounter::EigenCounter(uint64_t window_ms)
     : window_(window_ms){
     rate_ = 0;
@@ -278,10 +342,12 @@ double EigenCounter::rate() const{
 }
 
 void EigenCounter::update_calculation(){
+    //Clear out any hits that are outside of the window
     while(t_inc_.size() > 0 && current_time_ms() - t_inc_.front() > window_){
         t_inc_.pop_front();
     }
 
+    //Calculate the number of hits in the specified window
     if(window_ != 0){
         rate_ = 1000.0 * (double)t_inc_.size() / (double)window_;
     }

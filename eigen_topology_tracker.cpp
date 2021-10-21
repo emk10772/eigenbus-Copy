@@ -9,11 +9,14 @@ EigenTopologyTracker::EigenTopologyTracker(){
 EigenTopologyTracker::~EigenTopologyTracker(){
     delete root_node_;
 
+    //Delete all the nodes
     for(auto node : node_map_){
+        //Clear all parent references to stop use-after-free in Node destructor
         node.second->set_parent(nullptr);
         delete node.second;
     }
 
+    //Clear the node references
     node_map_.clear();
     depth_list_.clear();
 }
@@ -39,6 +42,9 @@ void EigenTopologyTracker::add_update(std::vector<EigenUpdate *> updates){
  *  1. MODULE_DOWNSTREAM: Downstream ports have changes
  *  2. MODULE_ADDED: A new module has been added
  *  3. MODULE_REMOVED: A module has been removed
+ *
+ * Thread safe, as long as the updates are processed before being sent to the
+ * application. In normal implementations this should not be an issue
  */
 void EigenTopologyTracker::process_updates(){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -85,6 +91,8 @@ void EigenTopologyTracker::process_updates(){
 /* EigenTopologyTracker::Node *EigenTopologyTracker::add_node(eigen_addr_t address, Node *parent)
  *
  * Adds or fetches a node corresponding to the specified address
+ *
+ * Thread safe
  */
 EigenTopologyTracker::Node *EigenTopologyTracker::add_node(eigen_addr_t address, Node *parent){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -120,6 +128,8 @@ EigenTopologyTracker::Node *EigenTopologyTracker::add_node(eigen_addr_t address,
 /* void EigenTopologyTracker::remove_node(eigen_addr_t address)
  *
  * Deletes the node corresponding to the specified address
+ *
+ * Thread safe
  */
 void EigenTopologyTracker::remove_node(eigen_addr_t address){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -147,6 +157,8 @@ void EigenTopologyTracker::remove_node(eigen_addr_t address){
  * Get the node with the corresponding address.
  * If the address is 0xFF, then it is the root node.
  * Returns null if the address does not correspond to an existing node.
+ *
+ * Thread safe
  */
 const EigenTopologyTracker::Node *EigenTopologyTracker::get_node(eigen_addr_t address) const{
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -163,6 +175,8 @@ const EigenTopologyTracker::Node *EigenTopologyTracker::get_node(eigen_addr_t ad
 /* const EigenTopologyTracker::Node *EigenTopologyTracker::root_node() const
  *
  * Returns a pointer to the root node of the graph
+ *
+ * Thread safe
  */
 const EigenTopologyTracker::Node *EigenTopologyTracker::root_node() const{
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -170,7 +184,16 @@ const EigenTopologyTracker::Node *EigenTopologyTracker::root_node() const{
     return root_node_;
 }
 
-const std::vector<EigenTopologyTracker::Node *> EigenTopologyTracker::get_depth_list(eigen_addr_t depth) const{
+/* const std::vector<EigenTopologyTracker::Node *>
+ *  EigenTopologyTracker::get_depth_list(eigen_addr_t depth) const
+ *
+ *  Returns the list for the specified depth. If the depth is not valid it will
+ *  return an empty list.
+ *
+ *  Thread safe
+ */
+const std::vector<EigenTopologyTracker::Node *>
+    EigenTopologyTracker::get_depth_list(eigen_addr_t depth) const{
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
     if(depth < depth_list_.size())
@@ -185,11 +208,21 @@ eigen_addr_t EigenTopologyTracker::max_depth() const{
     return (eigen_addr_t) depth_list_.size();
 }
 
+/* void EigenTopologyTracker::remove_depth(Node *node, eigen_addr_t depth)
+ *
+ * Remove a node from the depth list
+ *
+ * The list for each individual level is not sorted, so this function performs
+ * a simple linear search through the list until it finds the matching address.
+ *
+ * Thread safe
+ */
 void EigenTopologyTracker::remove_depth(Node *node, eigen_addr_t depth){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
     if(depth >= depth_list_.size()) return;
 
+    //Find the node and erase it from the list
     auto it = depth_list_[depth].begin();
     while(it != depth_list_[depth].end()){
         if((*it)->address() == node->address())
@@ -198,13 +231,22 @@ void EigenTopologyTracker::remove_depth(Node *node, eigen_addr_t depth){
             it++;
     }
 
+    //If this was the last node in the last list then delete the list
     if(depth == (depth_list_.size() - 1) && depth_list_[depth].empty())
         depth_list_.pop_back();
 }
 
+/* void EigenTopologyTracker::add_depth(Node *node, eigen_addr_t depth)
+ *
+ * Add a node to the depth list. Generates additional lists up to the specified
+ * depth if they do not exist yet.
+ *
+ * Thread safe
+ */
 void EigenTopologyTracker::add_depth(Node *node, eigen_addr_t depth){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
+    //If there aren't any nodes at the depths before this yet, expand the list
     while(depth >= depth_list_.size()){
         depth_list_.push_back(std::vector<Node *>());
     }
@@ -228,6 +270,7 @@ EigenTopologyTracker::Node::Node(eigen_addr_t address, EigenTopologyTracker *tra
 }
 
 EigenTopologyTracker::Node::~Node(){
+    //If this node has a parent, make sure to remove it from their child list
     if(parent_ != nullptr)
         parent_->remove_child(this);
 }
@@ -250,6 +293,15 @@ std::string EigenTopologyTracker::Node::port_name() const{
     return port_name_;
 }
 
+/* std::string EigenTopologyTracker::Node::text() const
+ *
+ * This function generates a string representation of this node. This function
+ * is useful for GUI representations of topology. There are two modes:
+ *  1. If it is a root node it simply prints out the address of the corresponding module
+ *  2. If it is a child it prints out the corresponding port ID before the module ID
+ *
+ * Thread safe
+ */
 std::string EigenTopologyTracker::Node::text() const{
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -304,6 +356,19 @@ const EigenTopologyTracker::Node *EigenTopologyTracker::Node::child(eigen_addr_t
     return it->second;
 }
 
+/* void EigenTopologyTracker::Node::update_depth(EigenTopologyTracker::Node *caller)
+ *
+ * This function recursively updates the depth measurement to this node and all
+ * of its children. The <caller> parameter is used as a guard against infinite
+ * loops. When the function is first called, <caller> is initially null. For
+ * subsequent calls it is set to the first node that it was called by. If a node
+ * recognizes the <caller> parameter as itself then it has found a loop.
+ *
+ * This function will recursively trigger the update_depth function in its
+ * children. If the node has no parents it will have a depth of 0.
+ *
+ * Thread safe
+ */
 void EigenTopologyTracker::Node::update_depth(EigenTopologyTracker::Node *caller){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -324,6 +389,12 @@ void EigenTopologyTracker::Node::update_depth(EigenTopologyTracker::Node *caller
     }
 }
 
+/* void EigenTopologyTracker::Node::set_parent(EigenTopologyTracker::Node *parent)
+ *
+ * Set the parent of this node and recalculate the depth measurement.
+ *
+ * Thread safe
+ */
 void EigenTopologyTracker::Node::set_parent(EigenTopologyTracker::Node *parent){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -337,6 +408,12 @@ void EigenTopologyTracker::Node::set_parent(EigenTopologyTracker::Node *parent){
     update_depth();
 }
 
+/* void EigenTopologyTracker::Node::add_child(EigenTopologyTracker::Node *child)
+ *
+ * Add a child to this node.
+ *
+ * Thread safe
+ */
 void EigenTopologyTracker::Node::add_child(EigenTopologyTracker::Node *child){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 

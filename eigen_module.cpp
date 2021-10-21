@@ -250,7 +250,11 @@ std::string EigenModule::print_orientation() const{
 }
 
 bool EigenModule::valid() const {
-    return parameters.expected() != 0 && parameters.parameters_left() == 0;
+    bool valid = true;
+    valid &= parameters.valid();
+    valid &= mailboxes.valid();
+    valid &= ((uint8_t)address != 0xFF);
+    return valid;
 }
 
 uint16_t EigenModule::get_encoder_status() const{

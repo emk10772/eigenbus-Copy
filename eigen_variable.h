@@ -6,6 +6,8 @@
  * The EigenVariable class provides a virtual interface that allows for
  * string-based keying, variable type / value comparing, plotting support,
  * cloning, parsing, and parent information.
+ *
+ * Created 2021 by Nick Paiva
  */
 
 #ifndef EIGENVARIABLE_H
