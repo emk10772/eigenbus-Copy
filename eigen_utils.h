@@ -59,24 +59,6 @@
 #define SPEED_CAPABLE       (0x02)
 #define EFFORT_CAPABLE      (0x04)
 
-/* Param Types */
-#define _UINT8                  (1)
-#define _UINT16                 (2)
-#define _UINT32                 (3)
-#define _FLOAT                  (4)
-#define _UINT64                 (5)
-#define _DOUBLE                 (6)
-#define PARAM_TYPE_MAX          (_DOUBLE)
-
-typedef union{
-    uint8_t     uint8_;
-    uint16_t    uint16_;
-    uint32_t    uint32_;
-    uint64_t    uint64_;
-    float       float_;
-    double      double_;
-} eigen_param_t;
-
 /* Sizes in EEPROM */
 #define S_UINT8                 (1)
 #define S_UINT16                (2)
