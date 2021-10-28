@@ -38,6 +38,8 @@ EigenUpdate *EigenResponseMailboxRead::update_module(ModuleShared mod, uint64_t 
                     variable = new EigenDouble(name);
                 } else if(mail_type & MAILBOX_STRING){
                     variable = new EigenString(name);
+                } else {
+                    variable = new EigenString(name); //Default
                 }
 
                 if(variable) {
