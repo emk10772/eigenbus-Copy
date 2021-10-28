@@ -55,7 +55,7 @@ public:
         param_list.resize(1);
         param_list[0] = param;
 
-        expected_num_params = 0;
+        expected_num_params = 0xFF;
         received_params = 0;
         t_last_update = current_time_ms();
         request_in_progress = false;
@@ -127,7 +127,7 @@ public:
         std::lock_guard<std::mutex> lock(mutex);
 
         //TODO: Some sort of error fixing here. If this is wrong, we need to re check everything
-        if(received_params > expected_num_params) return 0;
+        if(received_params > expected_num_params || expected_num_params == 0xFF) return 0;
 
         return expected_num_params - received_params;
     }
@@ -153,7 +153,7 @@ public:
      *      2. We aren't waiting on a recent request
      */
     inline bool update_required(){
-        return (expected_num_params == 0 || parameters_left() > 0) &&
+        return (expected_num_params == 0xFF || parameters_left() > 0) &&
                 d_t_last_update() > PACKET_TIMEOUT && !request_in_progress;
     }
 
@@ -196,7 +196,7 @@ public:
      *      (We have successfully read every parameter)
      */
     inline bool valid() const{
-        return expected_num_params != 0 && parameters_left() == 0;
+        return expected_num_params != 0xFF && parameters_left() == 0;
     }
 
 private:
