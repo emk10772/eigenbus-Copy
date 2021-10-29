@@ -12,6 +12,7 @@ EigenTopologyTracker::~EigenTopologyTracker(){
     //Delete all the nodes
     for(auto node : node_map_){
         //Clear all parent references to stop use-after-free in Node destructor
+        node.second->clear_children();
         node.second->set_parent(nullptr);
         delete node.second;
     }
@@ -434,6 +435,10 @@ void EigenTopologyTracker::Node::remove_child(eigen_addr_t child_addr){
     std::lock_guard<std::recursive_mutex> lock(mutex_);
 
     children_.erase(child_addr);
+}
+
+void EigenTopologyTracker::Node::clear_children() {
+    children_.clear();
 }
 
 bool EigenTopologyTracker::Node::has_child(eigen_addr_t child) const{

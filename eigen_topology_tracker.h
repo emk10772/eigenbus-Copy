@@ -70,6 +70,7 @@ public:
         void add_child(Node *child);
         void remove_child(Node *child);
         void remove_child(eigen_addr_t child_addr);
+        void clear_children();
         bool has_child(eigen_addr_t child) const;
         bool is_root() const;
         eigen_addr_t depth() const;
